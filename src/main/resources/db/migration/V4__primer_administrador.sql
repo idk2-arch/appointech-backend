@@ -1,0 +1,2 @@
+INSERT INTO usuario (nombre, apellido, correo, contrasena, telefono, tipo_documento, numero_documento, rol, activo, creado_en)
+VALUES ('Admin', 'Principal', 'admin@appointech.com', '$2b$12$btV25mZOWSNfO0mQD5owgO6YceB7gsmOSs0DLtyTKI8YPaqMSpmCa', '3000000000', 'CC', '000000000', 'ADMINISTRADOR', TRUE, NOW());
