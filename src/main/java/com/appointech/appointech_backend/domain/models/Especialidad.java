@@ -4,14 +4,16 @@ public class Especialidad {
     private Long id;
     private String nombre;
     private String descripcion;
+    private boolean activo;
 
     public Especialidad() {
     }
 
-    public Especialidad(Long id, String nombre, String descripcion) {
+    public Especialidad(Long id, String nombre, String descripcion, boolean activo) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
+        this.activo = activo;
     }
 
     public Long getId() {
@@ -36,5 +38,13 @@ public class Especialidad {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 }

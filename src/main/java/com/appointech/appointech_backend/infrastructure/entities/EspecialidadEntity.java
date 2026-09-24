@@ -23,4 +23,7 @@ public class EspecialidadEntity {
 
     @Column(length = 255)
     private String descripcion;
+
+    @Column(nullable = false)
+    private boolean activo = true;
 }

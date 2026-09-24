@@ -81,7 +81,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        String token = autenticarUsuarioUseCase.autenticar(request.correo(), request.contrasena());
-        return ResponseEntity.ok(new AuthResponse(token));
+        AutenticarUsuarioUseCase.ResultadoAutenticacion resultado =
+                autenticarUsuarioUseCase.autenticar(request.correo(), request.contrasena());
+
+        return ResponseEntity.ok(new AuthResponse(resultado.token(), resultado.perfilCompleto()));
     }
 }

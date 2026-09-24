@@ -3,6 +3,7 @@ package com.appointech.appointech_backend.infrastructure.config;
 import com.appointech.appointech_backend.domain.models.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.models.exception.CredencialesInvalidasException;
 import com.appointech.appointech_backend.domain.models.exception.EspecialidadNoEncontradaException;
+import com.appointech.appointech_backend.domain.models.exception.EspecialidadNombreDuplicadoException;
 import com.appointech.appointech_backend.domain.models.exception.TecnicoNoEncontradoException;
 import com.appointech.appointech_backend.domain.models.exception.UsuarioNoEncontradoException;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EspecialidadNoEncontradaException.class)
     public ResponseEntity<Map<String, Object>> manejarEspecialidadNoEncontrada(EspecialidadNoEncontradaException ex) {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(EspecialidadNombreDuplicadoException.class)
+    public ResponseEntity<Map<String, Object>> manejarEspecialidadNombreDuplicado(EspecialidadNombreDuplicadoException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

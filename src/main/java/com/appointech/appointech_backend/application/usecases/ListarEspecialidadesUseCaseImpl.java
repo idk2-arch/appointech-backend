@@ -18,6 +18,6 @@ public class ListarEspecialidadesUseCaseImpl implements ListarEspecialidadesUseC
 
     @Override
     public List<Especialidad> listar() {
-        return especialidadRepositoryPort.listarTodas();
+        return especialidadRepositoryPort.listarActivas();
     }
 }
