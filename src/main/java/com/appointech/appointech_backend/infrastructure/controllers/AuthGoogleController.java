@@ -1,6 +1,5 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
-import com.appointech.appointech_backend.domain.models.exception.CredencialesInvalidasException;
 import com.appointech.appointech_backend.domain.ports.in.LoginConGoogleUseCase;
 import com.appointech.appointech_backend.domain.ports.in.LoginConGoogleUseCase.ResultadoLogin;
 import com.appointech.appointech_backend.infrastructure.dto.AuthResponse;

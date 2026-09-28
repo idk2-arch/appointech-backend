@@ -1,7 +1,7 @@
 package com.appointech.appointech_backend.application.usecases;
 
 import com.appointech.appointech_backend.domain.models.Especialidad;
-import com.appointech.appointech_backend.domain.models.exception.EspecialidadNombreDuplicadoException;
+import com.appointech.appointech_backend.domain.exception.EspecialidadNombreDuplicadoException;
 import com.appointech.appointech_backend.domain.ports.in.CrearEspecialidadUseCase;
 import com.appointech.appointech_backend.domain.ports.out.EspecialidadRepositoryPort;
 import org.springframework.stereotype.Service;

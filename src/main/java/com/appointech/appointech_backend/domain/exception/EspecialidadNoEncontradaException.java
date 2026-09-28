@@ -1,4 +1,4 @@
-package com.appointech.appointech_backend.domain.models.exception;
+package com.appointech.appointech_backend.domain.exception;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.appointech.appointech_backend.domain.models.exception;
+package com.appointech.appointech_backend.domain.exception;
 
 public class UsuarioNoEncontradoException extends RuntimeException {
     public UsuarioNoEncontradoException(Long id) {

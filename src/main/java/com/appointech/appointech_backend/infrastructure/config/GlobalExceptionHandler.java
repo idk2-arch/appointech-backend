@@ -1,11 +1,11 @@
 package com.appointech.appointech_backend.infrastructure.config;
 
-import com.appointech.appointech_backend.domain.models.exception.CorreoYaRegistradoException;
-import com.appointech.appointech_backend.domain.models.exception.CredencialesInvalidasException;
-import com.appointech.appointech_backend.domain.models.exception.EspecialidadNoEncontradaException;
-import com.appointech.appointech_backend.domain.models.exception.EspecialidadNombreDuplicadoException;
-import com.appointech.appointech_backend.domain.models.exception.TecnicoNoEncontradoException;
-import com.appointech.appointech_backend.domain.models.exception.UsuarioNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
+import com.appointech.appointech_backend.domain.exception.CredencialesInvalidasException;
+import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
+import com.appointech.appointech_backend.domain.exception.EspecialidadNombreDuplicadoException;
+import com.appointech.appointech_backend.domain.exception.TecnicoNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.UsuarioNoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;

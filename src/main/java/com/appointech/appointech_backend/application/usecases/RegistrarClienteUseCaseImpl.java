@@ -4,7 +4,7 @@ import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.RolUsuario;
 import com.appointech.appointech_backend.domain.models.TipoDocumento;
 import com.appointech.appointech_backend.domain.models.Usuario;
-import com.appointech.appointech_backend.domain.models.exception.CorreoYaRegistradoException;
+import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.ports.in.RegistrarClienteUseCase;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.PasswordEncoderPort;

@@ -4,7 +4,7 @@ import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.PerfilUtil;
 import com.appointech.appointech_backend.domain.models.RolUsuario;
 import com.appointech.appointech_backend.domain.models.Usuario;
-import com.appointech.appointech_backend.domain.models.exception.CredencialesInvalidasException;
+import com.appointech.appointech_backend.domain.exception.CredencialesInvalidasException;
 import com.appointech.appointech_backend.domain.ports.in.LoginConGoogleUseCase;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.GoogleTokenVerifierPort;
