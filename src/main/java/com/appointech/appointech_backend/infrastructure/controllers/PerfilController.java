@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.in.CompletarPerfilUseCase;
+import com.appointech.appointech_backend.infrastructure.dto.ApiResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CompletarPerfilRequest;
 import com.appointech.appointech_backend.infrastructure.dto.UsuarioResponse;
 import jakarta.validation.Valid;
@@ -23,8 +24,8 @@ public class PerfilController {
     }
 
     @PatchMapping("/completar-perfil")
-    public ResponseEntity<UsuarioResponse> completarPerfil(@Valid @RequestBody CompletarPerfilRequest request,
-                                                           Authentication authentication) {
+    public ResponseEntity<ApiResponse<UsuarioResponse>> completarPerfil(@Valid @RequestBody CompletarPerfilRequest request,
+                                                                        Authentication authentication) {
         Usuario usuario = completarPerfilUseCase.completar(
                 authentication.getName(),
                 request.telefono(),
@@ -38,6 +39,6 @@ public class PerfilController {
                 usuario.getCorreo(), usuario.getRol().name()
         );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.exito(response, "Perfil completado correctamente"));
     }
 }

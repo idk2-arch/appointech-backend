@@ -6,71 +6,71 @@ import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontra
 import com.appointech.appointech_backend.domain.exception.EspecialidadNombreDuplicadoException;
 import com.appointech.appointech_backend.domain.exception.TecnicoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.UsuarioNoEncontradoException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URI;
 
+/**
+ * Normaliza todos los errores de la API con el formato RFC 7807 (Problem Details),
+ * usando la clase ProblemDetail que ya incluye Spring Framework.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(CorreoYaRegistradoException.class)
-    public ResponseEntity<Map<String, Object>> manejarCorreoYaRegistrado(CorreoYaRegistradoException ex) {
-        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    public ProblemDetail manejarCorreoYaRegistrado(CorreoYaRegistradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)
-    public ResponseEntity<Map<String, Object>> manejarCredencialesInvalidas(CredencialesInvalidasException ex) {
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ProblemDetail manejarCredencialesInvalidas(CredencialesInvalidasException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(TecnicoNoEncontradoException.class)
-    public ResponseEntity<Map<String, Object>> manejarTecnicoNoEncontrado(TecnicoNoEncontradoException ex) {
-        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ProblemDetail manejarTecnicoNoEncontrado(TecnicoNoEncontradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(UsuarioNoEncontradoException.class)
-    public ResponseEntity<Map<String, Object>> manejarUsuarioNoEncontrado(UsuarioNoEncontradoException ex) {
-        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ProblemDetail manejarUsuarioNoEncontrado(UsuarioNoEncontradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(EspecialidadNoEncontradaException.class)
-    public ResponseEntity<Map<String, Object>> manejarEspecialidadNoEncontrada(EspecialidadNoEncontradaException ex) {
-        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ProblemDetail manejarEspecialidadNoEncontrada(EspecialidadNoEncontradaException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(EspecialidadNombreDuplicadoException.class)
-    public ResponseEntity<Map<String, Object>> manejarEspecialidadNombreDuplicado(EspecialidadNombreDuplicadoException ex) {
-        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    public ProblemDetail manejarEspecialidadNombreDuplicado(EspecialidadNombreDuplicadoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> manejarAccesoDenegado(AccessDeniedException ex) {
-        return construirRespuesta(HttpStatus.FORBIDDEN, "No tienes permisos para realizar esta acción");
+    public ProblemDetail manejarAccesoDenegado(AccessDeniedException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.FORBIDDEN, "No tienes permisos para realizar esta acción", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> manejarValidacion(MethodArgumentNotValidException ex) {
+    public ProblemDetail manejarValidacion(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String mensaje = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Error de validación");
 
-        return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
+        return construirProblemDetail(HttpStatus.BAD_REQUEST, mensaje, request);
     }
 
-    private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", mensaje);
-
-        return ResponseEntity.status(status).body(body);
+    private ProblemDetail construirProblemDetail(HttpStatus status, String detail, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
     }
 }

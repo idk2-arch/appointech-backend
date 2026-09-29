@@ -7,6 +7,7 @@ import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.infrastructure.entities.ClienteEntity;
 import com.appointech.appointech_backend.infrastructure.entities.RolUsuarioEntity;
+import com.appointech.appointech_backend.infrastructure.entities.TipoDocumentoEntity;
 import com.appointech.appointech_backend.infrastructure.entities.UsuarioEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.ClienteJpaRepository;
 import org.springframework.stereotype.Component;
@@ -41,8 +42,23 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
         entity.setLatitud(cliente.getLatitud());
         entity.setLongitud(cliente.getLongitud());
 
+        Usuario usuario = cliente.getUsuario();
         UsuarioEntity usuarioEntity = new UsuarioEntity();
-        usuarioEntity.setId(cliente.getUsuario().getId());
+        usuarioEntity.setId(usuario.getId());
+        usuarioEntity.setNombre(usuario.getNombre());
+        usuarioEntity.setApellido(usuario.getApellido());
+        usuarioEntity.setCorreo(usuario.getCorreo());
+        usuarioEntity.setContrasena(usuario.getContrasena());
+        usuarioEntity.setTelefono(usuario.getTelefono());
+        if (usuario.getTipoDocumento() != null) {
+            usuarioEntity.setTipoDocumento(TipoDocumentoEntity.valueOf(usuario.getTipoDocumento().name()));
+        }
+        usuarioEntity.setNumeroDocumento(usuario.getNumeroDocumento());
+        if (usuario.getRol() != null) {
+            usuarioEntity.setRol(RolUsuarioEntity.valueOf(usuario.getRol().name()));
+        }
+        usuarioEntity.setActivo(usuario.isActivo());
+        usuarioEntity.setCreadoEn(usuario.getCreadoEn());
         entity.setUsuario(usuarioEntity);
 
         return entity;
@@ -66,7 +82,9 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
             usuario.setTipoDocumento(TipoDocumento.valueOf(usuarioEntity.getTipoDocumento().name()));
         }
         usuario.setNumeroDocumento(usuarioEntity.getNumeroDocumento());
-        usuario.setRol(RolUsuario.valueOf(usuarioEntity.getRol().name()));
+        if (usuarioEntity.getRol() != null) {
+            usuario.setRol(RolUsuario.valueOf(usuarioEntity.getRol().name()));
+        }
         usuario.setActivo(usuarioEntity.isActivo());
         usuario.setCreadoEn(usuarioEntity.getCreadoEn());
         cliente.setUsuario(usuario);

@@ -33,30 +33,34 @@ public class AdminEspecialidadController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EspecialidadAdminResponse>> listar() {
+    public ResponseEntity<ApiResponse<List<EspecialidadAdminResponse>>> listar() {
         List<EspecialidadAdminInfo> especialidades = listarEspecialidadesAdminUseCase.listar();
-        return ResponseEntity.ok(especialidades.stream().map(this::toResponse).toList());
+        List<EspecialidadAdminResponse> response = especialidades.stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.exito(response));
     }
 
     @PostMapping
-    public ResponseEntity<EspecialidadAdminResponse> crear(@Valid @RequestBody CrearEspecialidadRequest request) {
+    public ResponseEntity<ApiResponse<EspecialidadAdminResponse>> crear(@Valid @RequestBody CrearEspecialidadRequest request) {
         Especialidad especialidad = crearEspecialidadUseCase.crear(request.nombre(), request.descripcion());
         EspecialidadAdminResponse response = toResponse(new EspecialidadAdminInfo(especialidad, 0));
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Especialidad creada correctamente"));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<EspecialidadAdminResponse> actualizar(@PathVariable Long id,
-                                                                @Valid @RequestBody ActualizarEspecialidadRequest request) {
+    public ResponseEntity<ApiResponse<EspecialidadAdminResponse>> actualizar(@PathVariable Long id,
+                                                                             @Valid @RequestBody ActualizarEspecialidadRequest request) {
         Especialidad especialidad = actualizarEspecialidadUseCase.actualizar(id, request.nombre(), request.descripcion());
-        return ResponseEntity.ok(toResponse(new EspecialidadAdminInfo(especialidad, 0)));
+        EspecialidadAdminResponse response = toResponse(new EspecialidadAdminInfo(especialidad, 0));
+        return ResponseEntity.ok(ApiResponse.exito(response, "Especialidad actualizada correctamente"));
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<EspecialidadAdminResponse> cambiarEstado(@PathVariable Long id,
-                                                                   @RequestBody CambiarEstadoEspecialidadRequest request) {
+    public ResponseEntity<ApiResponse<EspecialidadAdminResponse>> cambiarEstado(@PathVariable Long id,
+                                                                                @RequestBody CambiarEstadoEspecialidadRequest request) {
         Especialidad especialidad = cambiarEstadoEspecialidadUseCase.cambiarEstado(id, request.activo());
-        return ResponseEntity.ok(toResponse(new EspecialidadAdminInfo(especialidad, 0)));
+        EspecialidadAdminResponse response = toResponse(new EspecialidadAdminInfo(especialidad, 0));
+        String mensaje = request.activo() ? "Especialidad activada correctamente" : "Especialidad desactivada correctamente";
+        return ResponseEntity.ok(ApiResponse.exito(response, mensaje));
     }
 
     private EspecialidadAdminResponse toResponse(EspecialidadAdminInfo info) {

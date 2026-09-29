@@ -31,7 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/registro/cliente")
-    public ResponseEntity<UsuarioResponse> registrarCliente(@Valid @RequestBody RegistroClienteRequest request) {
+    public ResponseEntity<ApiResponse<UsuarioResponse>> registrarCliente(@Valid @RequestBody RegistroClienteRequest request) {
         Cliente cliente = registrarClienteUseCase.registrar(
                 request.nombre(),
                 request.apellido(),
@@ -51,11 +51,11 @@ public class AuthController {
                 cliente.getUsuario().getRol().name()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Cliente registrado correctamente"));
     }
 
     @PostMapping("/registro/tecnico")
-    public ResponseEntity<UsuarioResponse> registrarTecnico(@Valid @RequestBody RegistroTecnicoRequest request) {
+    public ResponseEntity<ApiResponse<UsuarioResponse>> registrarTecnico(@Valid @RequestBody RegistroTecnicoRequest request) {
         Tecnico tecnico = registrarTecnicoUseCase.registrar(
                 request.nombre(),
                 request.apellido(),
@@ -76,14 +76,15 @@ public class AuthController {
                 tecnico.getUsuario().getRol().name()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Técnico registrado correctamente"));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AutenticarUsuarioUseCase.ResultadoAutenticacion resultado =
                 autenticarUsuarioUseCase.autenticar(request.correo(), request.contrasena());
 
-        return ResponseEntity.ok(new AuthResponse(resultado.token(), resultado.perfilCompleto()));
+        AuthResponse response = new AuthResponse(resultado.token(), resultado.perfilCompleto());
+        return ResponseEntity.ok(ApiResponse.exito(response, "Inicio de sesión exitoso"));
     }
 }

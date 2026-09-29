@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.ports.in.RegistrarTecnicoUseCase;
+import com.appointech.appointech_backend.infrastructure.dto.ApiResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CrearTecnicoRequest;
 import com.appointech.appointech_backend.infrastructure.dto.EspecialidadResponse;
 import com.appointech.appointech_backend.infrastructure.dto.TecnicoResponse;
@@ -26,7 +27,7 @@ public class AdminTecnicoController {
     }
 
     @PostMapping
-    public ResponseEntity<TecnicoResponse> crear(@Valid @RequestBody CrearTecnicoRequest request) {
+    public ResponseEntity<ApiResponse<TecnicoResponse>> crear(@Valid @RequestBody CrearTecnicoRequest request) {
         Tecnico tecnico = registrarTecnicoUseCase.registrar(
                 request.nombre(),
                 request.apellido(),
@@ -51,6 +52,6 @@ public class AdminTecnicoController {
                         .toList()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Técnico creado correctamente"));
     }
 }
