@@ -1,0 +1,18 @@
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: appointech-sonarqube
+    restart: unless-stopped
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_datos:/opt/sonarqube/data
+      - sonarqube_extensiones:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+
+volumes:
+  sonarqube_datos:
+  sonarqube_extensiones:
+  sonarqube_logs:
