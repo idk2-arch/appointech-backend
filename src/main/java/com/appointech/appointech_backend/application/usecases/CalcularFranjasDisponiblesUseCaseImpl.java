@@ -27,9 +27,9 @@ import java.util.TreeMap;
  * Caso de uso: calcular las franjas libres de un día combinando especialidad, citas, bloques de indisponibilidad y cercanía.
  * <p>Historias de usuario:
  * <ul>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-12">SCRUM-12</a> - RF19 - Calcular franjas horarias disponibles</li>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-13">SCRUM-13</a> - RF03 - Mostrar franjas sugeridas al cliente</li>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-11">SCRUM-11</a> - RF27 - Filtrar técnicos por especialidad</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-12">SCRUM-12</a> - RF19 - Calcular franjas horarias disponibles</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-13">SCRUM-13</a> - RF03 - Mostrar franjas sugeridas al cliente</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-11">SCRUM-11</a> - RF27 - Filtrar técnicos por especialidad</li>
  * </ul>
  */
 @Service

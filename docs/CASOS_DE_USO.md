@@ -1,18 +1,12 @@
 # Casos de uso y trazabilidad con Jira
 
-Reemplaza `TU-SITIO` por el nombre de tu sitio de Jira en todos los enlaces. Ejecuta esto desde la raíz del proyecto:
-
-```bash
-grep -rl TU-SITIO . | xargs sed -i 's/TU-SITIO/nombre-de-tu-sitio/g'
-```
-
 | Historia de usuario | Caso de uso | Endpoint | Rol | Código |
 |---|---|---|---|---|
-| [SCRUM-10](https://TU-SITIO.atlassian.net/browse/SCRUM-10) RF02 Crear solicitud de servicio | Crear solicitud de servicio | `POST /api/solicitudes` | CLIENTE | [CrearSolicitudServicioUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/CrearSolicitudServicioUseCaseImpl.java) |
-| [SCRUM-11](https://TU-SITIO.atlassian.net/browse/SCRUM-11) RF27 Filtrar técnicos por especialidad | Filtrar técnicos por especialidad | `GET /api/disponibilidad/tecnicos` | CLIENTE, ADMINISTRADOR | [FiltrarTecnicosPorEspecialidadUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/FiltrarTecnicosPorEspecialidadUseCaseImpl.java) |
-| [SCRUM-12](https://TU-SITIO.atlassian.net/browse/SCRUM-12) RF19 Calcular franjas horarias | Calcular franjas disponibles | `GET /api/disponibilidad/franjas` | CLIENTE | [CalcularFranjasDisponiblesUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/CalcularFranjasDisponiblesUseCaseImpl.java) |
-| [SCRUM-13](https://TU-SITIO.atlassian.net/browse/SCRUM-13) RF03 Mostrar franjas sugeridas | Entregar franjas al cliente | `GET /api/disponibilidad/franjas` | CLIENTE | mismo caso de uso que SCRUM-12 |
-| [SCRUM-14](https://TU-SITIO.atlassian.net/browse/SCRUM-14) RF04 Confirmar cita | Confirmar cita en una franja | `POST /api/citas/confirmar` | CLIENTE | [ConfirmarCitaUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ConfirmarCitaUseCaseImpl.java) |
+| [SCRUM-10](https://rossas2111.atlassian.net/browse/SCRUM-10) RF02 Crear solicitud de servicio | Crear solicitud de servicio | `POST /api/solicitudes` | CLIENTE | [CrearSolicitudServicioUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/CrearSolicitudServicioUseCaseImpl.java) |
+| [SCRUM-11](https://rossas2111.atlassian.net/browse/SCRUM-11) RF27 Filtrar técnicos por especialidad | Filtrar técnicos por especialidad | `GET /api/disponibilidad/tecnicos` | CLIENTE, ADMINISTRADOR | [FiltrarTecnicosPorEspecialidadUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/FiltrarTecnicosPorEspecialidadUseCaseImpl.java) |
+| [SCRUM-12](https://rossas2111.atlassian.net/browse/SCRUM-12) RF19 Calcular franjas horarias | Calcular franjas disponibles | `GET /api/disponibilidad/franjas` | CLIENTE | [CalcularFranjasDisponiblesUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/CalcularFranjasDisponiblesUseCaseImpl.java) |
+| [SCRUM-13](https://rossas2111.atlassian.net/browse/SCRUM-13) RF03 Mostrar franjas sugeridas | Entregar franjas al cliente | `GET /api/disponibilidad/franjas` | CLIENTE | mismo caso de uso que SCRUM-12 |
+| [SCRUM-14](https://rossas2111.atlassian.net/browse/SCRUM-14) RF04 Confirmar cita | Confirmar cita en una franja | `POST /api/citas/confirmar` | CLIENTE | [ConfirmarCitaUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ConfirmarCitaUseCaseImpl.java) |
 
 ## Casos de uso técnicos (no son historias de Jira)
 

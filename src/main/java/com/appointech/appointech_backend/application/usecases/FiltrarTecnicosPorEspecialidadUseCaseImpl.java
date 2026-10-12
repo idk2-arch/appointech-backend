@@ -11,7 +11,7 @@ import java.util.List;
  * Caso de uso: obtener los técnicos activos que atienden una especialidad.
  * <p>Historias de usuario:
  * <ul>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-11">SCRUM-11</a> - RF27 - Filtrar técnicos por especialidad al calcular disponibilidad</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-11">SCRUM-11</a> - RF27 - Filtrar técnicos por especialidad al calcular disponibilidad</li>
  * </ul>
  */
 @Service

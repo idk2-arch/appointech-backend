@@ -36,7 +36,7 @@ import java.util.List;
  * Caso de uso: confirmar la cita validando de nuevo la disponibilidad del técnico.
  * <p>Historias de usuario:
  * <ul>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-14">SCRUM-14</a> - RF04 - Confirmar cita en una franja sugerida</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-14">SCRUM-14</a> - RF04 - Confirmar cita en una franja sugerida</li>
  * </ul>
  */
 @Service

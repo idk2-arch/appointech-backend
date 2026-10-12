@@ -23,7 +23,7 @@ import java.util.List;
  * Caso de uso: crear una solicitud de servicio en estado PENDIENTE.
  * <p>Historias de usuario:
  * <ul>
- * <li><a href="https://TU-SITIO.atlassian.net/browse/SCRUM-10">SCRUM-10</a> - RF02 - Crear solicitud de servicio</li>
+ * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-10">SCRUM-10</a> - RF02 - Crear solicitud de servicio</li>
  * </ul>
  */
 @Service
