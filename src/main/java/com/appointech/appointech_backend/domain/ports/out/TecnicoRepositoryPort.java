@@ -10,4 +10,6 @@ public interface TecnicoRepositoryPort {
     Optional<Tecnico> buscarPorUsuarioId(Long usuarioId);
     Optional<Tecnico> buscarPorId(Long id);
     List<Tecnico> listarTodos();
+    List<Tecnico> buscarActivosPorEspecialidad(Long especialidadId);
+    Optional<Tecnico> buscarPorIdBloqueando(Long id);
 }

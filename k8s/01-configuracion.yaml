@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appointech-config
+  namespace: appointech
+data:
+  DB_URL: jdbc:postgresql://postgres:5432/appointech
+  DB_USER: appointech
+  NOTIFICACIONES_URL: http://notificaciones:8081
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: appointech-secretos
+  namespace: appointech
+type: Opaque
+stringData:
+  DB_PASSWORD: devpassword
+  JWT_SECRET: cambia-este-texto-por-uno-largo-de-minimo-32-caracteres

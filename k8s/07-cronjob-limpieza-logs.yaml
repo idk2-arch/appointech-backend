@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: limpieza-logs
+  namespace: appointech
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: limpieza
+              image: postgres:15
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGDATABASE
+                  value: appointech
+                - name: PGUSER
+                  valueFrom:
+                    configMapKeyRef:
+                      name: appointech-config
+                      key: DB_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: appointech-secretos
+                      key: DB_PASSWORD
+              command:
+                - psql
+                - -c
+                - "DELETE FROM log_sistema WHERE creado_en < NOW() - INTERVAL '30 days';"

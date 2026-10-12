@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificaciones
+  namespace: appointech
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notificaciones
+  template:
+    metadata:
+      labels:
+        app: notificaciones
+    spec:
+      containers:
+        - name: notificaciones
+          image: ghcr.io/OWNER/REPOSITORIO-notificaciones:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: appointech-secretos
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /api/notificaciones/salud
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notificaciones
+  namespace: appointech
+spec:
+  type: ClusterIP
+  selector:
+    app: notificaciones
+  ports:
+    - port: 8081
+      targetPort: 8081

@@ -1,0 +1,103 @@
+name: CI-CD Backend
+
+on:
+  push:
+    branches: [main, desarrollo, "feature/**"]
+  pull_request:
+    branches: [main, desarrollo]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+jobs:
+  construir-y-probar:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: appointech
+          POSTGRES_USER: appointech
+          POSTGRES_PASSWORD: devpassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U appointech -d appointech"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/appointech
+      DB_USER: appointech
+      DB_PASSWORD: devpassword
+      JWT_SECRET: clave-de-integracion-continua-con-mas-de-32-caracteres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Compilar y ejecutar pruebas
+        run: ./mvnw -B verify
+      - name: Analisis de calidad con SonarQube
+        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
+        run: >
+          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.projectKey=appointech-backend
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+          -Dsonar.token=${{ env.SONAR_TOKEN }}
+
+  publicar-imagenes:
+    needs: construir-y-probar
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/desarrollo')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Definir nombre de las imagenes
+        run: |
+          echo "IMAGEN_BACKEND=ghcr.io/${GITHUB_REPOSITORY,,}-backend" >> $GITHUB_ENV
+          echo "IMAGEN_NOTIFICACIONES=ghcr.io/${GITHUB_REPOSITORY,,}-notificaciones" >> $GITHUB_ENV
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publicar imagen del backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGEN_BACKEND }}:latest
+            ${{ env.IMAGEN_BACKEND }}:${{ github.sha }}
+      - name: Publicar imagen del microservicio de notificaciones
+        uses: docker/build-push-action@v6
+        with:
+          context: ./microservicio-notificaciones
+          push: true
+          tags: |
+            ${{ env.IMAGEN_NOTIFICACIONES }}:latest
+            ${{ env.IMAGEN_NOTIFICACIONES }}:${{ github.sha }}
+
+  desplegar-kubernetes:
+    needs: publicar-imagenes
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar manifiestos
+        if: ${{ env.KUBE_CONFIG != '' }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${KUBE_CONFIG}" | base64 -d > ~/.kube/config
+          kubectl apply -f k8s/

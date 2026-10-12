@@ -53,6 +53,16 @@ public class TecnicoRepositoryAdapter implements TecnicoRepositoryPort {
         return tecnicoJpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
+    @Override
+    public List<Tecnico> buscarActivosPorEspecialidad(Long especialidadId) {
+        return tecnicoJpaRepository.buscarActivosPorEspecialidad(especialidadId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Tecnico> buscarPorIdBloqueando(Long id) {
+        return tecnicoJpaRepository.buscarPorIdBloqueando(id).map(this::toDomain);
+    }
+
     private TecnicoEntity toEntity(Tecnico tecnico) {
         TecnicoEntity entity = new TecnicoEntity();
         entity.setId(tecnico.getId());
