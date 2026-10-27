@@ -2,7 +2,13 @@ package com.appointech.appointech_backend.infrastructure.config;
 
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
+import com.appointech.appointech_backend.domain.exception.BloqueInvalidoException;
+import com.appointech.appointech_backend.domain.exception.BloqueNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.BloqueSolapadoException;
+import com.appointech.appointech_backend.domain.exception.CitaSinUbicacionException;
 import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.PerfilTecnicoNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.UbicacionBaseNoConfiguradaException;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.SolicitudNoEncontradaException;
@@ -45,6 +51,36 @@ public class AgendamientoExceptionHandler {
     @ExceptionHandler(FranjaInvalidaException.class)
     public ResponseEntity<Map<String, Object>> manejarFranjaInvalida(FranjaInvalidaException ex) {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(BloqueInvalidoException.class)
+    public ResponseEntity<Map<String, Object>> manejarBloqueInvalido(BloqueInvalidoException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(BloqueSolapadoException.class)
+    public ResponseEntity<Map<String, Object>> manejarBloqueSolapado(BloqueSolapadoException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(BloqueNoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarBloqueNoEncontrado(BloqueNoEncontradoException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(PerfilTecnicoNoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarPerfilTecnicoNoEncontrado(PerfilTecnicoNoEncontradoException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(UbicacionBaseNoConfiguradaException.class)
+    public ResponseEntity<Map<String, Object>> manejarUbicacionBaseNoConfigurada(UbicacionBaseNoConfiguradaException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(CitaSinUbicacionException.class)
+    public ResponseEntity<Map<String, Object>> manejarCitaSinUbicacion(CitaSinUbicacionException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {

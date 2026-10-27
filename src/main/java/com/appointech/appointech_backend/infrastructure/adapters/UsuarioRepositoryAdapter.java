@@ -35,6 +35,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
+    public Optional<Usuario> buscarPorNumeroDocumento(String numeroDocumento) {
+        return usuarioJpaRepository.findByNumeroDocumento(numeroDocumento).map(this::toDomain);
+    }
+
+    @Override
     public Optional<Usuario> buscarPorId(Long id) {
         return usuarioJpaRepository.findById(id).map(this::toDomain);
     }

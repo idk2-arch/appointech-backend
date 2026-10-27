@@ -1,10 +1,12 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.RolUsuario;
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.models.TipoDocumento;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
+import com.appointech.appointech_backend.domain.exception.DocumentoYaRegistradoException;
 import com.appointech.appointech_backend.domain.ports.in.RegistrarTecnicoUseCase;
 import com.appointech.appointech_backend.domain.ports.out.PasswordEncoderPort;
 import com.appointech.appointech_backend.domain.ports.out.TecnicoRepositoryPort;
@@ -31,9 +33,15 @@ public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
     @Override
     public Tecnico registrar(String nombre, String apellido, String correo, String contrasena, String telefono,
                              TipoDocumento tipoDocumento, String numeroDocumento, String direccionBase,
-                             Integer radioCoberturaKm) {
+                             Integer radioCoberturaKm, Double latitudBase, Double longitudBase) {
+        Coordenadas base = Coordenadas.opcional(latitudBase, longitudBase);
+
         if (usuarioRepositoryPort.buscarPorCorreo(correo).isPresent()) {
             throw new CorreoYaRegistradoException(correo);
+        }
+
+        if (numeroDocumento != null && usuarioRepositoryPort.buscarPorNumeroDocumento(numeroDocumento).isPresent()) {
+            throw new DocumentoYaRegistradoException(numeroDocumento);
         }
 
         Usuario usuario = new Usuario();
@@ -53,6 +61,10 @@ public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
         Tecnico tecnico = new Tecnico();
         tecnico.setUsuario(usuarioGuardado);
         tecnico.setDireccionBase(direccionBase);
+        if (base != null) {
+            tecnico.setLatitudBase(base.latitud());
+            tecnico.setLongitudBase(base.longitud());
+        }
         tecnico.setRadioCoberturaKm(radioCoberturaKm != null ? radioCoberturaKm : 10);
 
         return tecnicoRepositoryPort.guardar(tecnico);

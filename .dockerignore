@@ -1,5 +1,9 @@
 target
 .git
+.idea
+.env
+*.md
+*.pdf
 microservicio-notificaciones
 k8s
 docs

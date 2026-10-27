@@ -22,9 +22,23 @@ public class ConfiguracionFranjasRepositoryAdapter implements ConfiguracionFranj
         return configuracionFranjasJpaRepository.findFirstByOrderByIdDesc().map(this::toDomain);
     }
 
+    @Override
+    public ConfiguracionFranjas guardar(ConfiguracionFranjas configuracion) {
+        ConfiguracionFranjasEntity entity = new ConfiguracionFranjasEntity();
+        entity.setId(configuracion.getId());
+        entity.setDuracionBloqueMinutos(configuracion.getDuracionBloqueMinutos());
+        entity.setRadioMaximoKm(configuracion.getRadioMaximoKm());
+        entity.setHoraInicioJornada(configuracion.getHoraInicioJornada());
+        entity.setHoraFinJornada(configuracion.getHoraFinJornada());
+        entity.setTelefonoWhatsappAdmin(configuracion.getTelefonoWhatsappAdmin());
+        return toDomain(configuracionFranjasJpaRepository.save(entity));
+    }
+
     private ConfiguracionFranjas toDomain(ConfiguracionFranjasEntity entity) {
-        return new ConfiguracionFranjas(
+        ConfiguracionFranjas configuracion = new ConfiguracionFranjas(
                 entity.getId(), entity.getDuracionBloqueMinutos(), entity.getRadioMaximoKm(),
                 entity.getHoraInicioJornada(), entity.getHoraFinJornada());
+        configuracion.setTelefonoWhatsappAdmin(entity.getTelefonoWhatsappAdmin());
+        return configuracion;
     }
 }

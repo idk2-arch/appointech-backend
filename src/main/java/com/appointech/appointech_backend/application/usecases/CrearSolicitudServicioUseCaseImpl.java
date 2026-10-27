@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.application.usecases;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
+import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
@@ -50,6 +51,8 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
     @Override
     public Cita crear(String correoCliente, Long especialidadId, String descripcionProblema,
                       String direccionServicio, Double latitud, Double longitud) {
+        Coordenadas ubicacion = Coordenadas.de(latitud, longitud);
+
         Usuario usuario = usuarioRepositoryPort.buscarPorCorreo(correoCliente)
                 .orElseThrow(() -> new ClienteNoEncontradoException(correoCliente));
         Cliente cliente = clienteRepositoryPort.buscarPorUsuarioId(usuario.getId())
@@ -66,8 +69,8 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         solicitud.setEspecialidadId(especialidadId);
         solicitud.setDescripcionProblema(descripcionProblema);
         solicitud.setDireccionServicio(direccionServicio);
-        solicitud.setLatitud(latitud);
-        solicitud.setLongitud(longitud);
+        solicitud.setLatitud(ubicacion.latitud());
+        solicitud.setLongitud(ubicacion.longitud());
         solicitud.setEstado(EstadoCita.PENDIENTE);
         solicitud.setCreadaEn(ahora);
         solicitud.setActualizadaEn(ahora);

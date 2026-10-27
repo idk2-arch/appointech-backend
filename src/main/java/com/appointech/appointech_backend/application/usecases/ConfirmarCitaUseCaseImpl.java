@@ -93,6 +93,10 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
             throw new FranjaNoDisponibleException("La solicitud ya fue confirmada o cancelada");
         }
 
+        if (solicitud.isAgendamientoManual()) {
+            throw new FranjaNoDisponibleException("Esta solicitud es de agendamiento manual: un administrador asignará el técnico y el horario");
+        }
+
         validarContraConfiguracion(inicio, fin);
 
         Tecnico tecnico = tecnicoRepositoryPort.buscarPorIdBloqueando(tecnicoId)

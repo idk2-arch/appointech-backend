@@ -1,5 +1,17 @@
 # Despliegue: puertos, balanceador, Kubernetes, CI/CD, SonarQube y Vercel
 
+## Levantar todo con Docker Compose
+
+Levanta frontend, backend, notificaciones, balanceador y base de datos con un solo comando. El frontend debe estar en `../appointech-frontend` (o en la ruta de `FRONTEND_PATH`) con su propio Dockerfile.
+
+1. Copia `.env.example` a `.env` y cambia `DB_PASSWORD` y `JWT_SECRET` (son obligatorios).
+2. Construye y arranca: `docker compose up -d --build`
+3. Abre:
+   - Frontend: http://localhost:4200
+   - API (por el balanceador): http://localhost:8080/api
+   - La base de datos y las notificaciones no se publican; solo se ven dentro de la red `app-network`.
+4. Para detener: `docker compose down` (los datos se conservan en el volumen `db-data`; `docker compose down -v` los borra).
+
 ## 1. Puertos internos y externos en Docker
 
 El puerto **interno** es el del contenedor. El **externo** es el que abres desde tu computador. En `docker-compose.yml` se escriben como `externo:interno`.
@@ -83,3 +95,23 @@ Vercel hospeda el **frontend Angular**, no el backend Spring. Pasos:
 4. Dos ajustes en archivos existentes, que requieren tu autorización porque modifican líneas y no solo agregan:
    - `src/app/core/config/api.config.ts`: `API_BASE_URL` apunta a `localhost`.
    - `SecurityConfig` del backend: el CORS solo permite `http://localhost:4200`.
+
+## 7. Distancia por carretera (OpenRouteService)
+
+Las franjas se filtran por el radio de cobertura usando la distancia por carretera que calcula OpenRouteService (ORS). No se geocodifican direcciones: el cliente envía `latitud` y `longitud` en la solicitud y el administrador registra la base de cada técnico (`latitudBase`, `longitudBase`, o `PATCH /api/admin/tecnicos/{id}/ubicacion`). Un técnico sin coordenadas no se ofrece.
+
+| Variable | Dónde se define | Descripción |
+|---|---|---|
+| `ORS_API_KEY` | `.env`, `docker-compose.yml`, Secret `appointech-secretos` en `k8s/01-configuracion.yaml` | Clave de la API de OpenRouteService. Es opcional: sin ella la app arranca y usa Haversine (línea recta). |
+
+Propiedades de `application.properties` (con valor por defecto):
+
+- `mapas.proveedor`: `ors` o `haversine`.
+- `ors.base-url`: `https://api.heigit.org`.
+- `ors.matrix-path`: `/openrouteservice/v2/matrix/driving-car`.
+- `ors.auth-prefix`: texto antepuesto a la clave en el encabezado `Authorization` (vacío por defecto: la clave va sola, sin `Bearer`).
+- `ors.timeout-conexion-ms` (3000) y `ors.timeout-lectura-ms` (5000).
+
+Si ORS falla (timeout, 401, 429, 5xx) o no hay clave, se usa Haversine para todos los destinos y se registra un warning sin la clave. Si ORS no encuentra ruta para un destino, solo ese usa Haversine. La clave nunca debe subirse a GitHub: en Kubernetes crea el Secret real aparte.
+
+Propiedades opcionales de la agenda del técnico (todas con valor por defecto, no hace falta definirlas): `RUTA_MARGEN_MINUTOS` (0), `CONTACTO_ADMIN_TELEFONO` (vacío; teléfono de WhatsApp del administrador de respaldo para clientes fuera de cobertura), `RUTA_TOLERANCIA_MINUTOS` (5, retraso en minutos que aún cuenta como llegar a tiempo; 0 = regla estricta), `HAVERSINE_VELOCIDAD_KMH` (40, solo estima minutos cuando se usa Haversine) y `APP_ZONA_HORARIA` (America/Bogota, define "hoy" y "ahora" en bloques y rutas).

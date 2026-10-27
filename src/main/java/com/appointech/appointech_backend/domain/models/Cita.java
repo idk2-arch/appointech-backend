@@ -18,6 +18,8 @@ public class Cita {
     private String diagnostico;
     private LocalDateTime creadaEn;
     private LocalDateTime actualizadaEn;
+    private boolean agendamientoManual;
+    private String telefonoContacto;
 
     public Cita() {
     }
@@ -132,5 +134,21 @@ public class Cita {
 
     public void setActualizadaEn(LocalDateTime actualizadaEn) {
         this.actualizadaEn = actualizadaEn;
+    }
+
+    public boolean isAgendamientoManual() {
+        return agendamientoManual;
+    }
+
+    public void setAgendamientoManual(boolean agendamientoManual) {
+        this.agendamientoManual = agendamientoManual;
+    }
+
+    public String getTelefonoContacto() {
+        return telefonoContacto;
+    }
+
+    public void setTelefonoContacto(String telefonoContacto) {
+        this.telefonoContacto = telefonoContacto;
     }
 }

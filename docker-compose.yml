@@ -1,38 +1,78 @@
 services:
-  balanceador:
-    image: nginx:1.27-alpine
-    container_name: appointech-balanceador
+  database:
+    image: postgres:15-alpine
+    container_name: appointech-db-compose
     restart: unless-stopped
-    depends_on:
-      - backend
+    environment:
+      POSTGRES_DB: ${DB_NAME:-appointech}
+      POSTGRES_USER: ${DB_USER:-appointech}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      - "${PUERTO_EXTERNO_API:-8080}:80"
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  notificaciones:
+    build: ./microservicio-notificaciones
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
+      TZ: America/Bogota
+    networks:
+      - app-network
 
   backend:
     build: .
     restart: unless-stopped
-    depends_on:
-      - notificaciones
     environment:
-      DB_URL: ${DB_URL:-jdbc:postgresql://host.docker.internal:5432/appointech}
+      DB_URL: jdbc:postgresql://database:5432/${DB_NAME:-appointech}
       DB_USER: ${DB_USER:-appointech}
-      DB_PASSWORD: ${DB_PASSWORD:-devpassword}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
       NOTIFICACIONES_URL: http://notificaciones:8081
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    expose:
-      - "8080"
+      ORS_API_KEY: ${ORS_API_KEY:-}
+      RUTA_TOLERANCIA_MINUTOS: ${RUTA_TOLERANCIA_MINUTOS:-5}
+      CONTACTO_ADMIN_TELEFONO: ${CONTACTO_ADMIN_TELEFONO:-}
+      TZ: America/Bogota
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Bogota
+    depends_on:
+      database:
+        condition: service_healthy
+      notificaciones:
+        condition: service_started
+    networks:
+      - app-network
 
-  notificaciones:
-    build: ./microservicio-notificaciones
-    container_name: appointech-notificaciones
+  balanceador:
+    image: nginx:1.27-alpine
     restart: unless-stopped
-    environment:
-      JWT_SECRET: ${JWT_SECRET}
-    expose:
-      - "8081"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "${PUERTO_EXTERNO_NOTIFICACIONES:-8081}:8081"
+      - "${PUERTO_EXTERNO_API:-8080}:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  frontend:
+    build: ${FRONTEND_PATH:-../appointech-frontend}
+    restart: unless-stopped
+    ports:
+      - "${PUERTO_EXTERNO_FRONTEND:-4200}:80"
+    depends_on:
+      - balanceador
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:

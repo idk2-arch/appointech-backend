@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface ConfiguracionFranjasRepositoryPort {
     Optional<ConfiguracionFranjas> obtenerActual();
+    ConfiguracionFranjas guardar(ConfiguracionFranjas configuracion);
 }

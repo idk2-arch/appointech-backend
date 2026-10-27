@@ -3,6 +3,8 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 import com.appointech.appointech_backend.domain.ports.in.CalcularFranjasDisponiblesUseCase;
 import com.appointech.appointech_backend.domain.ports.in.FiltrarTecnicosPorEspecialidadUseCase;
 import com.appointech.appointech_backend.infrastructure.dto.FranjaDisponibleResponse;
+import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
+import com.appointech.appointech_backend.infrastructure.dto.FranjasConMotivoResponse;
 import com.appointech.appointech_backend.infrastructure.dto.TecnicoDisponibleResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -46,14 +48,33 @@ public class DisponibilidadController {
     public ResponseEntity<List<FranjaDisponibleResponse>> franjas(
             @RequestParam Long especialidadId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam Double latitud,
-            @RequestParam Double longitud) {
-        List<FranjaDisponibleResponse> response = calcularFranjasDisponiblesUseCase
-                .calcular(especialidadId, fecha, latitud, longitud)
-                .stream()
-                .map(f -> new FranjaDisponibleResponse(f.getTecnicoId(), f.getInicio(), f.getFin(),
-                        Math.round(f.getDistanciaKm() * 100.0) / 100.0))
-                .toList();
-        return ResponseEntity.ok(response);
+            @RequestParam(required = false) Double latitud,
+            @RequestParam(required = false) Double longitud) {
+        ResultadoFranjas resultado = calcularFranjasDisponiblesUseCase
+                .calcularConMotivo(especialidadId, fecha, latitud, longitud);
+        ResponseEntity.BodyBuilder respuesta = ResponseEntity.ok();
+        if (resultado.motivo() != null) {
+            // El cuerpo sigue siendo un arreglo; el motivo viaja en una cabecera.
+            respuesta.header("X-Motivo-Sin-Franjas", resultado.motivo().name());
+        }
+        if (resultado.telefonoContactoAdmin() != null) {
+            respuesta.header("X-Telefono-Contacto-Admin", resultado.telefonoContactoAdmin());
+        }
+        return respuesta.body(resultado.franjas().stream().map(FranjaResponseMapper::aRespuesta).toList());
+    }
+
+    @GetMapping("/franjas-con-motivo")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<FranjasConMotivoResponse> franjasConMotivo(
+            @RequestParam Long especialidadId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false) Double latitud,
+            @RequestParam(required = false) Double longitud) {
+        ResultadoFranjas resultado = calcularFranjasDisponiblesUseCase
+                .calcularConMotivo(especialidadId, fecha, latitud, longitud);
+        return ResponseEntity.ok(new FranjasConMotivoResponse(
+                resultado.franjas().stream().map(FranjaResponseMapper::aRespuesta).toList(),
+                resultado.motivo() != null ? resultado.motivo().name() : null,
+                resultado.telefonoContactoAdmin()));
     }
 }

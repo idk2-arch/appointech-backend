@@ -12,6 +12,7 @@ import com.appointech.appointech_backend.infrastructure.entities.UsuarioEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.ClienteJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -28,6 +29,16 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
         ClienteEntity entity = toEntity(cliente);
         ClienteEntity guardada = clienteJpaRepository.save(entity);
         return toDomain(guardada);
+    }
+
+    @Override
+    public Optional<Cliente> buscarPorId(Long id) {
+        return clienteJpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public List<Cliente> listarTodos() {
+        return clienteJpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     @Override

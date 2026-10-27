@@ -10,6 +10,10 @@ public record CitaResponse(
         String direccionServicio,
         LocalDateTime fechaHoraInicio,
         LocalDateTime fechaHoraFin,
-        String estado
+        String estado,
+        String tecnicoNombre,
+        String tecnicoApellido,
+        String tecnicoTelefono,
+        String especialidadNombre
 ) {
 }

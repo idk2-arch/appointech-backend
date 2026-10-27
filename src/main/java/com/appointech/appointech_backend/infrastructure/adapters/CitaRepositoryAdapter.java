@@ -40,6 +40,12 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
                 .toList();
     }
 
+    @Override
+    public List<Cita> buscarSolicitudesManualesPendientes() {
+        return citaJpaRepository.buscarSolicitudesManualesPorEstado(EstadoCitaEntity.PENDIENTE)
+                .stream().map(this::toDomain).toList();
+    }
+
     private CitaEntity toEntity(Cita cita) {
         CitaEntity entity = new CitaEntity();
         entity.setId(cita.getId());
@@ -56,6 +62,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         entity.setDiagnostico(cita.getDiagnostico());
         entity.setCreadaEn(cita.getCreadaEn());
         entity.setActualizadaEn(cita.getActualizadaEn());
+        entity.setAgendamientoManual(cita.isAgendamientoManual());
+        entity.setTelefonoContacto(cita.getTelefonoContacto());
         return entity;
     }
 
@@ -75,6 +83,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         cita.setDiagnostico(entity.getDiagnostico());
         cita.setCreadaEn(entity.getCreadaEn());
         cita.setActualizadaEn(entity.getActualizadaEn());
+        cita.setAgendamientoManual(entity.isAgendamientoManual());
+        cita.setTelefonoContacto(entity.getTelefonoContacto());
         return cita;
     }
 }

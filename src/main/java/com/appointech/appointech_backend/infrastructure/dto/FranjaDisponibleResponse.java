@@ -6,6 +6,8 @@ public record FranjaDisponibleResponse(
         Long tecnicoId,
         LocalDateTime inicio,
         LocalDateTime fin,
-        double distanciaKm
+        double distanciaKm,
+        String tecnicoNombre,
+        String tecnicoApellido
 ) {
 }

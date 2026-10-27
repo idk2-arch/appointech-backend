@@ -6,5 +6,5 @@ import com.appointech.appointech_backend.domain.models.TipoDocumento;
 public interface RegistrarTecnicoUseCase {
     Tecnico registrar(String nombre, String apellido, String correo, String contrasena, String telefono,
                       TipoDocumento tipoDocumento, String numeroDocumento, String direccionBase,
-                      Integer radioCoberturaKm);
+                      Integer radioCoberturaKm, Double latitudBase, Double longitudBase);
 }

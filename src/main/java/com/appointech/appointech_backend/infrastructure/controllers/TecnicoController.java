@@ -4,7 +4,6 @@ import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.ports.in.AsignarEspecialidadesTecnicoUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ListarTecnicosUseCase;
 import com.appointech.appointech_backend.infrastructure.dto.AsignarEspecialidadesRequest;
-import com.appointech.appointech_backend.infrastructure.dto.EspecialidadResponse;
 import com.appointech.appointech_backend.infrastructure.dto.TecnicoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -43,16 +42,6 @@ public class TecnicoController {
     }
 
     private TecnicoResponse toResponse(Tecnico tecnico) {
-        return new TecnicoResponse(
-                tecnico.getId(),
-                tecnico.getUsuario().getNombre(),
-                tecnico.getUsuario().getApellido(),
-                tecnico.getUsuario().getCorreo(),
-                tecnico.getDireccionBase(),
-                tecnico.getRadioCoberturaKm(),
-                tecnico.getEspecialidades().stream()
-                        .map(e -> new EspecialidadResponse(e.getId(), e.getNombre(), e.getDescripcion()))
-                        .toList()
-        );
+        return TecnicoResponseMapper.aRespuesta(tecnico);
     }
 }

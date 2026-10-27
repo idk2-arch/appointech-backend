@@ -56,8 +56,12 @@ $tecnico = (Llamar "POST" "/admin/tecnicos" @{
     nombre = "Tecnico"; apellido = "Prueba$sufijo"; correo = "tecnico$sufijo@prueba.com"
     contrasena = "clave12345"; telefono = "3000000000"; tipoDocumento = "CC"
     numeroDocumento = "9$sufijo"; direccionBase = "Fusagasuga"; radioCoberturaKm = 10
+    latitudBase = 4.3365; longitudBase = -74.3638
 } $admin.token).datos
-Verificar ($tecnico.id -gt 0) "Se crea el técnico"
+Verificar ($tecnico.id -gt 0) "Se crea el técnico con coordenadas base"
+$ubicacion = (Llamar "PATCH" "/admin/tecnicos/$($tecnico.id)/ubicacion" @{ latitud = 4.3365; longitud = -74.3638 } $admin.token).datos
+Verificar ($ubicacion.latitudBase -eq 4.3365) "El administrador actualiza la ubicación del técnico"
+Verificar ((LlamarEsperandoError "PATCH" "/admin/tecnicos/$($tecnico.id)/ubicacion" @{ latitud = -74.3638; longitud = 4.3365 } $admin.token) -eq 400) "Coordenadas invertidas se rechazan con 400"
 $tecnicoConEspecialidad = Llamar "PATCH" "/tecnicos/$($tecnico.id)/especialidades" @{ especialidadIds = @($lavadoras.id) } $admin.token
 Verificar (@($tecnicoConEspecialidad.especialidades).Count -eq 1) "Se le asigna Lavadoras"
 

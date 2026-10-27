@@ -60,4 +60,10 @@ public class CitaEntity {
 
     @Column(name = "actualizada_en")
     private LocalDateTime actualizadaEn;
+
+    @Column(name = "agendamiento_manual", nullable = false)
+    private boolean agendamientoManual;
+
+    @Column(name = "telefono_contacto", length = 20)
+    private String telefonoContacto;
 }

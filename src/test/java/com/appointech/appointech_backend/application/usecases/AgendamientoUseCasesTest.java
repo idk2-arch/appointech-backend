@@ -3,6 +3,10 @@ package com.appointech.appointech_backend.application.usecases;
 import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
+import com.appointech.appointech_backend.domain.models.Coordenadas;
+import com.appointech.appointech_backend.domain.models.Distancia;
+import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
+import com.appointech.appointech_backend.domain.ports.out.CalculadoraDistanciaPort;
 import com.appointech.appointech_backend.domain.models.ConfiguracionFranjas;
 import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
@@ -32,6 +36,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.ToDoubleFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,6 +61,12 @@ class AgendamientoUseCasesTest {
     private Cita solicitudPendiente;
 
     private final CitaRepositoryPort citaRepositoryPort = new CitaRepositoryPort() {
+        @Override
+        public List<Cita> buscarSolicitudesManualesPendientes() {
+            return citasGuardadas.stream().filter(Cita::isAgendamientoManual)
+                    .filter(c -> c.getEstado() == EstadoCita.PENDIENTE && c.getTecnicoId() == null).toList();
+        }
+
         @Override
         public Cita guardar(Cita cita) {
             if (cita.getId() == null) {
@@ -82,10 +93,24 @@ class AgendamientoUseCasesTest {
     private final BloqueIndisponibilidadRepositoryPort bloquesRepositoryPort =
             (tecnicoId, inicio, fin) -> new ArrayList<BloqueIndisponibilidad>();
 
-    private final ConfiguracionFranjasRepositoryPort configuracionRepositoryPort = () -> Optional.of(
-            new ConfiguracionFranjas(1L, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0)));
+    private final ConfiguracionFranjasRepositoryPort configuracionRepositoryPort = new ConfiguracionFranjasRepositoryPort() {
+        @Override
+        public Optional<ConfiguracionFranjas> obtenerActual() {
+            return Optional.of(new ConfiguracionFranjas(1L, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0)));
+        }
+
+        @Override
+        public ConfiguracionFranjas guardar(ConfiguracionFranjas configuracion) {
+            return configuracion;
+        }
+    };
 
     private final UsuarioRepositoryPort usuarioRepositoryPort = new UsuarioRepositoryPort() {
+        @Override
+        public Optional<Usuario> buscarPorNumeroDocumento(String numeroDocumento) {
+            return Optional.empty();
+        }
+
         @Override
         public Usuario guardar(Usuario usuario) {
             return usuario;
@@ -108,6 +133,16 @@ class AgendamientoUseCasesTest {
     };
 
     private final ClienteRepositoryPort clienteRepositoryPort = new ClienteRepositoryPort() {
+        @Override
+        public Optional<Cliente> buscarPorId(Long id) {
+            return Optional.of(cliente);
+        }
+
+        @Override
+        public List<Cliente> listarTodos() {
+            return List.of(cliente);
+        }
+
         @Override
         public Cliente guardar(Cliente c) {
             return c;
@@ -278,6 +313,64 @@ class AgendamientoUseCasesTest {
         assertThrows(FranjaInvalidaException.class, () ->
                 confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
                         fechaPrueba.atTime(8, 0), fechaPrueba.atTime(9, 0)));
+    }
+
+    @Test
+    void noOfreceTecnicosSinCoordenadasBase() {
+        tecnicosDisponibles.clear();
+        tecnicosDisponibles.add(crearTecnicoSinCoordenadas(1L));
+        List<List<Coordenadas>> llamadas = new ArrayList<>();
+
+        List<FranjaDisponible> franjas = calcularFranjasConDistancias(llamadas, d -> 1.0)
+                .calcular(2L, fechaPrueba, LATITUD_CLIENTE, LONGITUD_CLIENTE);
+
+        assertTrue(franjas.isEmpty());
+        assertTrue(llamadas.isEmpty());
+    }
+
+    @Test
+    void filtraPorRadioConLaDistanciaPorCarreteraYLlamaAlPuertoUnaVez() {
+        // Ambos técnicos están en el mismo punto (Haversine daría 0 km); manda la distancia por carretera.
+        tecnicosDisponibles.clear();
+        tecnicosDisponibles.add(crearTecnico(1L, LATITUD_CLIENTE, LONGITUD_CLIENTE, 10));
+        tecnicosDisponibles.add(crearTecnico(2L, LATITUD_CLIENTE, LONGITUD_CLIENTE, 10));
+        List<List<Coordenadas>> llamadas = new ArrayList<>();
+        List<Double> kmPorCarretera = List.of(25.0, 4.0);
+        int[] indice = {0};
+
+        List<FranjaDisponible> franjas = calcularFranjasConDistancias(llamadas, d -> kmPorCarretera.get(indice[0]++))
+                .calcular(2L, fechaPrueba, LATITUD_CLIENTE, LONGITUD_CLIENTE);
+
+        assertEquals(1, llamadas.size());
+        assertEquals(2, llamadas.get(0).size());
+        assertEquals(5, franjas.size());
+        assertTrue(franjas.stream().allMatch(f -> f.getTecnicoId().equals(2L) && f.getDistanciaKm() == 4.0));
+    }
+
+    @Test
+    void rechazaSolicitudSinLatitudOLongitud() {
+        assertThrows(CoordenadasInvalidasException.class,
+                () -> calcularFranjas.calcular(2L, fechaPrueba, null, LONGITUD_CLIENTE));
+        assertThrows(CoordenadasInvalidasException.class,
+                () -> calcularFranjas.calcular(2L, fechaPrueba, LATITUD_CLIENTE, null));
+    }
+
+    private CalcularFranjasDisponiblesUseCaseImpl calcularFranjasConDistancias(
+            List<List<Coordenadas>> llamadas, ToDoubleFunction<Coordenadas> kmPorDestino) {
+        CalculadoraDistanciaPort puertoSimulado = (origen, destinos) -> {
+            llamadas.add(destinos);
+            return destinos.stream().map(d -> new Distancia(kmPorDestino.applyAsDouble(d), 10)).toList();
+        };
+        return new CalcularFranjasDisponiblesUseCaseImpl(
+                new FiltrarTecnicosPorEspecialidadUseCaseImpl(tecnicoRepositoryPort),
+                citaRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort, puertoSimulado);
+    }
+
+    private Tecnico crearTecnicoSinCoordenadas(Long id) {
+        Usuario usuario = new Usuario();
+        usuario.setActivo(true);
+        Especialidad especialidad = new Especialidad(2L, "Lavadoras", "", true);
+        return new Tecnico(id, usuario, "Base", null, null, 10, List.of(especialidad));
     }
 
     private Tecnico crearTecnico(Long id, double latitud, double longitud, int radioKm) {

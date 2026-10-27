@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.ports.in.CrearSolicitudServicioUseCase;
+import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
 import com.appointech.appointech_backend.infrastructure.dto.CitaResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CrearSolicitudRequest;
 import jakarta.validation.Valid;
@@ -20,9 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class SolicitudServicioController {
 
     private final CrearSolicitudServicioUseCase crearSolicitudServicioUseCase;
+    private final ObtenerDetalleCitaUseCase obtenerDetalleCitaUseCase;
 
-    public SolicitudServicioController(CrearSolicitudServicioUseCase crearSolicitudServicioUseCase) {
+    public SolicitudServicioController(CrearSolicitudServicioUseCase crearSolicitudServicioUseCase,
+                                       ObtenerDetalleCitaUseCase obtenerDetalleCitaUseCase) {
         this.crearSolicitudServicioUseCase = crearSolicitudServicioUseCase;
+        this.obtenerDetalleCitaUseCase = obtenerDetalleCitaUseCase;
     }
 
     @PostMapping
@@ -36,6 +40,6 @@ public class SolicitudServicioController {
                 request.latitud(),
                 request.longitud()
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(CitaResponseMapper.aRespuesta(solicitud));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CitaResponseMapper.aRespuesta(obtenerDetalleCitaUseCase.detallar(solicitud)));
     }
 }

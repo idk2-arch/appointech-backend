@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public record CrearTecnicoRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,
@@ -21,19 +23,23 @@ public record CrearTecnicoRequest(
         @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
         String contrasena,
 
-        @NotBlank(message = "El teléfono es obligatorio")
         String telefono,
 
         @NotNull(message = "El tipo de documento es obligatorio")
         TipoDocumento tipoDocumento,
 
-        @NotBlank(message = "El número de documento es obligatorio")
         String numeroDocumento,
 
         @NotBlank(message = "La dirección base es obligatoria")
         String direccionBase,
 
-        @NotNull(message = "El radio de cobertura es obligatorio")
-        Integer radioCoberturaKm
+        /** Obsoleto: el límite de distancia es único para todo el sistema; se ignora si llega. */
+        Integer radioCoberturaKm,
+
+        Double latitudBase,
+
+        Double longitudBase,
+
+        List<Long> especialidadIds
 ) {
 }

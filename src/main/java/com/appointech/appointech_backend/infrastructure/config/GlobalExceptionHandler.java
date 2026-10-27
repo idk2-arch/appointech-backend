@@ -1,6 +1,13 @@
 package com.appointech.appointech_backend.infrastructure.config;
 
+import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
+import com.appointech.appointech_backend.domain.exception.ClientePorIdNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
+import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
+import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
+import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
+import com.appointech.appointech_backend.domain.exception.TelefonoWhatsappInvalidoException;
+import com.appointech.appointech_backend.domain.exception.DocumentoYaRegistradoException;
 import com.appointech.appointech_backend.domain.exception.CredencialesInvalidasException;
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.EspecialidadNombreDuplicadoException;
@@ -28,6 +35,27 @@ public class GlobalExceptionHandler {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(DocumentoYaRegistradoException.class)
+    public ProblemDetail manejarDocumentoYaRegistrado(DocumentoYaRegistradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ClientePorIdNoEncontradoException.class)
+    public ProblemDetail manejarClientePorIdNoEncontrado(ClientePorIdNoEncontradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({RadioCoberturaInvalidoException.class, TelefonoContactoRequeridoException.class,
+            TelefonoWhatsappInvalidoException.class})
+    public ProblemDetail manejarDatosInvalidos(RuntimeException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SolicitudManualNoPermitidaException.class)
+    public ProblemDetail manejarSolicitudManualNoPermitida(SolicitudManualNoPermitidaException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(CredencialesInvalidasException.class)
     public ProblemDetail manejarCredencialesInvalidas(CredencialesInvalidasException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
@@ -51,6 +79,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EspecialidadNombreDuplicadoException.class)
     public ProblemDetail manejarEspecialidadNombreDuplicado(EspecialidadNombreDuplicadoException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CoordenadasInvalidasException.class)
+    public ProblemDetail manejarCoordenadasInvalidas(CoordenadasInvalidasException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

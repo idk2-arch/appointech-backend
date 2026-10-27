@@ -31,4 +31,7 @@ public class ConfiguracionFranjasEntity {
 
     @Column(name = "hora_fin_jornada", nullable = false)
     private LocalTime horaFinJornada;
+
+    @Column(name = "telefono_whatsapp_admin", length = 30)
+    private String telefonoWhatsappAdmin;
 }

@@ -11,6 +11,10 @@ import java.util.List;
 
 public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
 
+    @Query("SELECT c FROM CitaEntity c WHERE c.agendamientoManual = true AND c.tecnicoId IS NULL AND c.estado = :estado "
+            + "ORDER BY c.creadaEn ASC, c.id ASC")
+    List<CitaEntity> buscarSolicitudesManualesPorEstado(@Param("estado") EstadoCitaEntity estado);
+
     @Query("SELECT c FROM CitaEntity c WHERE c.tecnicoId = :tecnicoId AND c.estado <> :estadoExcluido "
             + "AND c.fechaHoraInicio < :fin AND c.fechaHoraFin > :inicio")
     List<CitaEntity> buscarDelTecnicoEntre(@Param("tecnicoId") Long tecnicoId,

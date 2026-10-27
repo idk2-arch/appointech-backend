@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface CitaRepositoryPort {
     Cita guardar(Cita cita);
     Optional<Cita> buscarPorId(Long id);
+    /** Solicitudes de agendamiento manual que siguen PENDIENTES (sin técnico), las más antiguas primero. */
+    List<Cita> buscarSolicitudesManualesPendientes();
     List<Cita> buscarActivasDelTecnicoEntre(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin);
 }

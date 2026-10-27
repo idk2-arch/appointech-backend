@@ -65,7 +65,9 @@ public class AuthController {
                 request.tipoDocumento(),
                 request.numeroDocumento(),
                 request.direccionBase(),
-                request.radioCoberturaKm()
+                request.radioCoberturaKm(),
+                request.latitudBase(),
+                request.longitudBase()
         );
 
         UsuarioResponse response = new UsuarioResponse(

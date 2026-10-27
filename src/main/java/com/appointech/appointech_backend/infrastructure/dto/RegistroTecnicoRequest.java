@@ -31,6 +31,10 @@ public record RegistroTecnicoRequest(
         @NotBlank(message = "La dirección base es obligatoria")
         String direccionBase,
 
-        Integer radioCoberturaKm
+        Integer radioCoberturaKm,
+
+        Double latitudBase,
+
+        Double longitudBase
 ) {
 }
