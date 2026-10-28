@@ -10,8 +10,31 @@ on:
 permissions:
   contents: read
 
+# Una ejecucion nueva cancela la anterior de la misma rama o PR; en main nunca se cancela
+# para no dejar a medias una publicacion de imagenes o un despliegue.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  JAVA_VERSION: "21"
+
 jobs:
-  construir-y-probar:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Compilar y empaquetar sin pruebas
+        run: ./mvnw -B -DskipTests package
+
+  test:
+    name: Test y cobertura
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -32,6 +55,35 @@ jobs:
       DB_USER: appointech
       DB_PASSWORD: devpassword
       JWT_SECRET: clave-de-integracion-continua-con-mas-de-32-caracteres
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Ejecutar pruebas con JaCoCo
+        run: ./mvnw -B verify
+      - name: Subir reporte de JaCoCo
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: jacoco-reporte
+          path: target/site/jacoco/
+          if-no-files-found: warn
+      - name: Subir resultados de las pruebas
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: surefire-reportes
+          path: target/surefire-reports/
+          if-no-files-found: warn
+
+  sonar:
+    name: SonarQube Cloud
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    env:
       # Los PR desde forks no reciben secretos: SONAR_TOKEN llega vacio y se omite el analisis
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -41,7 +93,7 @@ jobs:
       - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: ${{ env.JAVA_VERSION }}
           cache: maven
       - name: Cache de SonarQube Cloud
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -49,15 +101,71 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Compilar y ejecutar pruebas
-        if: ${{ env.SONAR_TOKEN == '' }}
-        run: ./mvnw -B verify
-      - name: Compilar, probar y analizar con SonarQube Cloud
+      - name: Descargar reporte de JaCoCo del trabajo de pruebas
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: jacoco-reporte
+          path: target/site/jacoco/
+      - name: Analizar y esperar el Quality Gate
         if: ${{ env.SONAR_TOKEN != '' }}
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        run: >-
+          ./mvnw -B -DskipTests compile
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=300
+
+  seguridad:
+    name: Seguridad de dependencias
+    needs: build
+    runs-on: ubuntu-latest
+    # Informativo: no bloquea el pipeline ni las publicaciones
+    continue-on-error: true
+    env:
+      # Opcional: con clave de la NVD la descarga de vulnerabilidades es mucho mas rapida
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Cache de la base de datos de vulnerabilidades
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: ${{ runner.os }}-dependency-check-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-dependency-check-
+      - name: Analizar dependencias con OWASP Dependency-Check
+        continue-on-error: true
+        run: >-
+          ./mvnw -B org.owasp:dependency-check-maven:12.1.3:check
+          -Dformats=HTML,JSON
+          -DfailBuildOnCVSS=7
+          -DnvdApiKey="${NVD_API_KEY}"
+      - name: Subir reporte de dependencias
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dependency-check-reporte
+          path: target/dependency-check-report.*
+          if-no-files-found: warn
+
+  docker:
+    name: Docker (sin publicar)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Construir la imagen del backend sin publicarla
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          push: false
+          tags: appointech-backend:ci
 
   publicar-imagenes:
-    needs: construir-y-probar
+    needs: [build, test, sonar, docker]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/desarrollo')
     runs-on: ubuntu-latest
     permissions:
