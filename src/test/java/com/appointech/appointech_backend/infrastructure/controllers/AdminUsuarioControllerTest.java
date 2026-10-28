@@ -88,6 +88,18 @@ class AdminUsuarioControllerTest {
     }
 
     @Test
+    void listarConUsuarioSinRolDevuelveRolNuloSinFallar() throws Exception {
+        Usuario sinRol = usuario(3L, TipoDocumento.CC, true);
+        sinRol.setRol(null);
+        when(listar.listar()).thenReturn(List.of(sinRol));
+
+        mvc.perform(get("/api/admin/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(3))
+                .andExpect(jsonPath("$[0].rol").doesNotExist());
+    }
+
+    @Test
     void crearAdministradorResponde201() throws Exception {
         when(crear.crear("Ana", "Lopez", "ana@mail.com", "clave12345", "300", TipoDocumento.CE, "123"))
                 .thenReturn(usuario(9L, TipoDocumento.CE, true));

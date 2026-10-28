@@ -48,7 +48,7 @@ public class AuthController {
                 cliente.getUsuario().getNombre(),
                 cliente.getUsuario().getApellido(),
                 cliente.getUsuario().getCorreo(),
-                cliente.getUsuario().getRol().name()
+                cliente.getUsuario().getRol() != null ? cliente.getUsuario().getRol().name() : null
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Cliente registrado correctamente"));

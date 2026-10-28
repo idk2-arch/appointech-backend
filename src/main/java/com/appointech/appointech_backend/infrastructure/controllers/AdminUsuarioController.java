@@ -82,7 +82,7 @@ public class AdminUsuarioController {
                 usuario.getTelefono(),
                 usuario.getTipoDocumento() != null ? usuario.getTipoDocumento().name() : null,
                 usuario.getNumeroDocumento(),
-                usuario.getRol().name(),
+                usuario.getRol() != null ? usuario.getRol().name() : null,
                 usuario.isActivo(),
                 usuario.getCreadoEn()
         );

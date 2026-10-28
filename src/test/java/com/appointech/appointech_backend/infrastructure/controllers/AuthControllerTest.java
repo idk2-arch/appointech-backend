@@ -77,6 +77,19 @@ class AuthControllerTest {
     }
 
     @Test
+    void registrarClienteConUsuarioSinRolResponde201ConRolNulo() throws Exception {
+        Cliente cliente = new Cliente();
+        cliente.setUsuario(usuario(null));
+        when(registrarCliente.registrar("Ana", "Lopez", "ana@mail.com", "clave12345",
+                "3001112233", TipoDocumento.CC, "123", "Calle 1")).thenReturn(cliente);
+
+        mvc.perform(post("/api/auth/registro/cliente").contentType(MediaType.APPLICATION_JSON).content(CLIENTE_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.datos.id").value(4))
+                .andExpect(jsonPath("$.datos.rol").doesNotExist());
+    }
+
+    @Test
     void registrarClienteConCorreoDuplicadoResponde409() throws Exception {
         when(registrarCliente.registrar(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new CorreoYaRegistradoException("ana@mail.com"));
