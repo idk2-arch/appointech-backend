@@ -70,6 +70,7 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
         }
         usuarioEntity.setActivo(usuario.isActivo());
         usuarioEntity.setCreadoEn(usuario.getCreadoEn());
+        usuarioEntity.setFotoClave(usuario.getFotoClave());
         entity.setUsuario(usuarioEntity);
 
         return entity;
@@ -98,6 +99,7 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
         }
         usuario.setActivo(usuarioEntity.isActivo());
         usuario.setCreadoEn(usuarioEntity.getCreadoEn());
+        usuario.setFotoClave(usuarioEntity.getFotoClave());
         cliente.setUsuario(usuario);
 
         return cliente;

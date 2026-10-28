@@ -95,6 +95,7 @@ public class TecnicoRepositoryAdapter implements TecnicoRepositoryPort {
         }
         usuarioEntity.setActivo(usuario.isActivo());
         usuarioEntity.setCreadoEn(usuario.getCreadoEn());
+        usuarioEntity.setFotoClave(usuario.getFotoClave());
         entity.setUsuario(usuarioEntity);
 
         return entity;
@@ -130,6 +131,7 @@ public class TecnicoRepositoryAdapter implements TecnicoRepositoryPort {
         }
         usuario.setActivo(usuarioEntity.isActivo());
         usuario.setCreadoEn(usuarioEntity.getCreadoEn());
+        usuario.setFotoClave(usuarioEntity.getFotoClave());
         tecnico.setUsuario(usuario);
 
         return tecnico;

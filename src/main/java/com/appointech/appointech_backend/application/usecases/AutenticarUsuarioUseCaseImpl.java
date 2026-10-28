@@ -45,7 +45,7 @@ public class AutenticarUsuarioUseCaseImpl implements AutenticarUsuarioUseCase {
         String token = tokenGeneratorPort.generarToken(usuario);
         boolean perfilCompleto = calcularPerfilCompleto(usuario);
 
-        return new ResultadoAutenticacion(token, perfilCompleto);
+        return new ResultadoAutenticacion(token, perfilCompleto, usuario.getFotoClave());
     }
 
     private boolean calcularPerfilCompleto(Usuario usuario) {

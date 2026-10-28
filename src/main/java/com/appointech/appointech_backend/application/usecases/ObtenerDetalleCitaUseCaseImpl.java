@@ -36,7 +36,8 @@ public class ObtenerDetalleCitaUseCaseImpl implements ObtenerDetalleCitaUseCase 
                 tecnico != null ? tecnico.getNombre() : null,
                 tecnico != null ? tecnico.getApellido() : null,
                 tecnico != null ? tecnico.getTelefono() : null,
-                especialidad
+                especialidad,
+                tecnico != null ? tecnico.getFotoClave() : null
         );
     }
 }

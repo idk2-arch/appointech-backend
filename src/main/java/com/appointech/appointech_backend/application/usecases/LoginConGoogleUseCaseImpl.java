@@ -66,7 +66,8 @@ public class LoginConGoogleUseCaseImpl implements LoginConGoogleUseCase {
                 usuario.getRol().name(),
                 usuario.getNombre(),
                 usuario.getCorreo(),
-                perfilCompleto
+                perfilCompleto,
+                usuario.getFotoClave()
         );
     }
 

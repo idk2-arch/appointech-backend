@@ -55,4 +55,7 @@ public class UsuarioEntity {
 
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
+
+    @Column(name = "foto_clave", length = 64)
+    private String fotoClave;
 }

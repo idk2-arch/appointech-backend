@@ -4,6 +4,7 @@ public interface LoginConGoogleUseCase {
 
     ResultadoLogin ejecutar(String idToken);
 
-    record ResultadoLogin(String token, String rol, String nombre, String correo, boolean perfilCompleto) {
+    record ResultadoLogin(String token, String rol, String nombre, String correo, boolean perfilCompleto,
+                          String fotoClave) {
     }
 }

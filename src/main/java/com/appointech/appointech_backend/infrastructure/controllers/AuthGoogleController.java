@@ -28,7 +28,7 @@ public class AuthGoogleController {
         }
 
         ResultadoLogin resultado = loginConGoogle.ejecutar(request.idToken());
-        AuthResponse response = new AuthResponse(resultado.token(), resultado.perfilCompleto());
+        AuthResponse response = new AuthResponse(resultado.token(), resultado.perfilCompleto(), FotoUrlMapper.aUrl(resultado.fotoClave()));
         return ResponseEntity.ok(ApiResponse.exito(response, "Inicio de sesión con Google exitoso"));
     }
 }

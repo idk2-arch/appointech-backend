@@ -1,12 +1,12 @@
-package com.appointech.notificaciones;
+package com.appointech.notifications;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NotificacionesApplication {
+public class NotificationsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NotificacionesApplication.class, args);
+        SpringApplication.run(NotificationsApplication.class, args);
     }
 }

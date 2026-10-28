@@ -14,6 +14,7 @@ public class Usuario {
     private RolUsuario rol;
     private boolean activo;
     private LocalDateTime creadoEn;
+    private String fotoClave;
 
     public Usuario() {
     }
@@ -120,5 +121,14 @@ public class Usuario {
 
     public void setCreadoEn(LocalDateTime creadoEn) {
         this.creadoEn = creadoEn;
+    }
+
+    /** Clave (UUID) del objeto con la foto en el almacenamiento; null si el usuario no tiene foto. */
+    public String getFotoClave() {
+        return fotoClave;
+    }
+
+    public void setFotoClave(String fotoClave) {
+        this.fotoClave = fotoClave;
     }
 }

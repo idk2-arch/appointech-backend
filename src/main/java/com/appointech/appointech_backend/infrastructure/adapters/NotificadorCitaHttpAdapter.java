@@ -15,42 +15,67 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.function.Supplier;
 
 @Component
 public class NotificadorCitaHttpAdapter implements NotificadorCitaPort {
 
     private final String urlNotificaciones;
     private final RegistroLogPort registroLogPort;
+    private final DatosCorreoCitaResolver datosCorreo;
     private final HttpClient clienteHttp = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(2))
             .build();
 
     public NotificadorCitaHttpAdapter(@Value("${notificaciones.url:}") String urlNotificaciones,
-                                      RegistroLogPort registroLogPort) {
+                                      RegistroLogPort registroLogPort,
+                                      DatosCorreoCitaResolver datosCorreo) {
         this.urlNotificaciones = urlNotificaciones;
         this.registroLogPort = registroLogPort;
+        this.datosCorreo = datosCorreo;
     }
 
     @Override
     public void notificarCitaConfirmada(Cita cita, String correoCliente) {
-        String cuerpo = "{\"citaId\":" + cita.getId()
-                + ",\"correoCliente\":\"" + escapar(correoCliente) + "\""
-                + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
-                + ",\"fin\":\"" + cita.getFechaHoraFin() + "\"}";
-        enviar("/api/notificaciones/cita-confirmada", cuerpo, correoCliente);
+        enviar("/api/notificaciones/cita-confirmada", correoCliente, () -> {
+            DatosCorreoCitaResolver.DatosCorreoCita datos = datosCorreo.resolver(cita);
+            return "{\"citaId\":" + cita.getId()
+                    + "," + campo("correoCliente", correoCliente)
+                    + "," + campo("nombreCliente", datos.nombreCliente())
+                    + "," + campo("servicio", datos.servicio())
+                    + "," + campo("tecnico", datos.tecnico())
+                    + "," + campo("fecha", cita.getFechaHoraInicio() == null ? null : cita.getFechaHoraInicio().toLocalDate().toString())
+                    + "," + campo("hora", cita.getFechaHoraInicio() == null ? null : cita.getFechaHoraInicio().toLocalTime().toString())
+                    + "," + campo("direccion", cita.getDireccionServicio())
+                    + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
+                    + ",\"fin\":\"" + cita.getFechaHoraFin() + "\"}";
+        });
+    }
+
+    @Override
+    public void notificarCitaFinalizada(Cita cita, String correoCliente) {
+        enviar("/api/notificaciones/cita-finalizada", correoCliente, () -> {
+            DatosCorreoCitaResolver.DatosCorreoCita datos = datosCorreo.resolver(cita);
+            return "{\"citaId\":" + cita.getId()
+                    + "," + campo("correoCliente", correoCliente)
+                    + "," + campo("nombreCliente", datos.nombreCliente())
+                    + "," + campo("servicio", datos.servicio())
+                    + "," + campo("tecnico", datos.tecnico())
+                    + "," + campo("diagnostico", cita.getDiagnostico()) + "}";
+        });
     }
 
     @Override
     public void notificarCambioDeCita(Cita cita, String correoDestinatario, String mensaje) {
-        String cuerpo = "{\"citaId\":" + cita.getId()
-                + ",\"correoDestinatario\":\"" + escapar(correoDestinatario) + "\""
+        enviar("/api/notificaciones/cita-actualizada", correoDestinatario, () -> "{\"citaId\":" + cita.getId()
+                + "," + campo("correoDestinatario", correoDestinatario)
                 + ",\"estado\":\"" + cita.getEstado() + "\""
                 + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
-                + ",\"mensaje\":\"" + escapar(mensaje) + "\"}";
-        enviar("/api/notificaciones/cita-actualizada", cuerpo, correoDestinatario);
+                + "," + campo("mensaje", mensaje) + "}");
     }
 
-    private void enviar(String ruta, String cuerpo, String correoCliente) {
+    /** El cuerpo se arma dentro del try: si falta algún dato, el fallo se registra y no sube al caso de uso. */
+    private void enviar(String ruta, String correoCliente, Supplier<String> armarCuerpo) {
         if (urlNotificaciones == null || urlNotificaciones.isBlank()) {
             return;
         }
@@ -58,10 +83,11 @@ public class NotificadorCitaHttpAdapter implements NotificadorCitaPort {
         try {
             HttpRequest peticion = HttpRequest.newBuilder()
                     .uri(URI.create(urlNotificaciones + ruta))
-                    .timeout(Duration.ofSeconds(3))
+                    // el microservicio envía el correo SMTP antes de responder, por eso el margen es mayor
+                    .timeout(Duration.ofSeconds(8))
                     .header("Content-Type", "application/json")
                     .header("Authorization", obtenerAutorizacionActual())
-                    .POST(HttpRequest.BodyPublishers.ofString(cuerpo))
+                    .POST(HttpRequest.BodyPublishers.ofString(armarCuerpo.get()))
                     .build();
 
             HttpResponse<String> respuesta = clienteHttp.send(peticion, HttpResponse.BodyHandlers.ofString());
@@ -84,6 +110,10 @@ public class NotificadorCitaHttpAdapter implements NotificadorCitaPort {
             return autorizacion == null ? "" : autorizacion;
         }
         return "";
+    }
+
+    private String campo(String nombre, String valor) {
+        return "\"" + nombre + "\":\"" + escapar(valor) + "\"";
     }
 
     private String escapar(String texto) {

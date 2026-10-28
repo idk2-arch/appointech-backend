@@ -28,7 +28,8 @@ final class TecnicoResponseMapper {
                 usuario.getNumeroDocumento(),
                 usuario.isActivo(),
                 tecnico.getLatitudBase(),
-                tecnico.getLongitudBase()
+                tecnico.getLongitudBase(),
+                FotoUrlMapper.aUrl(usuario.getFotoClave())
         );
     }
 }

@@ -84,7 +84,8 @@ public class AdminUsuarioController {
                 usuario.getNumeroDocumento(),
                 usuario.getRol() != null ? usuario.getRol().name() : null,
                 usuario.isActivo(),
-                usuario.getCreadoEn()
+                usuario.getCreadoEn(),
+                FotoUrlMapper.aUrl(usuario.getFotoClave())
         );
     }
 }

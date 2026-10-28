@@ -278,6 +278,81 @@ class CambiosDeEstadoCitaUseCasesTest {
                 actualizarEstado().actualizar("tec@mail.com", 10L, EstadoCita.EN_CAMINO).getEstado());
     }
 
+    @Test
+    void alFinalizarSeEnviaUnaSolaVezElCorreoDeFinalizacionDespuesDeGuardarElHistorial() {
+        Cita c = cita(10L, EstadoCita.EN_PROCESO, 1L, 5L);
+        c.setDiagnostico("Sifón roto");
+        when(resolverTecnico.resolver("tec@mail.com")).thenReturn(tecnico(5L, "tec@mail.com"));
+        when(citas.buscarPorId(10L)).thenReturn(Optional.of(c));
+        guardarDevuelveLoRecibido();
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.of(cliente(1L, "ana@mail.com")));
+
+        Cita r = actualizarEstado().actualizar("tec@mail.com", 10L, EstadoCita.FINALIZADA);
+
+        assertEquals(EstadoCita.FINALIZADA, r.getEstado());
+        org.mockito.InOrder orden = org.mockito.Mockito.inOrder(historial, notificador);
+        orden.verify(historial).registrar(any(HistorialEstadoCita.class));
+        orden.verify(notificador).notificarCitaFinalizada(r, "ana@mail.com");
+        verify(notificador, org.mockito.Mockito.times(1)).notificarCitaFinalizada(any(), anyString());
+    }
+
+    @Test
+    void losDemasCambiosDeEstadoNoEnvianElCorreoDeFinalizacion() {
+        Cita c = cita(10L, EstadoCita.CONFIRMADA, 1L, 5L);
+        when(resolverTecnico.resolver("tec@mail.com")).thenReturn(tecnico(5L, "tec@mail.com"));
+        when(citas.buscarPorId(10L)).thenReturn(Optional.of(c));
+        guardarDevuelveLoRecibido();
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.of(cliente(1L, "ana@mail.com")));
+        ActualizarEstadoCitaUseCaseImpl caso = actualizarEstado();
+
+        caso.actualizar("tec@mail.com", 10L, EstadoCita.EN_CAMINO);
+        caso.actualizar("tec@mail.com", 10L, EstadoCita.EN_PROCESO);
+
+        verify(notificador, never()).notificarCitaFinalizada(any(), anyString());
+    }
+
+    @Test
+    void siFallaElCorreoDeFinalizacionLaCitaIgualQuedaFinalizada() {
+        Cita c = cita(10L, EstadoCita.EN_PROCESO, 1L, 5L);
+        when(resolverTecnico.resolver("tec@mail.com")).thenReturn(tecnico(5L, "tec@mail.com"));
+        when(citas.buscarPorId(10L)).thenReturn(Optional.of(c));
+        guardarDevuelveLoRecibido();
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.of(cliente(1L, "ana@mail.com")));
+        doThrow(new IllegalStateException("caído")).when(notificador).notificarCitaFinalizada(any(), anyString());
+
+        Cita r = actualizarEstado().actualizar("tec@mail.com", 10L, EstadoCita.FINALIZADA);
+
+        assertEquals(EstadoCita.FINALIZADA, r.getEstado());
+        verify(citas).guardar(c);
+        verify(historial).registrar(any(HistorialEstadoCita.class));
+    }
+
+    @Test
+    void siNoSeEncuentraAlClienteNoSeEnviaElCorreoDeFinalizacionPeroElEstadoCambia() {
+        Cita c = cita(10L, EstadoCita.EN_PROCESO, 1L, 5L);
+        when(resolverTecnico.resolver("tec@mail.com")).thenReturn(tecnico(5L, "tec@mail.com"));
+        when(citas.buscarPorId(10L)).thenReturn(Optional.of(c));
+        guardarDevuelveLoRecibido();
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.empty());
+
+        assertEquals(EstadoCita.FINALIZADA,
+                actualizarEstado().actualizar("tec@mail.com", 10L, EstadoCita.FINALIZADA).getEstado());
+
+        verifyNoInteractions(notificador);
+    }
+
+    @Test
+    void siFallaLaBusquedaDelClienteAlFinalizarElEstadoIgualCambia() {
+        Cita c = cita(10L, EstadoCita.EN_PROCESO, 1L, 5L);
+        when(resolverTecnico.resolver("tec@mail.com")).thenReturn(tecnico(5L, "tec@mail.com"));
+        when(citas.buscarPorId(10L)).thenReturn(Optional.of(c));
+        guardarDevuelveLoRecibido();
+        when(clientes.buscarPorId(1L)).thenThrow(new IllegalStateException("db"));
+
+        assertEquals(EstadoCita.FINALIZADA,
+                actualizarEstado().actualizar("tec@mail.com", 10L, EstadoCita.FINALIZADA).getEstado());
+    }
+
     // ================= CancelarCitaCliente (SCRUM-21) =================
 
     private CancelarCitaClienteUseCaseImpl cancelarCliente() {

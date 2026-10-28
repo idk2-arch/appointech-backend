@@ -38,7 +38,8 @@ public class DisponibilidadController {
                 .map(t -> new TecnicoDisponibleResponse(
                         t.getId(),
                         t.getUsuario().getNombre() + " " + t.getUsuario().getApellido(),
-                        t.getRadioCoberturaKm()))
+                        t.getRadioCoberturaKm(),
+                        FotoUrlMapper.aUrl(t.getUsuario().getFotoClave())))
                 .toList();
         return ResponseEntity.ok(response);
     }

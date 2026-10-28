@@ -5,6 +5,9 @@ import com.appointech.appointech_backend.domain.models.Cita;
 public interface NotificadorCitaPort {
     void notificarCitaConfirmada(Cita cita, String correoCliente);
 
+    /** Avisa al cliente que el servicio terminó; el correo incluye el diagnóstico de la cita. */
+    void notificarCitaFinalizada(Cita cita, String correoCliente);
+
     /** Avisa a un participante de la cita (cliente o técnico) de un cambio de estado, cancelación o reprogramación. */
     void notificarCambioDeCita(Cita cita, String correoDestinatario, String mensaje);
 }

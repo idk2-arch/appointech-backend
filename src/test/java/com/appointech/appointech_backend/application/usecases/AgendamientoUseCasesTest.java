@@ -219,6 +219,10 @@ class AgendamientoUseCasesTest {
         @Override
         public void notificarCambioDeCita(Cita cita, String correoDestinatario, String mensaje) {
         }
+
+        @Override
+        public void notificarCitaFinalizada(Cita cita, String correoCliente) {
+        }
     };
 
     private CalcularFranjasDisponiblesUseCaseImpl calcularFranjas;

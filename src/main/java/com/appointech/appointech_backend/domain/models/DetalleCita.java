@@ -9,6 +9,13 @@ public record DetalleCita(
         String tecnicoNombre,
         String tecnicoApellido,
         String tecnicoTelefono,
-        String especialidadNombre
+        String especialidadNombre,
+        String tecnicoFotoClave
 ) {
+
+    /** Detalle sin foto del técnico. */
+    public DetalleCita(Cita cita, String tecnicoNombre, String tecnicoApellido, String tecnicoTelefono,
+                       String especialidadNombre) {
+        this(cita, tecnicoNombre, tecnicoApellido, tecnicoTelefono, especialidadNombre, null);
+    }
 }

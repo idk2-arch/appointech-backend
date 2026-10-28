@@ -3,6 +3,9 @@ kind: Ingress
 metadata:
   name: appointech-ingress
   namespace: appointech
+  annotations:
+    # El JSON en base64 de las fotos de perfil (hasta 1 MB de imagen) pesa ~1,4 MB
+    nginx.ingress.kubernetes.io/proxy-body-size: "2m"
 spec:
   ingressClassName: nginx
   rules:

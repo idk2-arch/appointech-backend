@@ -64,6 +64,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         entity.setRol(RolUsuarioEntity.valueOf(usuario.getRol().name()));
         entity.setActivo(usuario.isActivo());
         entity.setCreadoEn(usuario.getCreadoEn());
+        entity.setFotoClave(usuario.getFotoClave());
         return entity;
     }
 
@@ -82,6 +83,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         usuario.setRol(RolUsuario.valueOf(entity.getRol().name()));
         usuario.setActivo(entity.isActivo());
         usuario.setCreadoEn(entity.getCreadoEn());
+        usuario.setFotoClave(entity.getFotoClave());
         return usuario;
     }
 }

@@ -44,6 +44,9 @@ public class ActualizarEstadoCitaUseCaseImpl implements ActualizarEstadoCitaUseC
 
         gestor.notificarAlCliente(guardada, "Tu cita #" + guardada.getId() + " cambió de estado: "
                 + anterior + " → " + guardada.getEstado());
+        if (guardada.getEstado() == EstadoCita.FINALIZADA) {
+            gestor.notificarFinalizacion(guardada);
+        }
         return guardada;
     }
 }

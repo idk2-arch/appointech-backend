@@ -77,7 +77,7 @@ class CitaCicloControllersTest {
         mvc = MockMvcBuilders.standaloneSetup(
                         new TecnicoGestionCitaController(actualizarEstado, cancelarTecnico, diagnostico, detalleUseCase),
                         new ClienteCitaController(consultarCliente, cancelarCliente, reprogramar, detalleUseCase),
-                        new AdminCitaController(consultarAdmin))
+                        new AdminCitaController(consultarAdmin, mock(com.appointech.appointech_backend.domain.ports.in.ConsultarCitasAdminUseCase.class)))
                 .setControllerAdvice(new GlobalExceptionHandler(), new AgendamientoExceptionHandler(mock(RegistroLogPort.class)))
                 .build();
     }

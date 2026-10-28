@@ -18,6 +18,7 @@ public record TecnicoResponse(
         String numeroDocumento,
         boolean activo,
         Double latitudBase,
-        Double longitudBase
+        Double longitudBase,
+        String fotoUrl
 ) {
 }

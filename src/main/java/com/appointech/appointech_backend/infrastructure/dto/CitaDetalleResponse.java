@@ -17,6 +17,7 @@ public record CitaDetalleResponse(
         LocalDateTime fechaHoraInicio,
         LocalDateTime fechaHoraFin,
         DiagnosticoResponse diagnostico,
-        List<HistorialEstadoResponse> historial
+        List<HistorialEstadoResponse> historial,
+        String fotoUrl
 ) {
 }

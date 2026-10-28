@@ -18,7 +18,8 @@ Balanceador (nginx)  ->  Backend principal  --(mismo JWT)-->  Microservicio de n
 `microservicio-notificaciones/` es un servicio Spring Boot independiente, con su propio `pom.xml`, `Dockerfile` y puerto (8081):
 
 - `GET /api/notificaciones/salud`: público, para comprobar que está vivo.
-- `POST /api/notificaciones/cita-confirmada`: exige un JWT válido. Registra el evento en su log.
+- `POST /api/notificaciones/cita-confirmada` y `POST /api/notificaciones/cita-finalizada`: exigen un JWT válido y envían un correo por SMTP (ver `docs/CORREOS_SMTP.md`).
+- `POST /api/notificaciones/cita-actualizada`: exige JWT; por ahora solo registra el evento.
 
 El backend principal lo llama al confirmar una cita (`NotificadorCitaHttpAdapter`), reenviando el JWT del cliente. La llamada se activa con la variable `NOTIFICACIONES_URL`. Si está vacía no se llama, y si el microservicio falla la cita igual queda confirmada y se guarda un log WARN de tipo INTEGRACION.
 

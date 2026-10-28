@@ -14,6 +14,7 @@ public record ClienteAdminResponse(
         boolean activo,
         String direccion,
         Double latitud,
-        Double longitud
+        Double longitud,
+        String fotoUrl
 ) {
 }

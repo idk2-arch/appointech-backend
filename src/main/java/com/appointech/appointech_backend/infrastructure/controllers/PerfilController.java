@@ -36,7 +36,7 @@ public class PerfilController {
 
         UsuarioResponse response = new UsuarioResponse(
                 usuario.getId(), usuario.getNombre(), usuario.getApellido(),
-                usuario.getCorreo(), usuario.getRol().name()
+                usuario.getCorreo(), usuario.getRol().name(), FotoUrlMapper.aUrl(usuario.getFotoClave())
         );
 
         return ResponseEntity.ok(ApiResponse.exito(response, "Perfil completado correctamente"));

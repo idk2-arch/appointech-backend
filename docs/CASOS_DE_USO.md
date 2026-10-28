@@ -16,6 +16,7 @@
 | Caso de uso | Endpoint o disparador | Código |
 |---|---|---|
 | Consultar logs del sistema | `GET /api/logs` (ADMINISTRADOR) | [ConsultarLogsUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ConsultarLogsUseCaseImpl.java) |
+| Listar citas de todos los técnicos (filtros `tecnicoId`, `estado`, `fechaDesde`, `fechaHasta`; paginado con `pagina` y `tamanio`, máx. 50) | `GET /api/admin/citas` (ADMINISTRADOR) | [ConsultarCitasAdminUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ConsultarCitasAdminUseCaseImpl.java) |
 | Limpiar logs antiguos | Job programado cada día a las 3:00 | [LimpiarLogsAntiguosUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/LimpiarLogsAntiguosUseCaseImpl.java) |
 
 Cada clase `UseCaseImpl` lleva en su Javadoc el enlace a su historia de Jira. Las historias de Jira no se modificaron.
@@ -61,3 +62,14 @@ curl "$BASE/tecnico/ruta?fecha=2030-01-11" -H "Authorization: Bearer $TOKEN_TECN
 ```
 
 Propiedades nuevas (todas con valor por defecto): `ruta.margen-minutos` (`RUTA_MARGEN_MINUTOS`, 0), `ruta.tolerancia-retraso-minutos` (`RUTA_TOLERANCIA_MINUTOS`, 5), `mapas.haversine.velocidad-kmh` (`HAVERSINE_VELOCIDAD_KMH`, 40, solo para estimar minutos del respaldo) y `app.zona-horaria` (`APP_ZONA_HORARIA`, America/Bogota).
+
+## Fotos de perfil
+
+| Caso de uso | Endpoint | Rol | Código |
+|---|---|---|---|
+| Guardar o reemplazar la foto propia (`{"imagenBase64": "data:image/jpeg;base64,..."}` → `200 {"fotoUrl": "/api/fotos/<clave>"}`) | `PUT /api/perfil/foto` | cualquier usuario autenticado | [ActualizarFotoPerfilUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ActualizarFotoPerfilUseCaseImpl.java) |
+| Borrar la foto propia (`204`) | `DELETE /api/perfil/foto` | cualquier usuario autenticado | [ActualizarFotoPerfilUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ActualizarFotoPerfilUseCaseImpl.java) |
+| Guardar o reemplazar la foto de otro usuario | `PUT /api/admin/usuarios/{id}/foto` | ADMINISTRADOR | [ActualizarFotoUsuarioUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ActualizarFotoUsuarioUseCaseImpl.java) |
+| Ver una foto (bytes con `Content-Type` y `Cache-Control`; la clave es un UUID, `404` si no existe) | `GET /api/fotos/{clave}` | público, sin token (solo este GET) | [ObtenerFotoUseCaseImpl](../src/main/java/com/appointech/appointech_backend/application/usecases/ObtenerFotoUseCaseImpl.java) |
+
+Reglas de la imagen ([ValidadorImagenFoto](../src/main/java/com/appointech/appointech_backend/domain/models/ValidadorImagenFoto.java)): base64 estricto, máximo 1 MB ya decodificado y solo JPEG, PNG o WebP comprobados con los bytes de cabecera (se rechazan SVG, GIF y cualquier otro). Errores: `400` (formato ProblemDetail) y `503` si el bucket no responde. Al reemplazar o borrar se elimina el objeto anterior. `fotoUrl` (null si no hay foto) se agrega al final de: `UsuarioResponse` (perfil y registros), `AuthResponse` (login), `UsuarioAdminResponse`, `TecnicoResponse`, `TecnicoDisponibleResponse`, `ClienteAdminResponse`, `CitaResponse` y `CitaDetalleResponse` (foto del técnico, para el cliente y el administrador) y `ClienteResumenResponse` (foto del cliente, para el técnico).

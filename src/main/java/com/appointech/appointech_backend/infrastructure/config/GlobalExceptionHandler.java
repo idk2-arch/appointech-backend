@@ -2,6 +2,10 @@ package com.appointech.appointech_backend.infrastructure.config;
 
 import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.ClientePorIdNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.AlmacenamientoNoDisponibleException;
+import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoException;
+import com.appointech.appointech_backend.domain.exception.FotoNoEncontradaException;
+import com.appointech.appointech_backend.domain.exception.ImagenInvalidaException;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
@@ -46,7 +50,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({RadioCoberturaInvalidoException.class, TelefonoContactoRequeridoException.class,
-            TelefonoWhatsappInvalidoException.class})
+            TelefonoWhatsappInvalidoException.class, FiltroCitasInvalidoException.class,
+            ImagenInvalidaException.class})
     public ProblemDetail manejarDatosInvalidos(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
@@ -84,6 +89,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CoordenadasInvalidasException.class)
     public ProblemDetail manejarCoordenadasInvalidas(CoordenadasInvalidasException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(FotoNoEncontradaException.class)
+    public ProblemDetail manejarFotoNoEncontrada(FotoNoEncontradaException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AlmacenamientoNoDisponibleException.class)
+    public ProblemDetail manejarAlmacenamientoNoDisponible(AlmacenamientoNoDisponibleException ex,
+                                                           HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

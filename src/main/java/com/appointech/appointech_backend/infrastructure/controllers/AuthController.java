@@ -48,7 +48,8 @@ public class AuthController {
                 cliente.getUsuario().getNombre(),
                 cliente.getUsuario().getApellido(),
                 cliente.getUsuario().getCorreo(),
-                cliente.getUsuario().getRol() != null ? cliente.getUsuario().getRol().name() : null
+                cliente.getUsuario().getRol() != null ? cliente.getUsuario().getRol().name() : null,
+                FotoUrlMapper.aUrl(cliente.getUsuario().getFotoClave())
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Cliente registrado correctamente"));
@@ -75,7 +76,8 @@ public class AuthController {
                 tecnico.getUsuario().getNombre(),
                 tecnico.getUsuario().getApellido(),
                 tecnico.getUsuario().getCorreo(),
-                tecnico.getUsuario().getRol().name()
+                tecnico.getUsuario().getRol().name(),
+                FotoUrlMapper.aUrl(tecnico.getUsuario().getFotoClave())
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.exito(response, "Técnico registrado correctamente"));
@@ -86,7 +88,7 @@ public class AuthController {
         AutenticarUsuarioUseCase.ResultadoAutenticacion resultado =
                 autenticarUsuarioUseCase.autenticar(request.correo(), request.contrasena());
 
-        AuthResponse response = new AuthResponse(resultado.token(), resultado.perfilCompleto());
+        AuthResponse response = new AuthResponse(resultado.token(), resultado.perfilCompleto(), FotoUrlMapper.aUrl(resultado.fotoClave()));
         return ResponseEntity.ok(ApiResponse.exito(response, "Inicio de sesión exitoso"));
     }
 }

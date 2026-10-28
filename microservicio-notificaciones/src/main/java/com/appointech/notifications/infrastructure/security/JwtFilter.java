@@ -1,4 +1,4 @@
-package com.appointech.notificaciones;
+package com.appointech.notifications.infrastructure.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,38 +20,38 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
-public class JwtFiltro extends OncePerRequestFilter {
+public class JwtFilter extends OncePerRequestFilter {
 
-    private final SecretKey clave;
+    private final SecretKey key;
 
-    public JwtFiltro(@Value("${jwt.secret}") String secreto) {
-        this.clave = Keys.hmacShaKeyFor(secreto.getBytes(StandardCharsets.UTF_8));
+    public JwtFilter(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest peticion, HttpServletResponse respuesta, FilterChain cadena)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String encabezado = peticion.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-        if (encabezado != null && encabezado.startsWith("Bearer ")) {
+        if (header != null && header.startsWith("Bearer ")) {
             try {
-                Claims reclamos = Jwts.parser()
-                        .verifyWith(clave)
+                Claims claims = Jwts.parser()
+                        .verifyWith(key)
                         .build()
-                        .parseSignedClaims(encabezado.substring(7))
+                        .parseSignedClaims(header.substring(7))
                         .getPayload();
 
-                var autenticacion = new UsernamePasswordAuthenticationToken(
-                        reclamos.getSubject(),
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        claims.getSubject(),
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + reclamos.get("rol", String.class)))
+                        List.of(new SimpleGrantedAuthority("ROLE_" + claims.get("rol", String.class)))
                 );
-                SecurityContextHolder.getContext().setAuthentication(autenticacion);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception ex) {
                 SecurityContextHolder.clearContext();
             }
         }
 
-        cadena.doFilter(peticion, respuesta);
+        chain.doFilter(request, response);
     }
 }

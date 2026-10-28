@@ -12,6 +12,7 @@ public record UsuarioAdminResponse(
         String numeroDocumento,
         String rol,
         boolean activo,
-        LocalDateTime creadoEn
+        LocalDateTime creadoEn,
+        String fotoUrl
 ) {
 }

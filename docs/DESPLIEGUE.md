@@ -21,6 +21,7 @@ El puerto **interno** es el del contenedor. El **externo** es el que abres desde
 | balanceador (nginx) | 80 | 8080 | El frontend y Postman (`http://localhost:8080/api`) |
 | backend | 8080 | no se publica | Solo el balanceador |
 | notificaciones | 8081 | 8081 | El backend por la red de Docker; el externo es para pruebas |
+| almacenamiento (MinIO, S3) | 9000 | no se publica | Solo el backend, por la red de Docker (bucket de fotos de perfil) |
 | PostgreSQL (`appointech-db`) | 5432 | 5432 | El backend (`host.docker.internal:5432`) |
 | SonarQube | 9000 | 9000 | Navegador |
 | frontend (Angular) | 4200 | 4200 | Navegador |
@@ -115,3 +116,20 @@ Propiedades de `application.properties` (con valor por defecto):
 Si ORS falla (timeout, 401, 429, 5xx) o no hay clave, se usa Haversine para todos los destinos y se registra un warning sin la clave. Si ORS no encuentra ruta para un destino, solo ese usa Haversine. La clave nunca debe subirse a GitHub: en Kubernetes crea el Secret real aparte.
 
 Propiedades opcionales de la agenda del técnico (todas con valor por defecto, no hace falta definirlas): `RUTA_MARGEN_MINUTOS` (0), `CONTACTO_ADMIN_TELEFONO` (vacío; teléfono de WhatsApp del administrador de respaldo para clientes fuera de cobertura), `RUTA_TOLERANCIA_MINUTOS` (5, retraso en minutos que aún cuenta como llegar a tiempo; 0 = regla estricta), `HAVERSINE_VELOCIDAD_KMH` (40, solo estima minutos cuando se usa Haversine) y `APP_ZONA_HORARIA` (America/Bogota, define "hoy" y "ahora" en bloques y rutas).
+
+## 8. Fotos de perfil y almacenamiento de objetos (S3)
+
+Todos los usuarios (cliente, técnico y administrador) pueden tener foto de perfil. La imagen llega en base64 y se guarda en un **bucket compatible con S3**; en la base de datos solo queda la clave del objeto (`usuario.foto_clave`, un UUID, migración `V12`). El bucket es un **servicio de respaldo** (factor IV): se reemplaza cambiando variables de entorno, sin tocar código. El backend no guarda archivos en su disco (factor VI) y sirve las fotos él mismo, así que el bucket nunca se expone.
+
+| Variable | Descripción |
+|---|---|
+| `ALMACENAMIENTO_ENDPOINT` | URL del servicio S3. En Docker Compose, `http://almacenamiento:9000`. Vacío = AWS. |
+| `ALMACENAMIENTO_ACCESS_KEY` | Usuario / clave de acceso. Obligatoria en Compose; sin valor por defecto. |
+| `ALMACENAMIENTO_SECRET_KEY` | Clave secreta (MinIO exige 8 caracteres o más). Obligatoria en Compose; sin valor por defecto. |
+| `ALMACENAMIENTO_BUCKET` | Nombre del bucket (por defecto `fotos-perfil`). El backend lo crea al arrancar si no existe. |
+| `ALMACENAMIENTO_REGION` | Región (por defecto `us-east-1`). |
+
+- **Compose:** el servicio `almacenamiento` usa MinIO con etiqueta fija, volumen `almacenamiento-data`, healthcheck, `mem_limit` y el anclaje `x-logging`; el backend espera a que esté `healthy`. La imagen oficial `minio/minio` ya no se publica en Docker Hub ni en Quay, así que se usa `bitnamilegacy/minio` (MinIO real, sin actualizaciones de seguridad). Para producción usa un S3 gestionado o una imagen mantenida: solo cambian las variables.
+- **Si el bucket falla (factor IX):** subir o borrar una foto responde `503` y deja un `WARN` de tipo `INTEGRACION` en el registro de eventos (sin endpoint, claves ni imagen). Ver fotos ya cargadas también responde `503`. El resto de la API sigue funcionando; si el bucket no responde al arrancar, la aplicación arranca igual y deja el `WARN`.
+- **Tamaño de las peticiones:** la imagen decodificada pesa como máximo 1 MB; en base64 ~1,4 MB. nginx (`nginx/nginx.conf`) sube `client_max_body_size` a `2m` solo en `PUT /api/perfil/foto` y `PUT /api/admin/usuarios/{id}/foto`, y el Ingress de Kubernetes lleva `proxy-body-size: "2m"`. Spring no limita el cuerpo JSON; la API rechaza con 400 cualquier `imagenBase64` de más de 1.500.000 caracteres.
+- **Kubernetes:** los manifiestos de `k8s/` no incluyen todavía un bucket ni las variables `ALMACENAMIENTO_*`; hay que apuntarlas a un S3 gestionado (ConfigMap `appointech-config` y Secret `appointech-secretos`).

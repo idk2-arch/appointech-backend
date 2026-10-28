@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class NotificadorCitaHttpAdapterTest {
 
@@ -34,11 +35,15 @@ class NotificadorCitaHttpAdapterTest {
     private final AtomicReference<String> rutaRecibida = new AtomicReference<>();
     private volatile int codigoRespuesta = 200;
     private RegistroLogPort logs;
+    private DatosCorreoCitaResolver resolver;
     private Cita cita;
 
     @BeforeEach
     void preparar() throws Exception {
         logs = mock(RegistroLogPort.class);
+        resolver = mock(DatosCorreoCitaResolver.class);
+        when(resolver.resolver(any(Cita.class)))
+                .thenReturn(new DatosCorreoCitaResolver.DatosCorreoCita("Ana Lopez", "Plomería", "Luis Perez"));
         servidor = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         servidor.createContext("/", exchange -> {
             cuerpoRecibido.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
@@ -52,6 +57,7 @@ class NotificadorCitaHttpAdapterTest {
         cita.setId(42L);
         cita.setFechaHoraInicio(LocalDateTime.of(2026, 9, 1, 10, 0));
         cita.setFechaHoraFin(LocalDateTime.of(2026, 9, 1, 11, 0));
+        cita.setDireccionServicio("Calle 1 # 2-3");
     }
 
     @AfterEach
@@ -61,13 +67,13 @@ class NotificadorCitaHttpAdapterTest {
     }
 
     private NotificadorCitaHttpAdapter adaptador() {
-        return new NotificadorCitaHttpAdapter("http://127.0.0.1:" + servidor.getAddress().getPort(), logs);
+        return new NotificadorCitaHttpAdapter("http://127.0.0.1:" + servidor.getAddress().getPort(), logs, resolver);
     }
 
     @Test
     void sinUrlConfiguradaNoHaceNingunaLlamada() {
-        new NotificadorCitaHttpAdapter("", logs).notificarCitaConfirmada(cita, "ana@mail.com");
-        new NotificadorCitaHttpAdapter(null, logs).notificarCitaConfirmada(cita, "ana@mail.com");
+        new NotificadorCitaHttpAdapter("", logs, resolver).notificarCitaConfirmada(cita, "ana@mail.com");
+        new NotificadorCitaHttpAdapter(null, logs, resolver).notificarCitaConfirmada(cita, "ana@mail.com");
 
         assertNull(cuerpoRecibido.get());
         verifyNoInteractions(logs);
@@ -83,8 +89,10 @@ class NotificadorCitaHttpAdapterTest {
 
         assertEquals("/api/notificaciones/cita-confirmada", rutaRecibida.get());
         assertEquals("Bearer abc.def", autorizacionRecibida.get());
-        assertEquals("{\"citaId\":42,\"correoCliente\":\"ana@mail.com\","
-                + "\"inicio\":\"2026-09-01T10:00\",\"fin\":\"2026-09-01T11:00\"}", cuerpoRecibido.get());
+        assertEquals("{\"citaId\":42,\"correoCliente\":\"ana@mail.com\",\"nombreCliente\":\"Ana Lopez\","
+                + "\"servicio\":\"Plomería\",\"tecnico\":\"Luis Perez\",\"fecha\":\"2026-09-01\",\"hora\":\"10:00\","
+                + "\"direccion\":\"Calle 1 # 2-3\",\"inicio\":\"2026-09-01T10:00\",\"fin\":\"2026-09-01T11:00\"}",
+                cuerpoRecibido.get());
         verify(logs, never()).registrar(any(), any(), any(), any(), any());
     }
 
@@ -111,7 +119,7 @@ class NotificadorCitaHttpAdapterTest {
 
     @Test
     void notificarCambioDeCitaSinUrlConfiguradaNoLlama() {
-        new NotificadorCitaHttpAdapter("", logs).notificarCambioDeCita(cita, "ana@mail.com", "hola");
+        new NotificadorCitaHttpAdapter("", logs, resolver).notificarCambioDeCita(cita, "ana@mail.com", "hola");
 
         assertNull(cuerpoRecibido.get());
         verifyNoInteractions(logs);
@@ -121,12 +129,74 @@ class NotificadorCitaHttpAdapterTest {
     void notificarCambioDeCitaConServicioCaidoNoPropagaElErrorYLoRegistra() {
         int puerto = servidor.getAddress().getPort();
         servidor.stop(0);
-        NotificadorCitaHttpAdapter adaptador = new NotificadorCitaHttpAdapter("http://127.0.0.1:" + puerto, logs);
+        NotificadorCitaHttpAdapter adaptador = new NotificadorCitaHttpAdapter("http://127.0.0.1:" + puerto, logs, resolver);
 
         assertDoesNotThrow(() -> adaptador.notificarCambioDeCita(cita, "ana@mail.com", "hola"));
 
         verify(logs).registrar(eq(NivelLog.WARN), eq(TipoLog.INTEGRACION), eq("NotificadorCitaHttpAdapter"),
                 eq("ana@mail.com"), any());
+    }
+
+    @Test
+    void notificarCitaFinalizadaEnviaClienteServicioTecnicoYDiagnostico() {
+        cita.setDiagnostico("Sifón roto; \"reemplazado\"");
+
+        adaptador().notificarCitaFinalizada(cita, "ana@mail.com");
+
+        assertEquals("/api/notificaciones/cita-finalizada", rutaRecibida.get());
+        assertEquals("{\"citaId\":42,\"correoCliente\":\"ana@mail.com\",\"nombreCliente\":\"Ana Lopez\","
+                + "\"servicio\":\"Plomería\",\"tecnico\":\"Luis Perez\","
+                + "\"diagnostico\":\"Sifón roto; \\\"reemplazado\\\"\"}", cuerpoRecibido.get());
+        verify(logs, never()).registrar(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void notificarCitaFinalizadaSinDiagnosticoEnviaCampoVacio() {
+        adaptador().notificarCitaFinalizada(cita, "ana@mail.com");
+
+        assertTrue(cuerpoRecibido.get().contains("\"diagnostico\":\"\""));
+    }
+
+    @Test
+    void notificarCitaFinalizadaSinUrlConfiguradaNoLlamaNiConsultaDatos() {
+        new NotificadorCitaHttpAdapter("", logs, resolver).notificarCitaFinalizada(cita, "ana@mail.com");
+
+        assertNull(cuerpoRecibido.get());
+        verifyNoInteractions(logs);
+        verify(resolver, never()).resolver(any());
+    }
+
+    @Test
+    void notificarCitaFinalizadaConRespuestaDeErrorSeRegistraComoAdvertencia() {
+        codigoRespuesta = 502;
+
+        adaptador().notificarCitaFinalizada(cita, "ana@mail.com");
+
+        ArgumentCaptor<String> mensaje = ArgumentCaptor.forClass(String.class);
+        verify(logs).registrar(eq(NivelLog.WARN), eq(TipoLog.INTEGRACION), eq("NotificadorCitaHttpAdapter"),
+                eq("ana@mail.com"), mensaje.capture());
+        assertTrue(mensaje.getValue().contains("502"));
+    }
+
+    @Test
+    void siNoSePuedenResolverLosDatosDelCorreoNoSePropagaElErrorYSeRegistra() {
+        when(resolver.resolver(any(Cita.class))).thenThrow(new IllegalStateException("sin datos"));
+
+        assertDoesNotThrow(() -> adaptador().notificarCitaFinalizada(cita, "ana@mail.com"));
+        assertDoesNotThrow(() -> adaptador().notificarCitaConfirmada(cita, "ana@mail.com"));
+
+        assertNull(cuerpoRecibido.get(), "no se envía nada si el cuerpo no se pudo armar");
+        verify(logs, org.mockito.Mockito.times(2)).registrar(eq(NivelLog.WARN), eq(TipoLog.INTEGRACION),
+                eq("NotificadorCitaHttpAdapter"), eq("ana@mail.com"), any());
+    }
+
+    @Test
+    void notificarCitaConfirmadaSinHorarioEnviaFechaYHoraVacias() {
+        cita.setFechaHoraInicio(null);
+
+        adaptador().notificarCitaConfirmada(cita, "ana@mail.com");
+
+        assertTrue(cuerpoRecibido.get().contains("\"fecha\":\"\",\"hora\":\"\""));
     }
 
     @Test
@@ -161,7 +231,7 @@ class NotificadorCitaHttpAdapterTest {
     void servicioCaidoNoPropagaLaExcepcionYSeRegistra() {
         int puerto = servidor.getAddress().getPort();
         servidor.stop(0);
-        NotificadorCitaHttpAdapter adaptador = new NotificadorCitaHttpAdapter("http://127.0.0.1:" + puerto, logs);
+        NotificadorCitaHttpAdapter adaptador = new NotificadorCitaHttpAdapter("http://127.0.0.1:" + puerto, logs, resolver);
 
         assertDoesNotThrow(() -> adaptador.notificarCitaConfirmada(cita, "ana@mail.com"));
 

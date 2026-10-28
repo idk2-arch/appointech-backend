@@ -14,6 +14,7 @@ public record CitaResponse(
         String tecnicoNombre,
         String tecnicoApellido,
         String tecnicoTelefono,
-        String especialidadNombre
+        String especialidadNombre,
+        String fotoUrl
 ) {
 }

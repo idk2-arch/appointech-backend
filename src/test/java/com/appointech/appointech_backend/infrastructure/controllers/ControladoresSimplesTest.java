@@ -52,7 +52,7 @@ class ControladoresSimplesTest {
     @Test
     void loginConGoogleExitosoDevuelveTokenPropio() throws Exception {
         LoginConGoogleUseCase caso = mock(LoginConGoogleUseCase.class);
-        when(caso.ejecutar("id-token")).thenReturn(new ResultadoLogin("jwt", "CLIENTE", "Ana", "a@x.com", false));
+        when(caso.ejecutar("id-token")).thenReturn(new ResultadoLogin("jwt", "CLIENTE", "Ana", "a@x.com", false, null));
 
         mvc(new AuthGoogleController(caso))
                 .perform(post("/api/auth/google").contentType(MediaType.APPLICATION_JSON)

@@ -1,3 +1,9 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   database:
     image: postgres:15-alpine
@@ -22,6 +28,12 @@ services:
     restart: unless-stopped
     environment:
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
+      # Correo SMTP (vacio = el microservicio responde 202 pero no envia y registra un WARN)
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       TZ: America/Bogota
     networks:
       - app-network
@@ -35,6 +47,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
       NOTIFICACIONES_URL: http://notificaciones:8081
+      # Almacenamiento de objetos S3 (fotos de perfil); reemplazable por otro proveedor cambiando estas variables
+      ALMACENAMIENTO_ENDPOINT: ${ALMACENAMIENTO_ENDPOINT:-http://almacenamiento:9000}
+      ALMACENAMIENTO_ACCESS_KEY: ${ALMACENAMIENTO_ACCESS_KEY:?Define ALMACENAMIENTO_ACCESS_KEY en el archivo .env}
+      ALMACENAMIENTO_SECRET_KEY: ${ALMACENAMIENTO_SECRET_KEY:?Define ALMACENAMIENTO_SECRET_KEY en el archivo .env}
+      ALMACENAMIENTO_BUCKET: ${ALMACENAMIENTO_BUCKET:-fotos-perfil}
+      ALMACENAMIENTO_REGION: ${ALMACENAMIENTO_REGION:-us-east-1}
       ORS_API_KEY: ${ORS_API_KEY:-}
       RUTA_TOLERANCIA_MINUTOS: ${RUTA_TOLERANCIA_MINUTOS:-5}
       CONTACTO_ADMIN_TELEFONO: ${CONTACTO_ADMIN_TELEFONO:-}
@@ -45,6 +63,28 @@ services:
         condition: service_healthy
       notificaciones:
         condition: service_started
+      almacenamiento:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  almacenamiento:
+    # MinIO (compatible con S3). La imagen oficial minio/minio ya no se publica en Docker Hub ni en Quay; esta es una
+    # compilacion real de MinIO del espejo bitnamilegacy, con etiqueta fija (ya sin actualizaciones de seguridad).
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${ALMACENAMIENTO_ACCESS_KEY:?Define ALMACENAMIENTO_ACCESS_KEY en el archivo .env}
+      MINIO_ROOT_PASSWORD: ${ALMACENAMIENTO_SECRET_KEY:?Define ALMACENAMIENTO_SECRET_KEY en el archivo .env}
+    volumes:
+      - almacenamiento-data:/bitnami/minio/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    logging: *logging
     networks:
       - app-network
 
@@ -76,3 +116,4 @@ networks:
 
 volumes:
   db-data:
+  almacenamiento-data:

@@ -78,6 +78,17 @@ public class GestorCambiosCita {
                 .map(cliente -> cliente.getUsuario().getCorreo()));
     }
 
+    /** Envía el correo de servicio finalizado (con el diagnóstico); un fallo solo se registra. */
+    public void notificarFinalizacion(Cita cita) {
+        try {
+            clienteRepositoryPort.buscarPorId(cita.getClienteId())
+                    .map(cliente -> cliente.getUsuario().getCorreo())
+                    .ifPresent(correo -> notificadorCitaPort.notificarCitaFinalizada(cita, correo));
+        } catch (RuntimeException ex) {
+            log.warn("No se pudo enviar el correo de finalización de la cita {}: {}", cita.getId(), ex.getClass().getSimpleName());
+        }
+    }
+
     public void notificarAlTecnico(Cita cita, String mensaje) {
         if (cita.getTecnicoId() == null) {
             return;

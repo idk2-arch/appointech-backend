@@ -145,7 +145,7 @@ class AuthControllerTest {
     @Test
     void loginExitosoDevuelveTokenYPerfilCompleto() throws Exception {
         when(autenticar.autenticar("ana@mail.com", "clave12345"))
-                .thenReturn(new AutenticarUsuarioUseCase.ResultadoAutenticacion("jwt-token", true));
+                .thenReturn(new AutenticarUsuarioUseCase.ResultadoAutenticacion("jwt-token", true, null));
 
         mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"correo\":\"ana@mail.com\",\"contrasena\":\"clave12345\"}"))

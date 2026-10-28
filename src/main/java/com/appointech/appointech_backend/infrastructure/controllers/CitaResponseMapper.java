@@ -16,7 +16,8 @@ final class CitaResponseMapper {
                 cita.getDescripcionProblema(), cita.getDireccionServicio(),
                 cita.getFechaHoraInicio(), cita.getFechaHoraFin(), cita.getEstado().name(),
                 detalle.tecnicoNombre(), detalle.tecnicoApellido(), detalle.tecnicoTelefono(),
-                detalle.especialidadNombre()
+                detalle.especialidadNombre(),
+                FotoUrlMapper.aUrl(detalle.tecnicoFotoClave())
         );
     }
 }

@@ -23,7 +23,8 @@ final class ClienteAdminResponseMapper {
                 usuario.isActivo(),
                 cliente.getDireccion(),
                 cliente.getLatitud(),
-                cliente.getLongitud()
+                cliente.getLongitud(),
+                FotoUrlMapper.aUrl(usuario.getFotoClave())
         );
     }
 }

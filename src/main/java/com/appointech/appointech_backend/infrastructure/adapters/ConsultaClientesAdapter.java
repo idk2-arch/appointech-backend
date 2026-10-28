@@ -31,7 +31,8 @@ public class ConsultaClientesAdapter implements ConsultaClientesPort {
             resumenes.put(cliente.getId(), new ClienteResumen(
                     cliente.getUsuario().getNombre(),
                     cliente.getUsuario().getApellido(),
-                    cliente.getUsuario().getTelefono()));
+                    cliente.getUsuario().getTelefono(),
+                    cliente.getUsuario().getFotoClave()));
         }
         return resumenes;
     }

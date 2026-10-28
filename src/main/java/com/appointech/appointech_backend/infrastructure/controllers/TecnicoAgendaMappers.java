@@ -47,7 +47,8 @@ final class TecnicoAgendaMappers {
 
     private static ClienteResumenResponse aRespuesta(ClienteResumen cliente) {
         return cliente == null ? null
-                : new ClienteResumenResponse(cliente.nombre(), cliente.apellido(), cliente.telefono());
+                : new ClienteResumenResponse(cliente.nombre(), cliente.apellido(), cliente.telefono(),
+                        FotoUrlMapper.aUrl(cliente.fotoClave()));
     }
 
     private static double redondear(double valor) {
