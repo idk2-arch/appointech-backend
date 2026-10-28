@@ -24,6 +24,15 @@ public class NotificacionController {
         return Map.of("servicio", "microservicio-notificaciones", "estado", "UP");
     }
 
+    @PostMapping("/cita-actualizada")
+    public ResponseEntity<Map<String, Object>> citaActualizada(@RequestBody Map<String, Object> evento,
+                                                               Authentication autenticacion) {
+        registro.info("Notificación de cambio de cita {} (estado {}) recibida de {}",
+                evento.get("citaId"), evento.get("estado"), autenticacion.getName());
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(Map.of("recibido", true, "citaId", evento.getOrDefault("citaId", "")));
+    }
+
     @PostMapping("/cita-confirmada")
     public ResponseEntity<Map<String, Object>> citaConfirmada(@RequestBody Map<String, Object> evento,
                                                               Authentication autenticacion) {

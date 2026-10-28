@@ -70,6 +70,19 @@ class ManejadoresDeExcepcionesTest {
     }
 
     @Test
+    void errorDeEstadoDeCitaResponde409YDatosDeCitaInvalidosResponde400() {
+        ResponseEntity<Map<String, Object>> conflicto = agendamiento.manejarEstadoCitaInvalido(
+                new com.appointech.appointech_backend.domain.exception.EstadoCitaInvalidoException("no se puede"));
+        ResponseEntity<Map<String, Object>> invalido = agendamiento.manejarDatosCitaInvalidos(
+                new com.appointech.appointech_backend.domain.exception.DatosCitaInvalidosException("motivo"));
+
+        assertEquals(HttpStatus.CONFLICT, conflicto.getStatusCode());
+        assertEquals("no se puede", conflicto.getBody().get("error"));
+        assertEquals(HttpStatus.BAD_REQUEST, invalido.getStatusCode());
+        assertEquals(400, invalido.getBody().get("status"));
+    }
+
+    @Test
     void datosInvalidosResponden400() {
         verificar(global.manejarDatosInvalidos(new RadioCoberturaInvalidoException("radio"), request), HttpStatus.BAD_REQUEST);
         verificar(global.manejarDatosInvalidos(new TelefonoContactoRequeridoException(), request), HttpStatus.BAD_REQUEST);

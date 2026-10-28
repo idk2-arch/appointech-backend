@@ -97,6 +97,39 @@ class NotificadorCitaHttpAdapterTest {
     }
 
     @Test
+    void notificarCambioDeCitaEnviaEstadoYMensajeAlEndpointDeActualizaciones() {
+        cita.setEstado(com.appointech.appointech_backend.domain.models.EstadoCita.CANCELADA);
+
+        adaptador().notificarCambioDeCita(cita, "ana@mail.com", "Tu cita #42 fue cancelada.\nMotivo: \"x\"");
+
+        assertEquals("/api/notificaciones/cita-actualizada", rutaRecibida.get());
+        assertEquals("{\"citaId\":42,\"correoDestinatario\":\"ana@mail.com\",\"estado\":\"CANCELADA\","
+                + "\"inicio\":\"2026-09-01T10:00\","
+                + "\"mensaje\":\"Tu cita #42 fue cancelada.\\nMotivo: \\\"x\\\"\"}", cuerpoRecibido.get());
+        verify(logs, never()).registrar(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void notificarCambioDeCitaSinUrlConfiguradaNoLlama() {
+        new NotificadorCitaHttpAdapter("", logs).notificarCambioDeCita(cita, "ana@mail.com", "hola");
+
+        assertNull(cuerpoRecibido.get());
+        verifyNoInteractions(logs);
+    }
+
+    @Test
+    void notificarCambioDeCitaConServicioCaidoNoPropagaElErrorYLoRegistra() {
+        int puerto = servidor.getAddress().getPort();
+        servidor.stop(0);
+        NotificadorCitaHttpAdapter adaptador = new NotificadorCitaHttpAdapter("http://127.0.0.1:" + puerto, logs);
+
+        assertDoesNotThrow(() -> adaptador.notificarCambioDeCita(cita, "ana@mail.com", "hola"));
+
+        verify(logs).registrar(eq(NivelLog.WARN), eq(TipoLog.INTEGRACION), eq("NotificadorCitaHttpAdapter"),
+                eq("ana@mail.com"), any());
+    }
+
+    @Test
     void correoNuloSeEnviaComoCadenaVacia() {
         adaptador().notificarCitaConfirmada(cita, null);
 

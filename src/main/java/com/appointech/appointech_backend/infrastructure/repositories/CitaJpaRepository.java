@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
 
+    List<CitaEntity> findByClienteIdOrderByCreadaEnDescIdDesc(Long clienteId);
+
     @Query("SELECT c FROM CitaEntity c WHERE c.agendamientoManual = true AND c.tecnicoId IS NULL AND c.estado = :estado "
             + "ORDER BY c.creadaEn ASC, c.id ASC")
     List<CitaEntity> buscarSolicitudesManualesPorEstado(@Param("estado") EstadoCitaEntity estado);

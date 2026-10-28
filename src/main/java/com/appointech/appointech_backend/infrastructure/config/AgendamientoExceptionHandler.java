@@ -7,6 +7,8 @@ import com.appointech.appointech_backend.domain.exception.BloqueNoEncontradoExce
 import com.appointech.appointech_backend.domain.exception.BloqueSolapadoException;
 import com.appointech.appointech_backend.domain.exception.CitaSinUbicacionException;
 import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.DatosCitaInvalidosException;
+import com.appointech.appointech_backend.domain.exception.EstadoCitaInvalidoException;
 import com.appointech.appointech_backend.domain.exception.PerfilTecnicoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.UbicacionBaseNoConfiguradaException;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
@@ -76,6 +78,16 @@ public class AgendamientoExceptionHandler {
     @ExceptionHandler(UbicacionBaseNoConfiguradaException.class)
     public ResponseEntity<Map<String, Object>> manejarUbicacionBaseNoConfigurada(UbicacionBaseNoConfiguradaException ex) {
         return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(EstadoCitaInvalidoException.class)
+    public ResponseEntity<Map<String, Object>> manejarEstadoCitaInvalido(EstadoCitaInvalidoException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(DatosCitaInvalidosException.class)
+    public ResponseEntity<Map<String, Object>> manejarDatosCitaInvalidos(DatosCitaInvalidosException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(CitaSinUbicacionException.class)

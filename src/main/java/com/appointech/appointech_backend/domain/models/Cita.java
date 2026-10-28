@@ -1,5 +1,8 @@
 package com.appointech.appointech_backend.domain.models;
 
+import com.appointech.appointech_backend.domain.exception.DatosCitaInvalidosException;
+import com.appointech.appointech_backend.domain.exception.EstadoCitaInvalidoException;
+
 import java.time.LocalDateTime;
 
 public class Cita {
@@ -20,8 +23,89 @@ public class Cita {
     private LocalDateTime actualizadaEn;
     private boolean agendamientoManual;
     private String telefonoContacto;
+    private String recomendaciones;
+    private LocalDateTime fechaDiagnostico;
 
     public Cita() {
+    }
+
+    // ---- Reglas del ciclo de vida (sin framework): el caso de uso decide quién actúa, la cita decide qué es válido ----
+
+    /** Avanza al siguiente estado de la ejecución del servicio (CONFIRMADA→EN_CAMINO→EN_PROCESO→FINALIZADA). */
+    public void avanzarA(EstadoCita nuevo) {
+        if (estado == null || !estado.puedeAvanzarA(nuevo)) {
+            throw new EstadoCitaInvalidoException(mensajeTransicionInvalida(nuevo));
+        }
+        this.estado = nuevo;
+    }
+
+    private String mensajeTransicionInvalida(EstadoCita nuevo) {
+        if (estado == null) {
+            return "La cita no tiene un estado válido";
+        }
+        if (estado.esFinal()) {
+            return "La cita está " + estado + " y no admite cambios de estado";
+        }
+        String permitido = estado.siguiente().map(EstadoCita::name).orElse("ninguno");
+        return "No se puede pasar la cita de " + estado + " a " + nuevo + "; el único cambio permitido es a " + permitido;
+    }
+
+    /** Cancelación por el cliente: solo mientras la cita está PENDIENTE o CONFIRMADA. */
+    public void cancelarPorCliente() {
+        validarModificablePorCliente("cancelar");
+        this.estado = EstadoCita.CANCELADA;
+    }
+
+    /** Cancelación por el técnico asignado: vale en cualquier estado que no sea final. */
+    public void cancelarPorTecnico() {
+        if (estado == null || estado.esFinal()) {
+            throw new EstadoCitaInvalidoException("La cita está " + estado + " y no se puede cancelar");
+        }
+        this.estado = EstadoCita.CANCELADA;
+    }
+
+    /** Verifica que el cliente aún pueda cancelar o reprogramar; lanza 409 si no. */
+    public void validarModificablePorCliente(String accion) {
+        if (estado == null || !estado.admiteCancelacionOReprogramacionDelCliente()) {
+            throw new EstadoCitaInvalidoException(
+                    "Solo se puede " + accion + " una cita PENDIENTE o CONFIRMADA; la cita está " + estado);
+        }
+    }
+
+    public void reprogramar(LocalDateTime nuevoInicio, LocalDateTime nuevoFin) {
+        validarModificablePorCliente("reprogramar");
+        this.fechaHoraInicio = nuevoInicio;
+        this.fechaHoraFin = nuevoFin;
+    }
+
+    /** Crea o actualiza el diagnóstico; solo mientras el servicio está EN_PROCESO. */
+    public void registrarDiagnostico(String diagnostico, String recomendaciones, LocalDateTime ahora) {
+        if (estado != EstadoCita.EN_PROCESO) {
+            throw new EstadoCitaInvalidoException(
+                    "Solo se puede registrar el diagnóstico cuando la cita está EN_PROCESO; la cita está " + estado);
+        }
+        if (diagnostico == null || diagnostico.isBlank()) {
+            throw new DatosCitaInvalidosException("El diagnóstico es obligatorio");
+        }
+        this.diagnostico = diagnostico.strip();
+        this.recomendaciones = recomendaciones == null || recomendaciones.isBlank() ? null : recomendaciones.strip();
+        this.fechaDiagnostico = ahora;
+    }
+
+    public String getRecomendaciones() {
+        return recomendaciones;
+    }
+
+    public void setRecomendaciones(String recomendaciones) {
+        this.recomendaciones = recomendaciones;
+    }
+
+    public LocalDateTime getFechaDiagnostico() {
+        return fechaDiagnostico;
+    }
+
+    public void setFechaDiagnostico(LocalDateTime fechaDiagnostico) {
+        this.fechaDiagnostico = fechaDiagnostico;
     }
 
     public Long getId() {

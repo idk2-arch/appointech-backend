@@ -82,6 +82,11 @@ class AgendamientoUseCasesTest {
         }
 
         @Override
+        public List<Cita> listarPorCliente(Long clienteId) {
+            return citasGuardadas.stream().filter(c -> clienteId.equals(c.getClienteId())).toList();
+        }
+
+        @Override
         public List<Cita> buscarActivasDelTecnicoEntre(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin) {
             return citasGuardadas.stream()
                     .filter(c -> tecnicoId.equals(c.getTecnicoId()) && c.getEstado() != EstadoCita.CANCELADA)
@@ -205,7 +210,16 @@ class AgendamientoUseCasesTest {
         }
     };
 
-    private final NotificadorCitaPort notificadorCitaPort = (cita, correoCliente) -> citasNotificadas.add(cita.getId());
+    private final NotificadorCitaPort notificadorCitaPort = new NotificadorCitaPort() {
+        @Override
+        public void notificarCitaConfirmada(Cita cita, String correoCliente) {
+            citasNotificadas.add(cita.getId());
+        }
+
+        @Override
+        public void notificarCambioDeCita(Cita cita, String correoDestinatario, String mensaje) {
+        }
+    };
 
     private CalcularFranjasDisponiblesUseCaseImpl calcularFranjas;
     private ConfirmarCitaUseCaseImpl confirmarCita;

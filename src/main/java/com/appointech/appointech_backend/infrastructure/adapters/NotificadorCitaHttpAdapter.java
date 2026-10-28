@@ -33,18 +33,31 @@ public class NotificadorCitaHttpAdapter implements NotificadorCitaPort {
 
     @Override
     public void notificarCitaConfirmada(Cita cita, String correoCliente) {
+        String cuerpo = "{\"citaId\":" + cita.getId()
+                + ",\"correoCliente\":\"" + escapar(correoCliente) + "\""
+                + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
+                + ",\"fin\":\"" + cita.getFechaHoraFin() + "\"}";
+        enviar("/api/notificaciones/cita-confirmada", cuerpo, correoCliente);
+    }
+
+    @Override
+    public void notificarCambioDeCita(Cita cita, String correoDestinatario, String mensaje) {
+        String cuerpo = "{\"citaId\":" + cita.getId()
+                + ",\"correoDestinatario\":\"" + escapar(correoDestinatario) + "\""
+                + ",\"estado\":\"" + cita.getEstado() + "\""
+                + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
+                + ",\"mensaje\":\"" + escapar(mensaje) + "\"}";
+        enviar("/api/notificaciones/cita-actualizada", cuerpo, correoDestinatario);
+    }
+
+    private void enviar(String ruta, String cuerpo, String correoCliente) {
         if (urlNotificaciones == null || urlNotificaciones.isBlank()) {
             return;
         }
 
         try {
-            String cuerpo = "{\"citaId\":" + cita.getId()
-                    + ",\"correoCliente\":\"" + escapar(correoCliente) + "\""
-                    + ",\"inicio\":\"" + cita.getFechaHoraInicio() + "\""
-                    + ",\"fin\":\"" + cita.getFechaHoraFin() + "\"}";
-
             HttpRequest peticion = HttpRequest.newBuilder()
-                    .uri(URI.create(urlNotificaciones + "/api/notificaciones/cita-confirmada"))
+                    .uri(URI.create(urlNotificaciones + ruta))
                     .timeout(Duration.ofSeconds(3))
                     .header("Content-Type", "application/json")
                     .header("Authorization", obtenerAutorizacionActual())
@@ -74,6 +87,7 @@ public class NotificadorCitaHttpAdapter implements NotificadorCitaPort {
     }
 
     private String escapar(String texto) {
-        return texto == null ? "" : texto.replace("\\", "\\\\").replace("\"", "\\\"");
+        return texto == null ? "" : texto.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r");
     }
 }

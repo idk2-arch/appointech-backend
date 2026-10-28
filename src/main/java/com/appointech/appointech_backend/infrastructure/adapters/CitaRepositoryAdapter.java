@@ -33,6 +33,13 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
     }
 
     @Override
+    public List<Cita> listarPorCliente(Long clienteId) {
+        return citaJpaRepository.findByClienteIdOrderByCreadaEnDescIdDesc(clienteId).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Cita> buscarActivasDelTecnicoEntre(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin) {
         return citaJpaRepository.buscarDelTecnicoEntre(tecnicoId, inicio, fin, EstadoCitaEntity.CANCELADA)
                 .stream()
@@ -64,6 +71,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         entity.setActualizadaEn(cita.getActualizadaEn());
         entity.setAgendamientoManual(cita.isAgendamientoManual());
         entity.setTelefonoContacto(cita.getTelefonoContacto());
+        entity.setRecomendaciones(cita.getRecomendaciones());
+        entity.setFechaDiagnostico(cita.getFechaDiagnostico());
         return entity;
     }
 
@@ -85,6 +94,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         cita.setActualizadaEn(entity.getActualizadaEn());
         cita.setAgendamientoManual(entity.isAgendamientoManual());
         cita.setTelefonoContacto(entity.getTelefonoContacto());
+        cita.setRecomendaciones(entity.getRecomendaciones());
+        cita.setFechaDiagnostico(entity.getFechaDiagnostico());
         return cita;
     }
 }

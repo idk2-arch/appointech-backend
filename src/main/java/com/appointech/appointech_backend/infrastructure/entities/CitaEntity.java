@@ -66,4 +66,10 @@ public class CitaEntity {
 
     @Column(name = "telefono_contacto", length = 20)
     private String telefonoContacto;
+
+    @Column(columnDefinition = "text")
+    private String recomendaciones;
+
+    @Column(name = "fecha_diagnostico")
+    private LocalDateTime fechaDiagnostico;
 }
