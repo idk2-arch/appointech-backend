@@ -244,8 +244,11 @@ class AgendaTecnicoEscenario {
         return new EliminarBloqueUseCaseImpl(resolverTecnico, bloquesFake, registroLogPort);
     }
 
+    final com.appointech.appointech_backend.domain.ports.out.CitaFotoRepositoryPort citaFotosPort =
+            org.mockito.Mockito.mock(com.appointech.appointech_backend.domain.ports.out.CitaFotoRepositoryPort.class);
+
     ConsultarCitasDelTecnicoUseCaseImpl consultarCitas() {
-        return new ConsultarCitasDelTecnicoUseCaseImpl(resolverTecnico, consultaCitasPort, consultaClientesPort);
+        return new ConsultarCitasDelTecnicoUseCaseImpl(resolverTecnico, consultaCitasPort, consultaClientesPort, citaFotosPort);
     }
 
     CalcularRutaDelDiaUseCaseImpl calcularRuta(int margenMinutos) {

@@ -89,9 +89,9 @@ class ConsultaCitasAdminAdapterTest {
     @Test
     void mapeaFilasNombresTotalesYCitaSinTecnico() {
         CitaAdminFila conTecnico = new CitaAdminFila(1L, INICIO, INICIO.plusHours(2), EstadoCitaEntity.CONFIRMADA,
-                "Ana", "Gómez", "Luis", "Pérez", "Plomería", "Calle 1");
+                "Ana", "Gómez", "Luis", "Pérez", "Plomería", "Calle 1", "clave-tecnico");
         CitaAdminFila sinTecnico = new CitaAdminFila(2L, INICIO.minusDays(1), INICIO.minusDays(1).plusHours(1),
-                EstadoCitaEntity.PENDIENTE, "Ana", "Gómez", null, null, "Electricidad", "Calle 2");
+                EstadoCitaEntity.PENDIENTE, "Ana", "Gómez", null, null, "Electricidad", "Calle 2", null);
         devolver(new PageImpl<>(List.of(conTecnico, sinTecnico), PageRequest.of(0, 2), 5));
 
         PaginaResultado<CitaResumenAdmin> r = adapter.buscar(new FiltroCitasAdmin(null, null, null, null, 0, 2));
@@ -109,8 +109,10 @@ class ConsultaCitasAdminAdapterTest {
         assertEquals("Luis Pérez", a.nombreTecnico());
         assertEquals("Plomería", a.servicio());
         assertEquals("Calle 1", a.direccion());
+        assertEquals("clave-tecnico", a.tecnicoFotoClave());
         CitaResumenAdmin b = r.contenido().get(1);
         assertNull(b.nombreTecnico());
+        assertNull(b.tecnicoFotoClave());
         assertEquals(EstadoCita.PENDIENTE, b.estado());
         assertFalse(r.contenido().isEmpty());
     }

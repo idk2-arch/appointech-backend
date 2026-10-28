@@ -9,6 +9,7 @@ import com.appointech.appointech_backend.domain.models.DetalleCitaCompleto;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarCitasDelClienteUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
+import com.appointech.appointech_backend.domain.ports.out.CitaFotoRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.HistorialEstadoCitaPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +27,18 @@ public class ConsultarCitasDelClienteUseCaseImpl implements ConsultarCitasDelCli
     private final CitaRepositoryPort citaRepositoryPort;
     private final ObtenerDetalleCitaUseCase obtenerDetalleCita;
     private final HistorialEstadoCitaPort historialPort;
+    private final CitaFotoRepositoryPort citaFotoRepositoryPort;
 
     public ConsultarCitasDelClienteUseCaseImpl(ResolverClienteAutenticado resolverCliente,
                                                CitaRepositoryPort citaRepositoryPort,
                                                ObtenerDetalleCitaUseCase obtenerDetalleCita,
-                                               HistorialEstadoCitaPort historialPort) {
+                                               HistorialEstadoCitaPort historialPort,
+                                               CitaFotoRepositoryPort citaFotoRepositoryPort) {
         this.resolverCliente = resolverCliente;
         this.citaRepositoryPort = citaRepositoryPort;
         this.obtenerDetalleCita = obtenerDetalleCita;
         this.historialPort = historialPort;
+        this.citaFotoRepositoryPort = citaFotoRepositoryPort;
     }
 
     @Override
@@ -53,6 +57,7 @@ public class ConsultarCitasDelClienteUseCaseImpl implements ConsultarCitasDelCli
         Cita cita = citaRepositoryPort.buscarPorId(citaId)
                 .filter(c -> cliente.getId().equals(c.getClienteId()))
                 .orElseThrow(() -> new SolicitudNoEncontradaException(citaId));
-        return new DetalleCitaCompleto(obtenerDetalleCita.detallar(cita), historialPort.listarPorCita(citaId));
+        return new DetalleCitaCompleto(obtenerDetalleCita.detallar(cita), historialPort.listarPorCita(citaId),
+                citaFotoRepositoryPort.listarPorCita(citaId));
     }
 }

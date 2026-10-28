@@ -10,6 +10,7 @@ public record CitaAdminItemResponse(
         String nombreCliente,
         String nombreTecnico,
         String servicio,
-        String direccion
+        String direccion,
+        String tecnicoFotoUrl
 ) {
 }

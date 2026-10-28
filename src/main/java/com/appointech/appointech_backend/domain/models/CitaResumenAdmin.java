@@ -11,6 +11,7 @@ public record CitaResumenAdmin(
         String nombreCliente,
         String nombreTecnico,
         String servicio,
-        String direccion
+        String direccion,
+        String tecnicoFotoClave
 ) {
 }

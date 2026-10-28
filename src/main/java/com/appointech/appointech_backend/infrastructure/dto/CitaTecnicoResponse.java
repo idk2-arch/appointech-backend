@@ -1,6 +1,7 @@
 package com.appointech.appointech_backend.infrastructure.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record CitaTecnicoResponse(
         Long id,
@@ -11,6 +12,7 @@ public record CitaTecnicoResponse(
         String direccionServicio,
         Double latitud,
         Double longitud,
-        ClienteResumenResponse cliente
+        ClienteResumenResponse cliente,
+        List<FotoCitaResponse> fotosElectrodomestico
 ) {
 }

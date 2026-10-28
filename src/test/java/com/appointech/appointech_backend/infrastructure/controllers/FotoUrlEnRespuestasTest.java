@@ -49,17 +49,17 @@ class FotoUrlEnRespuestasTest {
 
     @Test
     void laCitaDelClienteTraeLaFotoDelTecnico() {
-        assertEquals(URL, CitaResponseMapper.aRespuesta(new DetalleCita(cita(), "Luis", "Perez", "300", "Plomeria", CLAVE)).fotoUrl());
-        assertNull(CitaResponseMapper.aRespuesta(new DetalleCita(cita(), "Luis", "Perez", "300", "Plomeria")).fotoUrl());
+        assertEquals(URL, CitaResponseMapper.aRespuesta(new DetalleCita(cita(), "Luis", "Perez", "300", "Plomeria", CLAVE)).tecnicoFotoUrl());
+        assertNull(CitaResponseMapper.aRespuesta(new DetalleCita(cita(), "Luis", "Perez", "300", "Plomeria")).tecnicoFotoUrl());
     }
 
     @Test
     void elDetalleDeCitaTraeLaFotoDelTecnico() {
         DetalleCita detalle = new DetalleCita(cita(), "Luis", "Perez", "300", "Plomeria", CLAVE);
 
-        assertEquals(URL, CitaDetalleMapper.aRespuesta(new DetalleCitaCompleto(detalle, List.of())).fotoUrl());
+        assertEquals(URL, CitaDetalleMapper.aRespuesta(new DetalleCitaCompleto(detalle, List.of())).tecnicoFotoUrl());
         assertNull(CitaDetalleMapper.aRespuesta(new DetalleCitaCompleto(
-                new DetalleCita(cita(), null, null, null, null), List.of())).fotoUrl());
+                new DetalleCita(cita(), null, null, null, null), List.of())).tecnicoFotoUrl());
     }
 
     @Test

@@ -33,7 +33,8 @@ final class CitaAdminMapper {
     private static CitaAdminItemResponse aItem(CitaResumenAdmin c) {
         return new CitaAdminItemResponse(c.id(), c.fechaHoraInicio().toLocalDate().toString(),
                 c.fechaHoraInicio().format(HORA), c.fechaHoraFin().format(HORA), c.estado().name(),
-                c.nombreCliente(), c.nombreTecnico(), c.servicio(), c.direccion());
+                c.nombreCliente(), c.nombreTecnico(), c.servicio(), c.direccion(),
+                FotoUrlMapper.aUrl(c.tecnicoFotoClave()));
     }
 
     private static EstadoCita aEstado(String estado) {

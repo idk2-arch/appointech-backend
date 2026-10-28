@@ -197,6 +197,7 @@ class TecnicoAgendaUseCasesTest {
         assertEquals(List.of(1L, 4L, 2L), citas.stream().map(c -> c.cita().getId()).toList());
         assertEquals("Cliente1", citas.get(0).cliente().nombre());
         assertEquals("3001", citas.get(0).cliente().telefono());
+        assertTrue(citas.get(0).fotos().isEmpty());
     }
 
     // ---------------------------------------------------------------- ruta (SCRUM-15 y SCRUM-16)

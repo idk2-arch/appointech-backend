@@ -23,7 +23,8 @@ final class CitaDetalleMapper {
                 cita.getFechaHoraInicio(), cita.getFechaHoraFin(),
                 aDiagnostico(cita),
                 completo.historial().stream().map(CitaDetalleMapper::aHistorial).toList(),
-                FotoUrlMapper.aUrl(detalle.tecnicoFotoClave()));
+                FotoUrlMapper.aUrl(detalle.tecnicoFotoClave()),
+                FotoUrlMapper.aFotosCita(completo.fotos()));
     }
 
     /** Null mientras el técnico no haya registrado un diagnóstico. */

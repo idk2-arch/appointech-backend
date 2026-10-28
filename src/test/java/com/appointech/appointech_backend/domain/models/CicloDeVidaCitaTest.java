@@ -59,6 +59,14 @@ class CicloDeVidaCitaTest {
         }
     }
 
+    @Test
+    void lasFotosDelElectrodomesticoSoloSeAdmitenEnPendienteOConfirmada() {
+        for (EstadoCita e : EstadoCita.values()) {
+            assertEquals(e == EstadoCita.PENDIENTE || e == EstadoCita.CONFIRMADA,
+                    e.admiteFotosDelElectrodomestico(), e.name());
+        }
+    }
+
     // ---- Cita.avanzarA ----
 
     @Test

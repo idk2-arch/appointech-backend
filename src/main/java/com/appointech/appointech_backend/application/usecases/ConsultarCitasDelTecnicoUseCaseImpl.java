@@ -3,9 +3,11 @@ package com.appointech.appointech_backend.application.usecases;
 import com.appointech.appointech_backend.application.services.ResolverTecnicoAutenticado;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.CitaConCliente;
+import com.appointech.appointech_backend.domain.models.CitaFoto;
 import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarCitasDelTecnicoUseCase;
+import com.appointech.appointech_backend.domain.ports.out.CitaFotoRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ConsultaCitasDelTecnicoPort;
 import com.appointech.appointech_backend.domain.ports.out.ConsultaClientesPort;
 import org.springframework.stereotype.Service;
@@ -26,13 +28,16 @@ public class ConsultarCitasDelTecnicoUseCaseImpl implements ConsultarCitasDelTec
     private final ResolverTecnicoAutenticado resolverTecnico;
     private final ConsultaCitasDelTecnicoPort consultaCitasPort;
     private final ConsultaClientesPort consultaClientesPort;
+    private final CitaFotoRepositoryPort citaFotoRepositoryPort;
 
     public ConsultarCitasDelTecnicoUseCaseImpl(ResolverTecnicoAutenticado resolverTecnico,
                                                ConsultaCitasDelTecnicoPort consultaCitasPort,
-                                               ConsultaClientesPort consultaClientesPort) {
+                                               ConsultaClientesPort consultaClientesPort,
+                                               CitaFotoRepositoryPort citaFotoRepositoryPort) {
         this.resolverTecnico = resolverTecnico;
         this.consultaCitasPort = consultaCitasPort;
         this.consultaClientesPort = consultaClientesPort;
+        this.citaFotoRepositoryPort = citaFotoRepositoryPort;
     }
 
     @Override
@@ -47,9 +52,10 @@ public class ConsultarCitasDelTecnicoUseCaseImpl implements ConsultarCitasDelTec
 
         Map<Long, ClienteResumen> clientes = consultaClientesPort.resumenesPorId(
                 citas.stream().map(Cita::getClienteId).distinct().toList());
+        Map<Long, List<CitaFoto>> fotos = citaFotoRepositoryPort.listarPorCitas(citas.stream().map(Cita::getId).toList());
 
         return citas.stream()
-                .map(cita -> new CitaConCliente(cita, clientes.get(cita.getClienteId())))
+                .map(cita -> new CitaConCliente(cita, clientes.get(cita.getClienteId()), fotos.getOrDefault(cita.getId(), List.of())))
                 .toList();
     }
 }

@@ -18,6 +18,7 @@ public record CitaDetalleResponse(
         LocalDateTime fechaHoraFin,
         DiagnosticoResponse diagnostico,
         List<HistorialEstadoResponse> historial,
-        String fotoUrl
+        String tecnicoFotoUrl,
+        List<FotoCitaResponse> fotosElectrodomestico
 ) {
 }

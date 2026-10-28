@@ -26,7 +26,7 @@ final class TecnicoAgendaMappers {
         return new CitaTecnicoResponse(
                 cita.getId(), cita.getEstado().name(), cita.getFechaHoraInicio(), cita.getFechaHoraFin(),
                 cita.getDescripcionProblema(), cita.getDireccionServicio(), cita.getLatitud(), cita.getLongitud(),
-                aRespuesta(citaConCliente.cliente()));
+                aRespuesta(citaConCliente.cliente()), FotoUrlMapper.aFotosCita(citaConCliente.fotos()));
     }
 
     static RutaResponse aRespuesta(RutaDelDia ruta) {

@@ -16,7 +16,7 @@ public interface CitasAdminJpaRepository extends JpaRepository<CitaEntity, Long>
     /** Cliente, técnico y especialidad se traen con joins en la misma consulta (sin N+1). */
     @Query(value = "SELECT new com.appointech.appointech_backend.infrastructure.repositories.CitaAdminFila("
             + "c.id, c.fechaHoraInicio, c.fechaHoraFin, c.estado, cu.nombre, cu.apellido, tu.nombre, tu.apellido, "
-            + "e.nombre, c.direccionServicio) "
+            + "e.nombre, c.direccionServicio, tu.fotoClave) "
             + "FROM CitaEntity c "
             + "JOIN ClienteEntity cl ON cl.id = c.clienteId JOIN cl.usuario cu "
             + "LEFT JOIN TecnicoEntity t ON t.id = c.tecnicoId LEFT JOIN t.usuario tu "

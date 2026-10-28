@@ -275,6 +275,49 @@ class CitaCicloControllersTest {
     }
 
     @Test
+    void laFotoDelTecnicoEnLasCitasSeLlamaTecnicoFotoUrlYEsNullSinFoto() throws Exception {
+        Cita a = cita(10L, EstadoCita.CONFIRMADA);
+        Cita b = cita(11L, EstadoCita.CONFIRMADA);
+        String clave = "11111111-2222-3333-4444-555555555555";
+        when(consultarCliente.listar("ana@mail.com")).thenReturn(List.of(
+                new DetalleCita(a, "Luis", "Perez", "300", "Plomeria", clave), detalle(b)));
+        when(consultarCliente.detallar("ana@mail.com", 10L)).thenReturn(
+                new DetalleCitaCompleto(new DetalleCita(a, "Luis", "Perez", "300", "Plomeria", clave), List.of()));
+        when(consultarAdmin.detallar(11L)).thenReturn(new DetalleCitaCompleto(detalle(b), List.of()));
+
+        mvc.perform(get("/api/cliente/citas").principal(cliente))
+                .andExpect(jsonPath("$[0].tecnicoFotoUrl").value("/api/fotos/" + clave))
+                .andExpect(jsonPath("$[0].fotoUrl").doesNotExist())
+                .andExpect(jsonPath("$[1]").value(org.hamcrest.Matchers.hasEntry(org.hamcrest.Matchers.is("tecnicoFotoUrl"), org.hamcrest.Matchers.nullValue())));
+        mvc.perform(get("/api/cliente/citas/10").principal(cliente))
+                .andExpect(jsonPath("$.tecnicoFotoUrl").value("/api/fotos/" + clave))
+                .andExpect(jsonPath("$.fotoUrl").doesNotExist());
+        mvc.perform(get("/api/admin/citas/11"))
+                .andExpect(jsonPath("$").value(org.hamcrest.Matchers.hasEntry(org.hamcrest.Matchers.is("tecnicoFotoUrl"), org.hamcrest.Matchers.nullValue())))
+                .andExpect(jsonPath("$.fotoUrl").doesNotExist());
+    }
+
+    @Test
+    void elDetalleTraeFotosElectrodomesticoParaClienteYAdministradorYVaciaSinFotos() throws Exception {
+        Cita c = cita(10L, EstadoCita.CONFIRMADA);
+        var fotos = List.of(new com.appointech.appointech_backend.domain.models.CitaFoto(
+                5L, 10L, "citas/10/k", LocalDateTime.now()));
+        when(consultarCliente.detallar("ana@mail.com", 10L)).thenReturn(new DetalleCitaCompleto(detalle(c), List.of(), fotos));
+        when(consultarAdmin.detallar(10L)).thenReturn(new DetalleCitaCompleto(detalle(c), List.of(), fotos));
+        when(consultarAdmin.detallar(11L)).thenReturn(new DetalleCitaCompleto(detalle(cita(11L, EstadoCita.CONFIRMADA)), List.of()));
+
+        mvc.perform(get("/api/cliente/citas/10").principal(cliente))
+                .andExpect(jsonPath("$.fotosElectrodomestico.length()").value(1))
+                .andExpect(jsonPath("$.fotosElectrodomestico[0].id").value(5))
+                .andExpect(jsonPath("$.fotosElectrodomestico[0].url").value("/api/citas/10/fotos/5"));
+        mvc.perform(get("/api/admin/citas/10"))
+                .andExpect(jsonPath("$.fotosElectrodomestico[0].url").value("/api/citas/10/fotos/5"));
+        mvc.perform(get("/api/admin/citas/11"))
+                .andExpect(jsonPath("$.fotosElectrodomestico").isArray())
+                .andExpect(jsonPath("$.fotosElectrodomestico.length()").value(0));
+    }
+
+    @Test
     void clienteSinCitasRecibeListaVacia() throws Exception {
         when(consultarCliente.listar("ana@mail.com")).thenReturn(List.of());
 

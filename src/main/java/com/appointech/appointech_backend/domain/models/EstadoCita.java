@@ -28,4 +28,9 @@ public enum EstadoCita {
     public boolean admiteCancelacionOReprogramacionDelCliente() {
         return this == PENDIENTE || this == CONFIRMADA;
     }
+
+    /** El cliente puede adjuntar o quitar fotos del electrodoméstico mientras la cita no haya empezado. */
+    public boolean admiteFotosDelElectrodomestico() {
+        return this == PENDIENTE || this == CONFIRMADA;
+    }
 }

@@ -73,9 +73,9 @@ class AdminCitaListadoSeguridadTest {
     private PaginaResultado<CitaResumenAdmin> pagina() {
         return new PaginaResultado<>(List.of(
                 new CitaResumenAdmin(10L, INICIO, INICIO.plusHours(2), EstadoCita.CONFIRMADA,
-                        "Ana Gómez", "Luis Pérez", "Plomería", "Calle 1"),
+                        "Ana Gómez", "Luis Pérez", "Plomería", "Calle 1", "11111111-2222-3333-4444-555555555555"),
                 new CitaResumenAdmin(11L, INICIO.minusDays(1), INICIO.minusDays(1).plusHours(1), EstadoCita.PENDIENTE,
-                        "Ana Gómez", null, "Electricidad", "Calle 2")), 1, 2, 7, 4);
+                        "Ana Gómez", null, "Electricidad", "Calle 2", null)), 1, 2, 7, 4);
     }
 
     @Test
@@ -94,6 +94,8 @@ class AdminCitaListadoSeguridadTest {
                 .andExpect(jsonPath("$.contenido[0].nombreTecnico").value("Luis Pérez"))
                 .andExpect(jsonPath("$.contenido[0].servicio").value("Plomería"))
                 .andExpect(jsonPath("$.contenido[0].direccion").value("Calle 1"))
+                .andExpect(jsonPath("$.contenido[0].tecnicoFotoUrl").value("/api/fotos/11111111-2222-3333-4444-555555555555"))
+                .andExpect(jsonPath("$.contenido[1]").value(org.hamcrest.Matchers.hasEntry(org.hamcrest.Matchers.is("tecnicoFotoUrl"), org.hamcrest.Matchers.nullValue())))
                 .andExpect(jsonPath("$.contenido[1].nombreTecnico").doesNotExist())
                 .andExpect(jsonPath("$.pagina").value(1))
                 .andExpect(jsonPath("$.tamanio").value(2))

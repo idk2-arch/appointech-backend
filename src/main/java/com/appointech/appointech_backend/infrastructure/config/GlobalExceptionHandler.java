@@ -2,10 +2,12 @@ package com.appointech.appointech_backend.infrastructure.config;
 
 import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.ClientePorIdNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.AccesoCitaDenegadoException;
 import com.appointech.appointech_backend.domain.exception.AlmacenamientoNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoException;
 import com.appointech.appointech_backend.domain.exception.FotoNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.ImagenInvalidaException;
+import com.appointech.appointech_backend.domain.exception.LimiteFotosCitaException;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
@@ -100,6 +102,16 @@ public class GlobalExceptionHandler {
     public ProblemDetail manejarAlmacenamientoNoDisponible(AlmacenamientoNoDisponibleException ex,
                                                            HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AccesoCitaDenegadoException.class)
+    public ProblemDetail manejarAccesoCitaDenegado(AccesoCitaDenegadoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(LimiteFotosCitaException.class)
+    public ProblemDetail manejarLimiteFotosCita(LimiteFotosCitaException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

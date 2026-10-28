@@ -57,7 +57,7 @@ public class ConsultaCitasAdminAdapter implements ConsultaCitasAdminPort {
                 fila.id(), fila.fechaHoraInicio(), fila.fechaHoraFin(), EstadoCita.valueOf(fila.estado().name()),
                 nombreCompleto(fila.clienteNombre(), fila.clienteApellido()),
                 nombreCompleto(fila.tecnicoNombre(), fila.tecnicoApellido()),
-                fila.servicio(), fila.direccion());
+                fila.servicio(), fila.direccion(), fila.tecnicoFotoClave());
     }
 
     private String nombreCompleto(String nombre, String apellido) {

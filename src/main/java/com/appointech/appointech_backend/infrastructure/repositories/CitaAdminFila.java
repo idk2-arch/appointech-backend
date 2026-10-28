@@ -15,6 +15,7 @@ public record CitaAdminFila(
         String tecnicoNombre,
         String tecnicoApellido,
         String servicio,
-        String direccion
+        String direccion,
+        String tecnicoFotoClave
 ) {
 }
