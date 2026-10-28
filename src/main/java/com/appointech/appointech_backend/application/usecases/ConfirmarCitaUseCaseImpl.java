@@ -27,7 +27,9 @@ import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -50,6 +52,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
     private final ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort;
     private final RegistroLogPort registroLogPort;
     private final NotificadorCitaPort notificadorCitaPort;
+    private final Clock reloj;
 
     public ConfirmarCitaUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                     ClienteRepositoryPort clienteRepositoryPort,
@@ -58,7 +61,8 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
                                     BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort,
                                     ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort,
                                     RegistroLogPort registroLogPort,
-                                    NotificadorCitaPort notificadorCitaPort) {
+                                    NotificadorCitaPort notificadorCitaPort,
+                                    Clock reloj) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.citaRepositoryPort = citaRepositoryPort;
@@ -67,6 +71,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         this.configuracionFranjasRepositoryPort = configuracionFranjasRepositoryPort;
         this.registroLogPort = registroLogPort;
         this.notificadorCitaPort = notificadorCitaPort;
+        this.reloj = reloj;
     }
 
     @Override
@@ -141,7 +146,9 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         boolean mismoDia = inicio.toLocalDate().equals(fin.toLocalDate());
         boolean dentroDeJornada = !inicio.toLocalTime().isBefore(configuracion.getHoraInicioJornada())
                 && !fin.toLocalTime().isAfter(configuracion.getHoraFinJornada());
-        boolean duracionCorrecta = Duration.between(inicio, fin).toMinutes() == configuracion.getDuracionBloqueMinutos();
+        ZoneId zona = reloj.getZone();
+        boolean duracionCorrecta = Duration.between(inicio.atZone(zona), fin.atZone(zona)).toMinutes()
+                == configuracion.getDuracionBloqueMinutos();
 
         if (!mismoDia || !dentroDeJornada || !duracionCorrecta) {
             throw new FranjaInvalidaException("La franja no corresponde a un horario ofrecido");

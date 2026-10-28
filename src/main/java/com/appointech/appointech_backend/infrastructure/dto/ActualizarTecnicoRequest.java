@@ -8,10 +8,10 @@ import java.util.List;
 
 /** Todos los campos son opcionales: los que lleguen null no se modifican. La contraseña no se edita aquí. */
 public record ActualizarTecnicoRequest(
-        @Pattern(regexp = ".*\\S.*", message = "El nombre no puede estar vacío")
+        @Pattern(regexp = "[^\\S\\r\\n]*+\\S.*", message = "El nombre no puede estar vacío")
         String nombre,
 
-        @Pattern(regexp = ".*\\S.*", message = "El apellido no puede estar vacío")
+        @Pattern(regexp = "[^\\S\\r\\n]*+\\S.*", message = "El apellido no puede estar vacío")
         String apellido,
 
         @Email(message = "El correo no tiene un formato válido")
@@ -21,10 +21,10 @@ public record ActualizarTecnicoRequest(
 
         TipoDocumento tipoDocumento,
 
-        @Pattern(regexp = ".*\\S.*", message = "El número de documento no puede estar vacío")
+        @Pattern(regexp = "[^\\S\\r\\n]*+\\S.*", message = "El número de documento no puede estar vacío")
         String numeroDocumento,
 
-        @Pattern(regexp = ".*\\S.*", message = "La dirección base no puede estar vacía")
+        @Pattern(regexp = "[^\\S\\r\\n]*+\\S.*", message = "La dirección base no puede estar vacía")
         String direccionBase,
 
         /** Obsoleto: el límite de distancia es único para todo el sistema; se ignora si llega. */

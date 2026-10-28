@@ -37,8 +37,13 @@ class CoordenadasTest {
 
     @Test
     void aceptaLosLimitesDeColombia() {
-        new Coordenadas(-5, -82);
-        new Coordenadas(14, -66);
+        Coordenadas suroeste = new Coordenadas(-5, -82);
+        Coordenadas noreste = new Coordenadas(14, -66);
+
+        assertEquals(-5, suroeste.latitud());
+        assertEquals(-82, suroeste.longitud());
+        assertEquals(14, noreste.latitud());
+        assertEquals(-66, noreste.longitud());
     }
 
     @Test

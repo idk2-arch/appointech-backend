@@ -337,7 +337,7 @@ class AgendamientoManualUseCasesTest {
         when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(c));
         var confirmar = new ConfirmarCitaUseCaseImpl(usuarioRepo, clienteRepo, citaRepo, tecnicoRepo, bloquesRepo,
                 mock(com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRepositoryPort.class),
-                log, notificador);
+                log, notificador, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
 
         FranjaNoDisponibleException ex = assertThrows(FranjaNoDisponibleException.class,
                 () -> confirmar.confirmar("cliente@x.com", 70L, 3L, INICIO, FIN));

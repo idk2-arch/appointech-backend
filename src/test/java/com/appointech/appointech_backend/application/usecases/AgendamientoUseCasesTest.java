@@ -240,7 +240,7 @@ class AgendamientoUseCasesTest {
         confirmarCita = new ConfirmarCitaUseCaseImpl(
                 usuarioRepositoryPort, clienteRepositoryPort, citaRepositoryPort,
                 tecnicoRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort,
-                registroLogPort, notificadorCitaPort);
+                registroLogPort, notificadorCitaPort, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
     }
 
     @Test
@@ -313,6 +313,13 @@ class AgendamientoUseCasesTest {
         assertThrows(FranjaInvalidaException.class, () ->
                 confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
                         fechaPrueba.atTime(8, 0), fechaPrueba.atTime(9, 0)));
+    }
+
+    @Test
+    void rechazaUnaFranjaMasLargaQueElBloqueConfigurado() {
+        assertThrows(FranjaInvalidaException.class, () ->
+                confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
+                        fechaPrueba.atTime(8, 0), fechaPrueba.atTime(11, 0)));
     }
 
     @Test

@@ -2,17 +2,14 @@ name: CI-CD Backend
 
 on:
   push:
-    branches: [main, desarrollo, "feature/**"]
+    branches: [main, desarrollo, preproduccion]
   pull_request:
-    branches: [main, desarrollo]
+    branches: [main, desarrollo, preproduccion]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
   packages: write
-
-env:
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 jobs:
   construir-y-probar:
@@ -36,6 +33,8 @@ jobs:
       DB_USER: appointech
       DB_PASSWORD: devpassword
       JWT_SECRET: clave-de-integracion-continua-con-mas-de-32-caracteres
+      # Los PR desde forks no reciben secretos: SONAR_TOKEN llega vacio y se omite el analisis
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,15 +44,18 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - name: Cache de SonarQube Cloud
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       - name: Compilar y ejecutar pruebas
+        if: ${{ env.SONAR_TOKEN == '' }}
         run: ./mvnw -B verify
-      - name: Analisis de calidad con SonarQube
-        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        run: >
-          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.projectKey=appointech-backend
-          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
-          -Dsonar.token=${{ env.SONAR_TOKEN }}
+      - name: Compilar, probar y analizar con SonarQube Cloud
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
   publicar-imagenes:
     needs: construir-y-probar
