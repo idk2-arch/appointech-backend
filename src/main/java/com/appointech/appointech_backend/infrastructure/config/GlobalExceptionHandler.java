@@ -8,6 +8,7 @@ import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoExc
 import com.appointech.appointech_backend.domain.exception.FotoNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.ImagenInvalidaException;
 import com.appointech.appointech_backend.domain.exception.LimiteFotosCitaException;
+import com.appointech.appointech_backend.domain.exception.PreDiagnosticoInvalidoException;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
@@ -53,6 +54,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({RadioCoberturaInvalidoException.class, TelefonoContactoRequeridoException.class,
             TelefonoWhatsappInvalidoException.class, FiltroCitasInvalidoException.class,
+            PreDiagnosticoInvalidoException.class,
             ImagenInvalidaException.class})
     public ProblemDetail manejarDatosInvalidos(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
