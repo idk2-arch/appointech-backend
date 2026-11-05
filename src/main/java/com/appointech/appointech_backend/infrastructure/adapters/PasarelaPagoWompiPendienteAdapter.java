@@ -5,15 +5,12 @@ import com.appointech.appointech_backend.domain.models.InicioPago;
 import com.appointech.appointech_backend.domain.models.ResultadoTransaccion;
 import com.appointech.appointech_backend.domain.models.SolicitudPago;
 import com.appointech.appointech_backend.domain.ports.out.PasarelaPagoPort;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
 /**
  * Pasarela por defecto (PASARELA_PAGOS=wompi o sin definir, fail-closed) mientras no exista el cliente real de Wompi: la aplicación arranca y el pago
- * en línea responde "no disponible", sin afectar el pago en efectivo. Se reemplaza por el adaptador de Wompi.
+ * en línea responde "no disponible", sin afectar el pago en efectivo. No es un bean: lo crea PagosConfig. Se reemplaza
+ * por el adaptador de Wompi.
  */
-@Component
-@ConditionalOnProperty(name = "pagos.pasarela", havingValue = "wompi", matchIfMissing = true)
 public class PasarelaPagoWompiPendienteAdapter implements PasarelaPagoPort {
 
     @Override

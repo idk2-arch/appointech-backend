@@ -7,18 +7,14 @@ import com.appointech.appointech_backend.domain.models.SolicitudPago;
 import com.appointech.appointech_backend.domain.ports.out.PasarelaPagoPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Pasarela simulada para desarrollo y pruebas: no llama a ningún servicio externo ni guarda estado. El id de la
  * transacción lleva la referencia y el monto (SIM:referencia:centavos), así se puede consultar sin memoria propia.
- * El resultado de toda consulta válida lo fija PASARELA_SIMULADA_APROBAR.
+ * El resultado de toda consulta válida lo fija PASARELA_SIMULADA_APROBAR. No es un bean: lo crea PagosConfig solo si
+ * PASARELA_PAGOS=simulada.
  */
-@Component
-@ConditionalOnProperty(name = "pagos.pasarela", havingValue = "simulada")
 public class PasarelaPagoSimuladaAdapter implements PasarelaPagoPort {
 
     private static final String PREFIJO = "SIM:";
@@ -27,7 +23,7 @@ public class PasarelaPagoSimuladaAdapter implements PasarelaPagoPort {
 
     private final boolean aprobar;
 
-    public PasarelaPagoSimuladaAdapter(@Value("${pagos.simulada.aprobar:true}") boolean aprobar) {
+    public PasarelaPagoSimuladaAdapter(boolean aprobar) {
         this.aprobar = aprobar;
         log.warn("Pasarela de pagos SIMULADA activa: no usar en producción");
     }
