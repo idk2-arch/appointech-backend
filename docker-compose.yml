@@ -60,6 +60,11 @@ services:
       GROQ_TIMEOUT_MS: ${GROQ_TIMEOUT_MS:-6000}
       RUTA_TOLERANCIA_MINUTOS: ${RUTA_TOLERANCIA_MINUTOS:-5}
       CONTACTO_ADMIN_TELEFONO: ${CONTACTO_ADMIN_TELEFONO:-}
+      # Solo en este compose de desarrollo la pasarela es la simulada; el codigo, sin la variable, usa wompi (fail-closed)
+      PASARELA_PAGOS: ${PASARELA_PAGOS:-simulada}
+      PASARELA_SIMULADA_APROBAR: ${PASARELA_SIMULADA_APROBAR:-true}
+      PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE: ${PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE:-20}
+      PAGOS_URL_RETORNO: ${PAGOS_URL_RETORNO:-http://localhost:4200/cliente/pago/resultado}
       TZ: America/Bogota
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Bogota
     depends_on:

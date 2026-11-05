@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.repositories;
 
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,9 @@ public interface CitasDelTecnicoJpaRepository extends JpaRepository<CitaEntity, 
                                            @Param("estados") Collection<EstadoCitaEntity> estados,
                                            @Param("inicio") LocalDateTime inicio,
                                            @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT c FROM CitaEntity c WHERE c.tecnicoId = :tecnicoId AND c.estado = :estado "
+            + "ORDER BY c.fechaHoraFin DESC, c.id DESC")
+    List<CitaEntity> buscarPorEstadoRecientesPrimero(@Param("tecnicoId") Long tecnicoId,
+                                                     @Param("estado") EstadoCitaEntity estado, Pageable pageable);
 }

@@ -67,4 +67,20 @@ class ConsultaCitasDelTecnicoAdapterTest {
 
         assertTrue(adapter.buscarPorEstadosEntre(3L, Set.of(EstadoCita.CONFIRMADA), INICIO, FIN).isEmpty());
     }
+
+    @Test
+    void lasFinalizadasSePidenRecientesPrimeroConElLimiteIndicado() {
+        CitaEntity e = new CitaEntity();
+        e.setId(5L);
+        e.setTecnicoId(3L);
+        e.setEstado(EstadoCitaEntity.FINALIZADA);
+        when(jpa.buscarPorEstadoRecientesPrimero(3L, EstadoCitaEntity.FINALIZADA,
+                org.springframework.data.domain.PageRequest.of(0, 50))).thenReturn(List.of(e));
+
+        List<Cita> r = adapter.buscarFinalizadas(3L, 50);
+
+        assertEquals(1, r.size());
+        assertEquals(5L, r.get(0).getId());
+        assertEquals(EstadoCita.FINALIZADA, r.get(0).getEstado());
+    }
 }

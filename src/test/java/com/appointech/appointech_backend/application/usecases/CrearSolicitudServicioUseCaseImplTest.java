@@ -9,7 +9,7 @@ class CrearSolicitudServicioUseCaseImplTest {
 
     // Las coordenadas se validan antes de consultar cualquier puerto, por eso no se necesitan simulados.
     private final CrearSolicitudServicioUseCaseImpl useCase =
-            new CrearSolicitudServicioUseCaseImpl(null, null, null, null, null);
+            new CrearSolicitudServicioUseCaseImpl(null, null, null, null, null, null);
 
     @Test
     void rechazaCoordenadasInvertidas() {

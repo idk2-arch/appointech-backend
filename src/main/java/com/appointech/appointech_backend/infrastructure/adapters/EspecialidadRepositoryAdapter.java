@@ -61,6 +61,7 @@ public class EspecialidadRepositoryAdapter implements EspecialidadRepositoryPort
         entity.setNombre(especialidad.getNombre());
         entity.setDescripcion(especialidad.getDescripcion());
         entity.setActivo(especialidad.isActivo());
+        entity.setCostoReferencia(especialidad.getCostoReferencia());
         return entity;
     }
 
@@ -70,6 +71,7 @@ public class EspecialidadRepositoryAdapter implements EspecialidadRepositoryPort
         especialidad.setNombre(entity.getNombre());
         especialidad.setDescripcion(entity.getDescripcion());
         especialidad.setActivo(entity.isActivo());
+        especialidad.setCostoReferencia(entity.getCostoReferencia());
         return especialidad;
     }
 }

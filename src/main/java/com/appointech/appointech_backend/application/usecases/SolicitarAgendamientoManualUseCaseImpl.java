@@ -4,7 +4,9 @@ import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoExc
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
 import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
+import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.models.Cita;
+import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
@@ -40,19 +42,22 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
     private final CitaRepositoryPort citaRepositoryPort;
     private final CalcularFranjasDisponiblesUseCase calcularFranjasDisponiblesUseCase;
     private final RegistroLogPort registroLogPort;
+    private final GestorCotizacion gestorCotizacion;
 
     public SolicitarAgendamientoManualUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                                   ClienteRepositoryPort clienteRepositoryPort,
                                                   EspecialidadRepositoryPort especialidadRepositoryPort,
                                                   CitaRepositoryPort citaRepositoryPort,
                                                   CalcularFranjasDisponiblesUseCase calcularFranjasDisponiblesUseCase,
-                                                  RegistroLogPort registroLogPort) {
+                                                  RegistroLogPort registroLogPort,
+                                                  GestorCotizacion gestorCotizacion) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
         this.citaRepositoryPort = citaRepositoryPort;
         this.calcularFranjasDisponiblesUseCase = calcularFranjasDisponiblesUseCase;
         this.registroLogPort = registroLogPort;
+        this.gestorCotizacion = gestorCotizacion;
     }
 
     @Override
@@ -66,8 +71,8 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         Cliente cliente = clienteRepositoryPort.buscarPorUsuarioId(usuario.getId())
                 .orElseThrow(() -> new ClienteNoEncontradoException(correoCliente));
 
-        especialidadRepositoryPort.buscarPorId(especialidadId)
-                .filter(especialidad -> especialidad.isActivo())
+        Especialidad especialidad = especialidadRepositoryPort.buscarPorId(especialidadId)
+                .filter(Especialidad::isActivo)
                 .orElseThrow(() -> new EspecialidadNoEncontradaException(List.of(especialidadId)));
 
         String telefono = elegirTelefono(telefonoContacto, usuario.getTelefono());
@@ -93,6 +98,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         solicitud.setActualizadaEn(ahora);
 
         Cita guardada = citaRepositoryPort.guardar(solicitud);
+        gestorCotizacion.registrar(guardada.getId(), especialidad);
         registroLogPort.registrar(NivelLog.INFO, TipoLog.NEGOCIO, "SolicitarAgendamientoManualUseCaseImpl", correoCliente,
                 "Solicitud de agendamiento manual creada con id " + guardada.getId());
         return guardada;

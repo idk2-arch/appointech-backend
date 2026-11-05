@@ -1,6 +1,8 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.models.Cita;
+import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
@@ -16,6 +18,7 @@ import com.appointech.appointech_backend.domain.ports.out.EspecialidadRepository
 import com.appointech.appointech_backend.domain.ports.out.RegistroLogPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,20 +38,24 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
     private final EspecialidadRepositoryPort especialidadRepositoryPort;
     private final CitaRepositoryPort citaRepositoryPort;
     private final RegistroLogPort registroLogPort;
+    private final GestorCotizacion gestorCotizacion;
 
     public CrearSolicitudServicioUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                              ClienteRepositoryPort clienteRepositoryPort,
                                              EspecialidadRepositoryPort especialidadRepositoryPort,
                                              CitaRepositoryPort citaRepositoryPort,
-                                             RegistroLogPort registroLogPort) {
+                                             RegistroLogPort registroLogPort,
+                                             GestorCotizacion gestorCotizacion) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
         this.citaRepositoryPort = citaRepositoryPort;
         this.registroLogPort = registroLogPort;
+        this.gestorCotizacion = gestorCotizacion;
     }
 
     @Override
+    @Transactional
     public Cita crear(String correoCliente, Long especialidadId, String descripcionProblema,
                       String direccionServicio, Double latitud, Double longitud) {
         Coordenadas ubicacion = Coordenadas.de(latitud, longitud);
@@ -58,8 +65,8 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         Cliente cliente = clienteRepositoryPort.buscarPorUsuarioId(usuario.getId())
                 .orElseThrow(() -> new ClienteNoEncontradoException(correoCliente));
 
-        especialidadRepositoryPort.buscarPorId(especialidadId)
-                .filter(especialidad -> especialidad.isActivo())
+        Especialidad especialidad = especialidadRepositoryPort.buscarPorId(especialidadId)
+                .filter(Especialidad::isActivo)
                 .orElseThrow(() -> new EspecialidadNoEncontradaException(List.of(especialidadId)));
 
         LocalDateTime ahora = LocalDateTime.now();
@@ -76,6 +83,7 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         solicitud.setActualizadaEn(ahora);
 
         Cita solicitudGuardada = citaRepositoryPort.guardar(solicitud);
+        gestorCotizacion.registrar(solicitudGuardada.getId(), especialidad);
         registroLogPort.registrar(NivelLog.INFO, TipoLog.NEGOCIO, "CrearSolicitudServicioUseCaseImpl", correoCliente,
                 "Solicitud de servicio creada con id " + solicitudGuardada.getId());
         return solicitudGuardada;

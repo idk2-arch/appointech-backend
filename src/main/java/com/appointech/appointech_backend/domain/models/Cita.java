@@ -92,6 +92,14 @@ public class Cita {
         this.fechaDiagnostico = ahora;
     }
 
+    /** Verifica que el servicio ya terminó; lanza 409 si no. */
+    public void exigirFinalizada(String accion) {
+        if (estado != EstadoCita.FINALIZADA) {
+            throw new EstadoCitaInvalidoException(
+                    "Solo se puede " + accion + " cuando la cita está FINALIZADA; la cita está " + estado);
+        }
+    }
+
     public String getRecomendaciones() {
         return recomendaciones;
     }

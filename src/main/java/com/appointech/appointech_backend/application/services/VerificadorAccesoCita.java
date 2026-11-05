@@ -43,6 +43,15 @@ public class VerificadorAccesoCita {
         return cita;
     }
 
+    /** Devuelve la cita si el correo es el del técnico asignado a ella. */
+    public Cita exigirTecnicoAsignado(String correo, Long citaId) {
+        Cita cita = buscarCita(citaId);
+        if (!esTecnicoAsignado(buscarUsuario(correo), cita)) {
+            throw new AccesoCitaDenegadoException();
+        }
+        return cita;
+    }
+
     /** Devuelve la cita si el correo es el del cliente dueño, el técnico asignado o un administrador. */
     public Cita exigirAcceso(String correo, Long citaId) {
         Cita cita = buscarCita(citaId);

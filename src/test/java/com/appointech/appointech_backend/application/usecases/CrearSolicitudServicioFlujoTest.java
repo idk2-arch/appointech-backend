@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
@@ -44,6 +45,8 @@ class CrearSolicitudServicioFlujoTest {
     private CitaRepositoryPort citas;
     @Mock
     private RegistroLogPort logs;
+    @Mock
+    private GestorCotizacion cotizador;
     @InjectMocks
     private CrearSolicitudServicioUseCaseImpl useCase;
 
@@ -93,6 +96,7 @@ class CrearSolicitudServicioFlujoTest {
         assertNotNull(guardada.getCreadaEn());
         assertEquals(guardada.getCreadaEn(), guardada.getActualizadaEn());
         assertEquals(77L, r.getId());
+        verify(cotizador).registrar(77L, especialidades.buscarPorId(2L).orElseThrow());
         verify(logs).registrar(eq(NivelLog.INFO), eq(TipoLog.NEGOCIO), eq("CrearSolicitudServicioUseCaseImpl"),
                 eq("ana@mail.com"), eq("Solicitud de servicio creada con id 77"));
     }

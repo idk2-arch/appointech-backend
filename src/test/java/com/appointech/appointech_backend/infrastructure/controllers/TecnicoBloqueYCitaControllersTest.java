@@ -9,6 +9,7 @@ import com.appointech.appointech_backend.domain.models.CitaConCliente;
 import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarCitasDelTecnicoUseCase;
+import com.appointech.appointech_backend.domain.ports.in.ConsultarCitasFinalizadasDelTecnicoUseCase;
 import com.appointech.appointech_backend.domain.ports.in.CrearBloqueUseCase;
 import com.appointech.appointech_backend.domain.ports.in.EliminarBloqueUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ListarBloquesUseCase;
@@ -49,6 +50,7 @@ class TecnicoBloqueYCitaControllersTest {
     private ListarBloquesUseCase listar;
     private EliminarBloqueUseCase eliminar;
     private ConsultarCitasDelTecnicoUseCase consultarCitas;
+    private ConsultarCitasFinalizadasDelTecnicoUseCase consultarFinalizadas;
     private RegistroLogPort logs;
     private MockMvc mvc;
 
@@ -58,10 +60,11 @@ class TecnicoBloqueYCitaControllersTest {
         listar = mock(ListarBloquesUseCase.class);
         eliminar = mock(EliminarBloqueUseCase.class);
         consultarCitas = mock(ConsultarCitasDelTecnicoUseCase.class);
+        consultarFinalizadas = mock(ConsultarCitasFinalizadasDelTecnicoUseCase.class);
         logs = mock(RegistroLogPort.class);
         mvc = MockMvcBuilders
                 .standaloneSetup(new TecnicoBloqueController(crear, listar, eliminar),
-                        new TecnicoCitaController(consultarCitas))
+                        new TecnicoCitaController(consultarCitas, consultarFinalizadas))
                 .setControllerAdvice(new GlobalExceptionHandler(), new AgendamientoExceptionHandler(logs))
                 .build();
         SecurityContextHolder.clearContext();
@@ -168,5 +171,25 @@ class TecnicoBloqueYCitaControllersTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(consultarCitas);
+    }
+
+    @Test
+    void finalizadasListaLasCitasConElEstadoDelPago() throws Exception {
+        Cita cita = new Cita();
+        cita.setId(9L);
+        cita.setEstado(EstadoCita.FINALIZADA);
+        cita.setFechaHoraInicio(INICIO);
+        cita.setFechaHoraFin(INICIO.plusHours(1));
+        when(consultarFinalizadas.consultar("tec@mail.com")).thenReturn(List.of(
+                new com.appointech.appointech_backend.domain.models.CitaFinalizadaConPago(
+                        new CitaConCliente(cita, new ClienteResumen("Luis", "Perez", "300")),
+                        com.appointech.appointech_backend.domain.models.EstadoCobro.SIN_COSTO_FINAL)));
+
+        mvc.perform(get("/api/tecnico/citas/finalizadas").principal(tecnico))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(9))
+                .andExpect(jsonPath("$[0].estado").value("FINALIZADA"))
+                .andExpect(jsonPath("$[0].cliente.nombre").value("Luis"))
+                .andExpect(jsonPath("$[0].estadoPago").value("SIN_COSTO_FINAL"));
     }
 }

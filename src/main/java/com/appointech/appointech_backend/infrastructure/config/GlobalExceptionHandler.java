@@ -4,6 +4,12 @@ import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasEx
 import com.appointech.appointech_backend.domain.exception.ClientePorIdNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.AccesoCitaDenegadoException;
 import com.appointech.appointech_backend.domain.exception.AlmacenamientoNoDisponibleException;
+import com.appointech.appointech_backend.domain.exception.ComprobanteNoDisponibleException;
+import com.appointech.appointech_backend.domain.exception.DatosPagoInvalidosException;
+import com.appointech.appointech_backend.domain.exception.PagoInvalidoException;
+import com.appointech.appointech_backend.domain.exception.PagoNoEncontradoException;
+import com.appointech.appointech_backend.domain.exception.PasarelaNoDisponibleException;
+import com.appointech.appointech_backend.domain.exception.TransaccionNoCoincideException;
 import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoException;
 import com.appointech.appointech_backend.domain.exception.FotoNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.ImagenInvalidaException;
@@ -54,7 +60,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({RadioCoberturaInvalidoException.class, TelefonoContactoRequeridoException.class,
             TelefonoWhatsappInvalidoException.class, FiltroCitasInvalidoException.class,
-            PreDiagnosticoInvalidoException.class,
+            PreDiagnosticoInvalidoException.class, DatosPagoInvalidosException.class,
             ImagenInvalidaException.class})
     public ProblemDetail manejarDatosInvalidos(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
@@ -114,6 +120,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LimiteFotosCitaException.class)
     public ProblemDetail manejarLimiteFotosCita(LimiteFotosCitaException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PagoNoEncontradoException.class)
+    public ProblemDetail manejarPagoNoEncontrado(PagoNoEncontradoException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({PagoInvalidoException.class, ComprobanteNoDisponibleException.class})
+    public ProblemDetail manejarPagoNoValidoParaElEstado(RuntimeException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TransaccionNoCoincideException.class)
+    public ProblemDetail manejarTransaccionNoCoincide(TransaccionNoCoincideException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PasarelaNoDisponibleException.class)
+    public ProblemDetail manejarPasarelaNoDisponible(PasarelaNoDisponibleException ex, HttpServletRequest request) {
+        return construirProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

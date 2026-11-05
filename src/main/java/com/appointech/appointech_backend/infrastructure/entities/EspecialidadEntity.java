@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,4 +28,7 @@ public class EspecialidadEntity {
 
     @Column(nullable = false)
     private boolean activo = true;
+
+    @Column(name = "costo_referencia", precision = 12, scale = 2)
+    private BigDecimal costoReferencia;
 }

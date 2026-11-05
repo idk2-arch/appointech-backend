@@ -3,10 +3,12 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.CitaConCliente;
+import com.appointech.appointech_backend.domain.models.CitaFinalizadaConPago;
 import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.ParadaRuta;
 import com.appointech.appointech_backend.domain.models.RutaDelDia;
 import com.appointech.appointech_backend.infrastructure.dto.BloqueResponse;
+import com.appointech.appointech_backend.infrastructure.dto.CitaFinalizadaTecnicoResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitaTecnicoResponse;
 import com.appointech.appointech_backend.infrastructure.dto.ClienteResumenResponse;
 import com.appointech.appointech_backend.infrastructure.dto.RutaResponse;
@@ -27,6 +29,14 @@ final class TecnicoAgendaMappers {
                 cita.getId(), cita.getEstado().name(), cita.getFechaHoraInicio(), cita.getFechaHoraFin(),
                 cita.getDescripcionProblema(), cita.getDireccionServicio(), cita.getLatitud(), cita.getLongitud(),
                 aRespuesta(citaConCliente.cliente()), FotoUrlMapper.aFotosCita(citaConCliente.fotos()));
+    }
+
+    static CitaFinalizadaTecnicoResponse aRespuesta(CitaFinalizadaConPago finalizada) {
+        CitaTecnicoResponse base = aRespuesta(finalizada.cita());
+        return new CitaFinalizadaTecnicoResponse(
+                base.id(), base.estado(), base.fechaHoraInicio(), base.fechaHoraFin(), base.descripcionProblema(),
+                base.direccionServicio(), base.latitud(), base.longitud(), base.cliente(),
+                base.fotosElectrodomestico(), finalizada.cobro());
     }
 
     static RutaResponse aRespuesta(RutaDelDia ruta) {

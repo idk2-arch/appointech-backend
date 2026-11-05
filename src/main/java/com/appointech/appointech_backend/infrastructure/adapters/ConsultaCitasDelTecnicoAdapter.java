@@ -3,9 +3,11 @@ package com.appointech.appointech_backend.infrastructure.adapters;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.ports.out.ConsultaCitasDelTecnicoPort;
+import com.appointech.appointech_backend.domain.ports.out.ConsultaCitasFinalizadasDelTecnicoPort;
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.CitasDelTecnicoJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +16,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Component
-public class ConsultaCitasDelTecnicoAdapter implements ConsultaCitasDelTecnicoPort {
+public class ConsultaCitasDelTecnicoAdapter
+        implements ConsultaCitasDelTecnicoPort, ConsultaCitasFinalizadasDelTecnicoPort {
 
     private final CitasDelTecnicoJpaRepository citasDelTecnicoJpaRepository;
 
@@ -30,6 +33,16 @@ public class ConsultaCitasDelTecnicoAdapter implements ConsultaCitasDelTecnicoPo
                 .map(estado -> EstadoCitaEntity.valueOf(estado.name()))
                 .toList();
         return citasDelTecnicoJpaRepository.buscarPorEstadosEntre(tecnicoId, estadosEntidad, inicio, fin)
+                .stream()
+                .map(this::aDominio)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cita> buscarFinalizadas(Long tecnicoId, int limite) {
+        return citasDelTecnicoJpaRepository
+                .buscarPorEstadoRecientesPrimero(tecnicoId, EstadoCitaEntity.FINALIZADA, PageRequest.of(0, limite))
                 .stream()
                 .map(this::aDominio)
                 .toList();

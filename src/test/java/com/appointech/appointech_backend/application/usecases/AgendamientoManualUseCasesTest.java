@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
@@ -61,6 +62,7 @@ class AgendamientoManualUseCasesTest {
     private BloqueIndisponibilidadRepositoryPort bloquesRepo;
     private CalcularFranjasDisponiblesUseCase franjas;
     private RegistroLogPort log;
+    private GestorCotizacion cotizador;
     private NotificadorCitaPort notificador;
     private Usuario usuarioCliente;
 
@@ -74,6 +76,7 @@ class AgendamientoManualUseCasesTest {
         bloquesRepo = mock(BloqueIndisponibilidadRepositoryPort.class);
         franjas = mock(CalcularFranjasDisponiblesUseCase.class);
         log = mock(RegistroLogPort.class);
+        cotizador = mock(GestorCotizacion.class);
         notificador = mock(NotificadorCitaPort.class);
 
         usuarioCliente = new Usuario();
@@ -98,7 +101,7 @@ class AgendamientoManualUseCasesTest {
 
     private SolicitarAgendamientoManualUseCaseImpl solicitar() {
         return new SolicitarAgendamientoManualUseCaseImpl(usuarioRepo, clienteRepo, especialidadRepo, citaRepo,
-                franjas, log);
+                franjas, log, cotizador);
     }
 
     private void motivo(MotivoSinFranjas motivo) {
@@ -120,6 +123,7 @@ class AgendamientoManualUseCasesTest {
         assertEquals(2L, c.getClienteId());
         assertEquals("3001112233", c.getTelefonoContacto());   // usa el teléfono de la cuenta
         assertEquals(4.5, c.getLatitud());
+        org.mockito.Mockito.verify(cotizador).registrar(70L, especialidadRepo.buscarPorId(5L).orElseThrow());
     }
 
     @Test
