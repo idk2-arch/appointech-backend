@@ -1,10 +1,13 @@
 package com.appointech.appointech_backend.domain.models;
 
+import java.math.BigDecimal;
+
 public class Especialidad {
     private Long id;
     private String nombre;
     private String descripcion;
     private boolean activo;
+    private BigDecimal costoReferencia;
 
     public Especialidad() {
     }
@@ -46,5 +49,13 @@ public class Especialidad {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public BigDecimal getCostoReferencia() {
+        return costoReferencia;
+    }
+
+    public void setCostoReferencia(BigDecimal costoReferencia) {
+        this.costoReferencia = costoReferencia;
     }
 }
