@@ -56,7 +56,7 @@ public class ListarSolicitudesManualesUseCaseImpl implements ListarSolicitudesMa
                     cliente != null ? cliente.apellido() : null,
                     telefono, cita.getDireccionServicio(), cita.getDescripcionProblema(),
                     cita.getEspecialidadId(), especialidades.get(cita.getEspecialidadId()),
-                    cita.getLatitud(), cita.getLongitud(), cita.getCreadaEn());
+                    cita.getLatitud(), cita.getLongitud(), cita.getCreadaEn(), cita.getMotivoSolicitudEspecial());
         }).toList();
     }
 }

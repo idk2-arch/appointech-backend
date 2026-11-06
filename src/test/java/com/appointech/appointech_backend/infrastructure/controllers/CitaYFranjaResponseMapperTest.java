@@ -3,6 +3,7 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.DetalleCita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.FranjaDisponible;
 import com.appointech.appointech_backend.domain.ports.in.ConfirmarCitaUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
@@ -15,7 +16,9 @@ import org.springframework.security.core.Authentication;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,6 +51,28 @@ class CitaYFranjaResponseMapperTest {
         assertEquals("Ruiz", r.tecnicoApellido());
         assertEquals("311", r.tecnicoTelefono());
         assertEquals("Plomería", r.especialidadNombre());
+    }
+
+    @Test
+    void solicitudNormalNoTraeMarcaDeSolicitudEspecial() {
+        CitaResponse r = CitaResponseMapper.aRespuesta(
+                new DetalleCita(cita(null, EstadoCita.PENDIENTE), null, null, null, "Plomería"));
+
+        assertFalse(r.agendamientoManual());
+        assertNull(r.motivoSolicitudEspecial());
+    }
+
+    @Test
+    void solicitudSinTecnicosDeLaEspecialidadTraeLaMarcaParaElFrontend() {
+        Cita marcada = cita(null, EstadoCita.PENDIENTE);
+        marcada.setAgendamientoManual(true);
+        marcada.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
+
+        CitaResponse r = CitaResponseMapper.aRespuesta(new DetalleCita(marcada, null, null, null, "Plomería"));
+
+        assertEquals("PENDIENTE", r.estado());
+        assertTrue(r.agendamientoManual());
+        assertEquals("SIN_TECNICOS_ESPECIALIDAD", r.motivoSolicitudEspecial());
     }
 
     @Test

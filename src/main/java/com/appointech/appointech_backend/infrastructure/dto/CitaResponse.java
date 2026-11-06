@@ -15,6 +15,8 @@ public record CitaResponse(
         String tecnicoApellido,
         String tecnicoTelefono,
         String especialidadNombre,
-        String tecnicoFotoUrl
+        String tecnicoFotoUrl,
+        boolean agendamientoManual,
+        String motivoSolicitudEspecial
 ) {
 }

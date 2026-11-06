@@ -17,7 +17,9 @@ final class CitaResponseMapper {
                 cita.getFechaHoraInicio(), cita.getFechaHoraFin(), cita.getEstado().name(),
                 detalle.tecnicoNombre(), detalle.tecnicoApellido(), detalle.tecnicoTelefono(),
                 detalle.especialidadNombre(),
-                FotoUrlMapper.aUrl(detalle.tecnicoFotoClave())
+                FotoUrlMapper.aUrl(detalle.tecnicoFotoClave()),
+                cita.isAgendamientoManual(),
+                cita.getMotivoSolicitudEspecial() == null ? null : cita.getMotivoSolicitudEspecial().name()
         );
     }
 }

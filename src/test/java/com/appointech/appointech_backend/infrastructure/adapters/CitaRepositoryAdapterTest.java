@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.adapters;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.CitaJpaRepository;
@@ -62,6 +63,7 @@ class CitaRepositoryAdapterTest {
         c.setEstado(EstadoCita.EN_CAMINO);
         c.setAgendamientoManual(true);
         c.setTelefonoContacto("3111111111");
+        c.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
         c.setFechaHoraInicio(INICIO);
         when(jpa.save(any(CitaEntity.class))).thenAnswer(inv -> {
             CitaEntity e = inv.getArgument(0);
@@ -78,6 +80,8 @@ class CitaRepositoryAdapterTest {
         assertEquals(EstadoCita.EN_CAMINO, guardada.getEstado());
         assertTrue(guardada.isAgendamientoManual());
         assertEquals("3111111111", guardada.getTelefonoContacto());
+        assertEquals("SIN_TECNICOS_ESPECIALIDAD", captor.getValue().getMotivoSolicitudEspecial());
+        assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, guardada.getMotivoSolicitudEspecial());
         assertEquals(INICIO, guardada.getFechaHoraInicio());
     }
 
@@ -91,8 +95,32 @@ class CitaRepositoryAdapterTest {
         assertEquals("Calle 5", c.getDireccionServicio());
         assertEquals(4.1, c.getLatitud());
         assertEquals("ok", c.getDiagnostico());
+        assertNull(c.getMotivoSolicitudEspecial());
         assertEquals(INICIO.plusHours(1), c.getFechaHoraFin());
         assertTrue(adapter.buscarPorId(2L).isEmpty());
+    }
+
+    @Test
+    void buscarPorIdConvierteElMotivoGuardadoComoTexto() {
+        CitaEntity e = entity(3L, EstadoCitaEntity.PENDIENTE);
+        e.setMotivoSolicitudEspecial("FUERA_DE_COBERTURA");
+        when(jpa.findById(3L)).thenReturn(Optional.of(e));
+
+        assertEquals(MotivoSolicitudEspecial.FUERA_DE_COBERTURA,
+                adapter.buscarPorId(3L).orElseThrow().getMotivoSolicitudEspecial());
+    }
+
+    @Test
+    void guardarSinMotivoDejaLaColumnaEnNulo() {
+        Cita c = new Cita();
+        c.setEstado(EstadoCita.PENDIENTE);
+        when(jpa.save(any(CitaEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adapter.guardar(c);
+
+        ArgumentCaptor<CitaEntity> captor = ArgumentCaptor.forClass(CitaEntity.class);
+        verify(jpa).save(captor.capture());
+        assertNull(captor.getValue().getMotivoSolicitudEspecial());
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.infrastructure.adapters;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
@@ -71,6 +72,7 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         entity.setActualizadaEn(cita.getActualizadaEn());
         entity.setAgendamientoManual(cita.isAgendamientoManual());
         entity.setTelefonoContacto(cita.getTelefonoContacto());
+        entity.setMotivoSolicitudEspecial(cita.getMotivoSolicitudEspecial() == null ? null : cita.getMotivoSolicitudEspecial().name());
         entity.setRecomendaciones(cita.getRecomendaciones());
         entity.setFechaDiagnostico(cita.getFechaDiagnostico());
         return entity;
@@ -94,6 +96,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         cita.setActualizadaEn(entity.getActualizadaEn());
         cita.setAgendamientoManual(entity.isAgendamientoManual());
         cita.setTelefonoContacto(entity.getTelefonoContacto());
+        cita.setMotivoSolicitudEspecial(entity.getMotivoSolicitudEspecial() == null ? null
+                : MotivoSolicitudEspecial.valueOf(entity.getMotivoSolicitudEspecial()));
         cita.setRecomendaciones(entity.getRecomendaciones());
         cita.setFechaDiagnostico(entity.getFechaDiagnostico());
         return cita;

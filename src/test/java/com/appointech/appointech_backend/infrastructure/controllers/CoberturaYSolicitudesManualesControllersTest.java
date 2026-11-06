@@ -13,6 +13,7 @@ import com.appointech.appointech_backend.domain.models.DetalleCita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.FranjaDisponible;
 import com.appointech.appointech_backend.domain.models.MotivoSinFranjas;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.in.ActualizarCoberturaUseCase;
@@ -219,7 +220,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @WithMockUser(roles = "ADMINISTRADOR")
     void adminListaLasSolicitudesManualesCon200() {
         when(listarSolicitudes.listar()).thenReturn(List.of(new SolicitudManualDetalle(
-                70L, 2L, "Ana", "Ruiz", "3109998877", "Vereda", "Fuga", 5L, "Plomería", 4.5, -74.1, INICIO)));
+                70L, 2L, "Ana", "Ruiz", "3109998877", "Vereda", "Fuga", 5L, "Plomería", 4.5, -74.1, INICIO, MotivoSolicitudEspecial.FUERA_DE_COBERTURA)));
 
         ResponseEntity<List<SolicitudManualAdminResponse>> r = solicitudesAdmin.listar();
 

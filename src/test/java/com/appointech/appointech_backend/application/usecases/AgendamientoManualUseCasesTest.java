@@ -11,6 +11,7 @@ import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequer
 import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
@@ -122,6 +123,7 @@ class AgendamientoManualUseCasesTest {
         assertNull(c.getFechaHoraFin());
         assertEquals(2L, c.getClienteId());
         assertEquals("3001112233", c.getTelefonoContacto());   // usa el teléfono de la cuenta
+        assertEquals(MotivoSolicitudEspecial.FUERA_DE_COBERTURA, c.getMotivoSolicitudEspecial());
         assertEquals(4.5, c.getLatitud());
         org.mockito.Mockito.verify(cotizador).registrar(70L, especialidadRepo.buscarPorId(5L).orElseThrow());
     }
@@ -195,6 +197,7 @@ class AgendamientoManualUseCasesTest {
     @Test
     void listaLasSolicitudesConDatosDelClienteYLaEspecialidad() {
         Cita c = manualPendiente(70L);
+        c.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
         when(citaRepo.buscarSolicitudesManualesPendientes()).thenReturn(List.of(c));
         ConsultaClientesPort consulta = mock(ConsultaClientesPort.class);
         when(consulta.resumenesPorId(any())).thenReturn(Map.of(2L, new ClienteResumen("Ana", "Ruiz", "3001112233")));
@@ -211,6 +214,7 @@ class AgendamientoManualUseCasesTest {
         assertEquals("Vereda", d.direccionServicio());
         assertEquals("Fuga", d.descripcionProblema());
         assertEquals("Plomería", d.especialidadNombre());
+        assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, d.motivo());
     }
 
     @Test

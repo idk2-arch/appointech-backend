@@ -11,6 +11,7 @@ import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.MotivoSinFranjas;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
 import com.appointech.appointech_backend.domain.models.TipoLog;
@@ -93,6 +94,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         solicitud.setLongitud(ubicacion.longitud());
         solicitud.setEstado(EstadoCita.PENDIENTE);
         solicitud.setAgendamientoManual(true);
+        solicitud.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.FUERA_DE_COBERTURA);
         solicitud.setTelefonoContacto(telefono);
         solicitud.setCreadaEn(ahora);
         solicitud.setActualizadaEn(ahora);

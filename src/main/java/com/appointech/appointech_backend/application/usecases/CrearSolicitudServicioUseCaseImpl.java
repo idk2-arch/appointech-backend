@@ -6,12 +6,14 @@ import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
 import com.appointech.appointech_backend.domain.ports.in.CrearSolicitudServicioUseCase;
+import com.appointech.appointech_backend.domain.ports.in.FiltrarTecnicosPorEspecialidadUseCase;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.EspecialidadRepositoryPort;
@@ -39,19 +41,22 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
     private final CitaRepositoryPort citaRepositoryPort;
     private final RegistroLogPort registroLogPort;
     private final GestorCotizacion gestorCotizacion;
+    private final FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicosPorEspecialidadUseCase;
 
     public CrearSolicitudServicioUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                              ClienteRepositoryPort clienteRepositoryPort,
                                              EspecialidadRepositoryPort especialidadRepositoryPort,
                                              CitaRepositoryPort citaRepositoryPort,
                                              RegistroLogPort registroLogPort,
-                                             GestorCotizacion gestorCotizacion) {
+                                             GestorCotizacion gestorCotizacion,
+                                             FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicosPorEspecialidadUseCase) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
         this.citaRepositoryPort = citaRepositoryPort;
         this.registroLogPort = registroLogPort;
         this.gestorCotizacion = gestorCotizacion;
+        this.filtrarTecnicosPorEspecialidadUseCase = filtrarTecnicosPorEspecialidadUseCase;
     }
 
     @Override
@@ -79,13 +84,38 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         solicitud.setLatitud(ubicacion.latitud());
         solicitud.setLongitud(ubicacion.longitud());
         solicitud.setEstado(EstadoCita.PENDIENTE);
+        marcarSiNoHayTecnicos(solicitud, especialidadId, usuario.getTelefono());
         solicitud.setCreadaEn(ahora);
         solicitud.setActualizadaEn(ahora);
 
         Cita solicitudGuardada = citaRepositoryPort.guardar(solicitud);
         gestorCotizacion.registrar(solicitudGuardada.getId(), especialidad);
+        registrarCreacion(solicitudGuardada, correoCliente);
+        return solicitudGuardada;
+    }
+
+    /**
+     * RF28: si ningún técnico activo atiende la especialidad, la solicitud queda marcada para el administrador
+     * (sigue PENDIENTE). Solo se revisa la existencia de técnicos, no se calculan franjas.
+     */
+    private void marcarSiNoHayTecnicos(Cita solicitud, Long especialidadId, String telefonoCliente) {
+        if (!filtrarTecnicosPorEspecialidadUseCase.filtrar(especialidadId).isEmpty()) {
+            return;
+        }
+        solicitud.setAgendamientoManual(true);
+        solicitud.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
+        if (telefonoCliente != null && !telefonoCliente.isBlank()) {
+            solicitud.setTelefonoContacto(telefonoCliente);
+        }
+    }
+
+    private void registrarCreacion(Cita solicitudGuardada, String correoCliente) {
+        if (solicitudGuardada.getMotivoSolicitudEspecial() == MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD) {
+            registroLogPort.registrar(NivelLog.WARN, TipoLog.NEGOCIO, "CrearSolicitudServicioUseCaseImpl", correoCliente,
+                    "Solicitud " + solicitudGuardada.getId() + " sin disponibilidad: no hay técnicos con la especialidad "
+                            + solicitudGuardada.getEspecialidadId());
+        }
         registroLogPort.registrar(NivelLog.INFO, TipoLog.NEGOCIO, "CrearSolicitudServicioUseCaseImpl", correoCliente,
                 "Solicitud de servicio creada con id " + solicitudGuardada.getId());
-        return solicitudGuardada;
     }
 }

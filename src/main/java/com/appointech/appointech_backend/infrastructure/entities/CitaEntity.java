@@ -67,6 +67,9 @@ public class CitaEntity {
     @Column(name = "telefono_contacto", length = 20)
     private String telefonoContacto;
 
+    @Column(name = "motivo_solicitud_especial", length = 40)
+    private String motivoSolicitudEspecial;
+
     @Column(columnDefinition = "text")
     private String recomendaciones;
 

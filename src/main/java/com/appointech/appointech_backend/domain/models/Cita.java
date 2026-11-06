@@ -23,6 +23,7 @@ public class Cita {
     private LocalDateTime actualizadaEn;
     private boolean agendamientoManual;
     private String telefonoContacto;
+    private MotivoSolicitudEspecial motivoSolicitudEspecial;
     private String recomendaciones;
     private LocalDateTime fechaDiagnostico;
 
@@ -234,6 +235,14 @@ public class Cita {
 
     public void setAgendamientoManual(boolean agendamientoManual) {
         this.agendamientoManual = agendamientoManual;
+    }
+
+    public MotivoSolicitudEspecial getMotivoSolicitudEspecial() {
+        return motivoSolicitudEspecial;
+    }
+
+    public void setMotivoSolicitudEspecial(MotivoSolicitudEspecial motivoSolicitudEspecial) {
+        this.motivoSolicitudEspecial = motivoSolicitudEspecial;
     }
 
     public String getTelefonoContacto() {
