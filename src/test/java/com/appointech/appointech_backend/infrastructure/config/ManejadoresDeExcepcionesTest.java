@@ -9,6 +9,7 @@ import com.appointech.appointech_backend.domain.exception.FranjaInvalidaExceptio
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.PerfilTecnicoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
+import com.appointech.appointech_backend.domain.exception.ReglasFranjasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
 import com.appointech.appointech_backend.domain.exception.SolicitudNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.TecnicoNoEncontradoException;
@@ -85,6 +86,7 @@ class ManejadoresDeExcepcionesTest {
     @Test
     void datosInvalidosResponden400() {
         verificar(global.manejarDatosInvalidos(new RadioCoberturaInvalidoException("radio"), request), HttpStatus.BAD_REQUEST);
+        verificar(global.manejarDatosInvalidos(new ReglasFranjasInvalidasException("reglas"), request), HttpStatus.BAD_REQUEST);
         verificar(global.manejarDatosInvalidos(new TelefonoContactoRequeridoException(), request), HttpStatus.BAD_REQUEST);
         verificar(global.manejarEspecialidadNoEncontrada(new EspecialidadNoEncontradaException(List.of(1L)), request),
                 HttpStatus.BAD_REQUEST);

@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -92,7 +91,7 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
         }
 
         ConfiguracionFranjas configuracion = configuracionFranjasRepositoryPort.obtenerActual()
-                .orElseGet(() -> new ConfiguracionFranjas(null, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0)));
+                .orElseGet(ConfiguracionFranjas::porDefecto);
 
         Coordenadas origen = Coordenadas.de(latitud, longitud);
 

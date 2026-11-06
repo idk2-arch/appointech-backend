@@ -8,7 +8,6 @@ import com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRe
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalTime;
 
 /** Lectura y edición de la cobertura (límite único de distancia y teléfono de WhatsApp del administrador). */
 @Service
@@ -43,6 +42,6 @@ public class CoberturaUseCasesImpl implements ObtenerCoberturaUseCase, Actualiza
 
     private ConfiguracionFranjas configuracionActual() {
         return configuracionPort.obtenerActual()
-                .orElseGet(() -> new ConfiguracionFranjas(null, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0)));
+                .orElseGet(ConfiguracionFranjas::porDefecto);
     }
 }

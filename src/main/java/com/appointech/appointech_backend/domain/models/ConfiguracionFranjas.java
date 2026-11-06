@@ -1,8 +1,15 @@
 package com.appointech.appointech_backend.domain.models;
 
+import com.appointech.appointech_backend.domain.exception.ReglasFranjasInvalidasException;
+
+import java.time.Duration;
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class ConfiguracionFranjas {
+
+    public static final int DURACION_MINIMA_PERMITIDA_MINUTOS = 15;
+    public static final int DURACION_MAXIMA_PERMITIDA_MINUTOS = 480;
 
     private Long id;
     private Integer duracionBloqueMinutos;
@@ -11,6 +18,11 @@ public class ConfiguracionFranjas {
     private LocalTime horaFinJornada;
 
     public ConfiguracionFranjas() {
+    }
+
+    /** Única definición del respaldo cuando aún no hay configuración guardada: 120 min, 15 km, jornada 08:00-18:00. */
+    public static ConfiguracionFranjas porDefecto() {
+        return new ConfiguracionFranjas(null, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0));
     }
 
     public ConfiguracionFranjas(Long id, Integer duracionBloqueMinutos, Integer radioMaximoKm,
@@ -100,5 +112,37 @@ public class ConfiguracionFranjas {
                     "El radio máximo de cobertura debe ser mayor que 0 y como máximo " + RADIO_MAXIMO_PERMITIDO_KM + " km");
         }
         this.radioMaximoKm = kilometros;
+    }
+
+    /**
+     * Cambia la duración del bloque y la jornada de una sola vez, validando el conjunto: la duración entre
+     * {@value #DURACION_MINIMA_PERMITIDA_MINUTOS} y {@value #DURACION_MAXIMA_PERMITIDA_MINUTOS} minutos, el inicio
+     * anterior al fin y al menos un bloque completo dentro de la jornada. Si algo es inválido no cambia nada.
+     */
+    public void cambiarReglasDeFranjas(Integer duracionMinutos, LocalTime inicioJornada, LocalTime finJornada) {
+        if (duracionMinutos == null || duracionMinutos < DURACION_MINIMA_PERMITIDA_MINUTOS
+                || duracionMinutos > DURACION_MAXIMA_PERMITIDA_MINUTOS) {
+            throw new ReglasFranjasInvalidasException("La duración del bloque debe estar entre "
+                    + DURACION_MINIMA_PERMITIDA_MINUTOS + " y " + DURACION_MAXIMA_PERMITIDA_MINUTOS + " minutos");
+        }
+        if (inicioJornada == null || finJornada == null) {
+            throw new ReglasFranjasInvalidasException("La hora de inicio y la de fin de la jornada son obligatorias");
+        }
+        if (!inicioJornada.isBefore(finJornada)) {
+            throw new ReglasFranjasInvalidasException("La hora de inicio de la jornada debe ser anterior a la de fin");
+        }
+        if (Duration.between(inicioJornada, finJornada).toMinutes() < duracionMinutos) {
+            throw new ReglasFranjasInvalidasException("La jornada debe poder contener al menos un bloque completo");
+        }
+        this.duracionBloqueMinutos = duracionMinutos;
+        this.horaInicioJornada = inicioJornada;
+        this.horaFinJornada = finJornada;
+    }
+
+    /** True si los valores dados cambian la duración o la jornada con las que se ofrecieron las franjas. */
+    public boolean cambiaranFranjasOfrecidas(Integer duracionMinutos, LocalTime inicioJornada, LocalTime finJornada) {
+        return !Objects.equals(duracionBloqueMinutos, duracionMinutos)
+                || !Objects.equals(horaInicioJornada, inicioJornada)
+                || !Objects.equals(horaFinJornada, finJornada);
     }
 }

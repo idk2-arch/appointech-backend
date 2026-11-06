@@ -31,7 +31,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -141,7 +140,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
 
     private void validarContraConfiguracion(LocalDateTime inicio, LocalDateTime fin) {
         ConfiguracionFranjas configuracion = configuracionFranjasRepositoryPort.obtenerActual()
-                .orElseGet(() -> new ConfiguracionFranjas(null, 120, 15, LocalTime.of(8, 0), LocalTime.of(18, 0)));
+                .orElseGet(ConfiguracionFranjas::porDefecto);
 
         boolean mismoDia = inicio.toLocalDate().equals(fin.toLocalDate());
         boolean dentroDeJornada = !inicio.toLocalTime().isBefore(configuracion.getHoraInicioJornada())

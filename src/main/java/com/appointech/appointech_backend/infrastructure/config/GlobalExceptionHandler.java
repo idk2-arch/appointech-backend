@@ -17,6 +17,7 @@ import com.appointech.appointech_backend.domain.exception.LimiteFotosCitaExcepti
 import com.appointech.appointech_backend.domain.exception.PreDiagnosticoInvalidoException;
 import com.appointech.appointech_backend.domain.exception.CorreoYaRegistradoException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
+import com.appointech.appointech_backend.domain.exception.ReglasFranjasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
 import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
 import com.appointech.appointech_backend.domain.exception.TelefonoWhatsappInvalidoException;
@@ -58,7 +59,8 @@ public class GlobalExceptionHandler {
         return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({RadioCoberturaInvalidoException.class, TelefonoContactoRequeridoException.class,
+    @ExceptionHandler({RadioCoberturaInvalidoException.class, ReglasFranjasInvalidasException.class,
+            TelefonoContactoRequeridoException.class,
             TelefonoWhatsappInvalidoException.class, FiltroCitasInvalidoException.class,
             PreDiagnosticoInvalidoException.class, DatosPagoInvalidosException.class,
             ImagenInvalidaException.class})
