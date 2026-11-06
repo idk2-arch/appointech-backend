@@ -8,9 +8,7 @@ import com.appointech.appointech_backend.domain.models.PaginaResultado;
 import com.appointech.appointech_backend.infrastructure.dto.CitaAdminItemResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitasAdminPaginaResponse;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 final class CitaAdminMapper {
 
@@ -21,8 +19,8 @@ final class CitaAdminMapper {
 
     static FiltroCitasAdmin aFiltro(Long tecnicoId, String estado, String fechaDesde, String fechaHasta,
                                     int pagina, int tamanio) {
-        return new FiltroCitasAdmin(tecnicoId, aEstado(estado), aFecha("fechaDesde", fechaDesde),
-                aFecha("fechaHasta", fechaHasta), pagina, tamanio);
+        return new FiltroCitasAdmin(tecnicoId, aEstado(estado), ParametrosDeConsulta.aFecha("fechaDesde", fechaDesde),
+                ParametrosDeConsulta.aFecha("fechaHasta", fechaHasta), pagina, tamanio);
     }
 
     static CitasAdminPaginaResponse aRespuesta(PaginaResultado<CitaResumenAdmin> pagina) {
@@ -45,17 +43,6 @@ final class CitaAdminMapper {
             return EstadoCita.valueOf(estado.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new FiltroCitasInvalidoException("Estado inválido: " + estado);
-        }
-    }
-
-    private static LocalDate aFecha(String parametro, String valor) {
-        if (valor == null || valor.isBlank()) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(valor.trim());
-        } catch (DateTimeParseException e) {
-            throw new FiltroCitasInvalidoException(parametro + " debe tener el formato yyyy-MM-dd");
         }
     }
 }
