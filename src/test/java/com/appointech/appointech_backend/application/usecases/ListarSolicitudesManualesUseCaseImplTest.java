@@ -8,6 +8,7 @@ import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
 import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
+import com.appointech.appointech_backend.domain.models.PaginacionOpcional;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ConsultaClientesPort;
@@ -205,7 +206,7 @@ class ListarSolicitudesManualesUseCaseImplTest {
 
         FiltroSolicitudesManuales f = filtroEnviadoAlPuerto();
         assertEquals(2, f.pagina());
-        assertEquals(ListarSolicitudesManualesUseCaseImpl.TAMANIO_POR_DEFECTO, f.tamanio());
+        assertEquals(PaginacionOpcional.TAMANIO_POR_DEFECTO, f.tamanio());
     }
 
     @Test
@@ -225,7 +226,7 @@ class ListarSolicitudesManualesUseCaseImplTest {
 
         assertTrue(casoDeUso.listar(new FiltroSolicitudesManuales(null, null, null, 0, 1)).elementos().isEmpty());
         assertTrue(casoDeUso.listar(new FiltroSolicitudesManuales(null, null, null, 0,
-                ListarSolicitudesManualesUseCaseImpl.TAMANIO_MAXIMO)).elementos().isEmpty());
+                PaginacionOpcional.TAMANIO_MAXIMO)).elementos().isEmpty());
     }
 
     @Test
@@ -233,7 +234,7 @@ class ListarSolicitudesManualesUseCaseImplTest {
         FiltroSolicitudesManuales paginaNegativa = new FiltroSolicitudesManuales(null, null, null, -1, 10);
         FiltroSolicitudesManuales tamanioCero = new FiltroSolicitudesManuales(null, null, null, 0, 0);
         FiltroSolicitudesManuales tamanioExcesivo = new FiltroSolicitudesManuales(null, null, null, 0,
-                ListarSolicitudesManualesUseCaseImpl.TAMANIO_MAXIMO + 1);
+                PaginacionOpcional.TAMANIO_MAXIMO + 1);
 
         assertThrows(FiltroCitasInvalidoException.class, () -> casoDeUso.listar(paginaNegativa));
         assertThrows(FiltroCitasInvalidoException.class, () -> casoDeUso.listar(tamanioCero));

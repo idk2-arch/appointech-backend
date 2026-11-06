@@ -1,12 +1,12 @@
 package com.appointech.appointech_backend.application.usecases;
 
-import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoException;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
 import com.appointech.appointech_backend.domain.models.ListadoConTotal;
+import com.appointech.appointech_backend.domain.models.PaginacionOpcional;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.in.ListarSolicitudesManualesUseCase;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 @Service
 public class ListarSolicitudesManualesUseCaseImpl implements ListarSolicitudesManualesUseCase {
 
-    static final int TAMANIO_POR_DEFECTO = 20;
-    static final int TAMANIO_MAXIMO = 100;
 
     private final CitaRepositoryPort citaRepositoryPort;
     private final ConsultaClientesPort consultaClientesPort;
@@ -65,21 +63,12 @@ public class ListarSolicitudesManualesUseCaseImpl implements ListarSolicitudesMa
         return new ListadoConTotal<>(detalles, encontradas.total());
     }
 
-    /** Aplica el estado por defecto (PENDIENTE) y valida la paginación; si solo llega uno de los dos datos, el otro toma su valor por defecto. */
+    /** Aplica el estado por defecto (PENDIENTE) y valida la paginación (si solo llega uno de los dos datos, el otro toma su valor por defecto). */
     private FiltroSolicitudesManuales normalizar(FiltroSolicitudesManuales filtro) {
         EstadoCita estado = filtro.estado() == null ? EstadoCita.PENDIENTE : filtro.estado();
-        if (filtro.pagina() == null && filtro.tamanio() == null) {
-            return new FiltroSolicitudesManuales(filtro.motivo(), filtro.especialidadId(), estado, null, null);
-        }
-        int pagina = filtro.pagina() == null ? 0 : filtro.pagina();
-        int tamanio = filtro.tamanio() == null ? TAMANIO_POR_DEFECTO : filtro.tamanio();
-        if (pagina < 0) {
-            throw new FiltroCitasInvalidoException("La página debe ser mayor o igual a 0");
-        }
-        if (tamanio < 1 || tamanio > TAMANIO_MAXIMO) {
-            throw new FiltroCitasInvalidoException("El tamaño debe estar entre 1 y " + TAMANIO_MAXIMO);
-        }
-        return new FiltroSolicitudesManuales(filtro.motivo(), filtro.especialidadId(), estado, pagina, tamanio);
+        PaginacionOpcional paginacion = PaginacionOpcional.de(filtro.pagina(), filtro.tamanio());
+        return new FiltroSolicitudesManuales(filtro.motivo(), filtro.especialidadId(), estado,
+                paginacion.pagina(), paginacion.tamanio());
     }
 
     private SolicitudManualDetalle aDetalle(Cita cita, ClienteResumen cliente, Map<Long, String> especialidades) {

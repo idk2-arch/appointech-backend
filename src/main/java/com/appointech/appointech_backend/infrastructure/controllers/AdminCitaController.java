@@ -2,7 +2,7 @@ package com.appointech.appointech_backend.infrastructure.controllers;
 
 import com.appointech.appointech_backend.domain.ports.in.ConsultarCitasAdminUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarDetalleCitaAdminUseCase;
-import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleResponse;
+import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleAdminResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitasAdminPaginaResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,7 +39,7 @@ public class AdminCitaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CitaDetalleResponse> detallar(@PathVariable Long id) {
+    public ResponseEntity<CitaDetalleAdminResponse> detallar(@PathVariable Long id) {
         return ResponseEntity.ok(CitaDetalleMapper.aRespuestaAdmin(consultarDetalle.detallar(id)));
     }
 }

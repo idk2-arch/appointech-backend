@@ -5,6 +5,7 @@ import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.DetalleCitaCompleto;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarDetalleCitaAdminUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
+import com.appointech.appointech_backend.domain.ports.out.CalificacionRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.CitaFotoRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.HistorialEstadoCitaPort;
@@ -22,15 +23,18 @@ public class ConsultarDetalleCitaAdminUseCaseImpl implements ConsultarDetalleCit
     private final ObtenerDetalleCitaUseCase obtenerDetalleCita;
     private final HistorialEstadoCitaPort historialPort;
     private final CitaFotoRepositoryPort citaFotoRepositoryPort;
+    private final CalificacionRepositoryPort calificacionRepositoryPort;
 
     public ConsultarDetalleCitaAdminUseCaseImpl(CitaRepositoryPort citaRepositoryPort,
                                                 ObtenerDetalleCitaUseCase obtenerDetalleCita,
                                                 HistorialEstadoCitaPort historialPort,
-                                                CitaFotoRepositoryPort citaFotoRepositoryPort) {
+                                                CitaFotoRepositoryPort citaFotoRepositoryPort,
+                                                CalificacionRepositoryPort calificacionRepositoryPort) {
         this.citaRepositoryPort = citaRepositoryPort;
         this.obtenerDetalleCita = obtenerDetalleCita;
         this.historialPort = historialPort;
         this.citaFotoRepositoryPort = citaFotoRepositoryPort;
+        this.calificacionRepositoryPort = calificacionRepositoryPort;
     }
 
     @Override
@@ -39,6 +43,6 @@ public class ConsultarDetalleCitaAdminUseCaseImpl implements ConsultarDetalleCit
         Cita cita = citaRepositoryPort.buscarPorId(citaId)
                 .orElseThrow(() -> new SolicitudNoEncontradaException(citaId));
         return new DetalleCitaCompleto(obtenerDetalleCita.detallar(cita), historialPort.listarPorCita(citaId),
-                citaFotoRepositoryPort.listarPorCita(citaId));
+                citaFotoRepositoryPort.listarPorCita(citaId), calificacionRepositoryPort.buscarPorCitaId(citaId).orElse(null));
     }
 }

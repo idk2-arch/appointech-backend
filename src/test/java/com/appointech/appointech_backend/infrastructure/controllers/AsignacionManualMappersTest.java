@@ -7,6 +7,7 @@ import com.appointech.appointech_backend.domain.models.DetalleCitaCompleto;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.TecnicoDisponible;
 import com.appointech.appointech_backend.infrastructure.dto.AsignacionManualResponse;
+import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleAdminResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitaResponse;
 import com.appointech.appointech_backend.infrastructure.dto.TecnicoParaAsignarResponse;
@@ -88,7 +89,7 @@ class AsignacionManualMappersTest {
 
     @Test
     void detalleDeCitaAsignadaManualmenteTraeQuienYCuando() {
-        CitaDetalleResponse r = CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
+        CitaDetalleAdminResponse r = CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
                 new DetalleCita(citaAsignada(1L, ASIGNADA), "Ana", "Ruiz", "311", "Aires", null, "Root Admin"), List.of()));
 
         assertTrue(r.asignadaManualmente());
@@ -97,7 +98,7 @@ class AsignacionManualMappersTest {
 
     @Test
     void detalleDeFilaAntiguaTraeElObjetoConDatosNulos() {
-        CitaDetalleResponse r = CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
+        CitaDetalleAdminResponse r = CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
                 new DetalleCita(citaAsignada(null, null), null, null, null, "Aires"), List.of()));
 
         assertTrue(r.asignadaManualmente());

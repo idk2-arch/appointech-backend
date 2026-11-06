@@ -3,6 +3,11 @@ package com.appointech.appointech_backend.infrastructure.config;
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
 import com.appointech.appointech_backend.domain.exception.BloqueInvalidoException;
+import com.appointech.appointech_backend.domain.exception.CalificacionInvalidaException;
+import com.appointech.appointech_backend.domain.exception.CalificacionNoEncontradaException;
+import com.appointech.appointech_backend.domain.exception.CitaNoFinalizadaException;
+import com.appointech.appointech_backend.domain.exception.CitaYaCalificadaException;
+import com.appointech.appointech_backend.domain.exception.PlazoCalificacionVencidoException;
 import com.appointech.appointech_backend.domain.exception.BloqueNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.BloqueSolapadoException;
 import com.appointech.appointech_backend.domain.exception.CitaSinUbicacionException;
@@ -40,18 +45,19 @@ public class AgendamientoExceptionHandler {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(SolicitudNoEncontradaException.class)
-    public ResponseEntity<Map<String, Object>> manejarSolicitudNoEncontrada(SolicitudNoEncontradaException ex) {
+    @ExceptionHandler({SolicitudNoEncontradaException.class, CalificacionNoEncontradaException.class})
+    public ResponseEntity<Map<String, Object>> manejarSolicitudNoEncontrada(RuntimeException ex) {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(FranjaNoDisponibleException.class)
-    public ResponseEntity<Map<String, Object>> manejarFranjaNoDisponible(FranjaNoDisponibleException ex) {
+    @ExceptionHandler({FranjaNoDisponibleException.class, CitaNoFinalizadaException.class, CitaYaCalificadaException.class,
+            PlazoCalificacionVencidoException.class})
+    public ResponseEntity<Map<String, Object>> manejarFranjaNoDisponible(RuntimeException ex) {
         return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    @ExceptionHandler(FranjaInvalidaException.class)
-    public ResponseEntity<Map<String, Object>> manejarFranjaInvalida(FranjaInvalidaException ex) {
+    @ExceptionHandler({FranjaInvalidaException.class, CalificacionInvalidaException.class})
+    public ResponseEntity<Map<String, Object>> manejarFranjaInvalida(RuntimeException ex) {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 

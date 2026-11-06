@@ -65,6 +65,8 @@ services:
       PASARELA_SIMULADA_APROBAR: ${PASARELA_SIMULADA_APROBAR:-true}
       PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE: ${PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE:-20}
       PAGOS_URL_RETORNO: ${PAGOS_URL_RETORNO:-http://localhost:4200/cliente/pago/resultado}
+      # Dias, desde que la cita se finaliza, durante los que el cliente puede calificarla
+      CALIFICACION_PLAZO_DIAS: ${CALIFICACION_PLAZO_DIAS:-30}
       # Respeta X-Forwarded-* del balanceador (URLs absolutas correctas, p. ej. Swagger en :8080). none = ignorarlas
       FORWARD_HEADERS_STRATEGY: ${FORWARD_HEADERS_STRATEGY:-framework}
       TZ: America/Bogota

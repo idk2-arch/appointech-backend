@@ -5,6 +5,7 @@ import com.appointech.appointech_backend.domain.models.DetalleCita;
 import com.appointech.appointech_backend.domain.models.DetalleCitaCompleto;
 import com.appointech.appointech_backend.domain.models.HistorialEstadoCita;
 import com.appointech.appointech_backend.infrastructure.dto.AsignacionManualResponse;
+import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleAdminResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleResponse;
 import com.appointech.appointech_backend.infrastructure.dto.DiagnosticoResponse;
 import com.appointech.appointech_backend.infrastructure.dto.HistorialEstadoResponse;
@@ -19,9 +20,15 @@ final class CitaDetalleMapper {
         return construir(completo, null);
     }
 
-    /** Para el administrador: incluye quién y cuándo asignó manualmente. */
-    static CitaDetalleResponse aRespuestaAdmin(DetalleCitaCompleto completo) {
-        return construir(completo, AsignacionManualMapper.aRespuesta(completo.detalle()));
+    /** Para el administrador: incluye quién y cuándo asignó manualmente y, al final, la calificación del cliente. */
+    static CitaDetalleAdminResponse aRespuestaAdmin(DetalleCitaCompleto completo) {
+        CitaDetalleResponse base = construir(completo, AsignacionManualMapper.aRespuesta(completo.detalle()));
+        return new CitaDetalleAdminResponse(
+                base.id(), base.estado(), base.tecnicoId(), base.tecnicoNombre(), base.tecnicoApellido(),
+                base.tecnicoTelefono(), base.especialidadNombre(), base.descripcionProblema(), base.direccionServicio(),
+                base.fechaHoraInicio(), base.fechaHoraFin(), base.diagnostico(), base.historial(), base.tecnicoFotoUrl(),
+                base.fotosElectrodomestico(), base.asignadaManualmente(), base.asignacionManual(),
+                CalificacionMapper.aRespuestaAdmin(completo.calificacion()));
     }
 
     private static CitaDetalleResponse construir(DetalleCitaCompleto completo, AsignacionManualResponse asignacion) {

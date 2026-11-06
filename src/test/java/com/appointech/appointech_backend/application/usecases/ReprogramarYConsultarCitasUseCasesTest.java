@@ -363,7 +363,7 @@ class ReprogramarYConsultarCitasUseCasesTest {
         when(detalleUseCase.detallar(c)).thenReturn(detalle);
         when(historial.listarPorCita(10L)).thenReturn(filas);
 
-        DetalleCitaCompleto r = new ConsultarDetalleCitaAdminUseCaseImpl(citas, detalleUseCase, historial, fotos).detallar(10L);
+        DetalleCitaCompleto r = new ConsultarDetalleCitaAdminUseCaseImpl(citas, detalleUseCase, historial, fotos, org.mockito.Mockito.mock(com.appointech.appointech_backend.domain.ports.out.CalificacionRepositoryPort.class)).detallar(10L);
 
         assertEquals(99L, r.detalle().cita().getClienteId(), "no se filtra por cliente");
         assertEquals(filas, r.historial());
@@ -374,7 +374,7 @@ class ReprogramarYConsultarCitasUseCasesTest {
         when(citas.buscarPorId(10L)).thenReturn(Optional.empty());
 
         assertThrows(SolicitudNoEncontradaException.class,
-                () -> new ConsultarDetalleCitaAdminUseCaseImpl(citas, detalleUseCase, historial, fotos).detallar(10L));
+                () -> new ConsultarDetalleCitaAdminUseCaseImpl(citas, detalleUseCase, historial, fotos, org.mockito.Mockito.mock(com.appointech.appointech_backend.domain.ports.out.CalificacionRepositoryPort.class)).detallar(10L));
 
         verifyNoInteractions(historial);
     }
