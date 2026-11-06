@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
+import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.infrastructure.dto.SolicitudManualAdminResponse;
@@ -16,7 +17,7 @@ class SolicitudManualAdminResponseMapperTest {
 
     private static SolicitudManualDetalle detalle(MotivoSolicitudEspecial motivo) {
         return new SolicitudManualDetalle(70L, 2L, "Ana", "Ruiz", "300", "Calle 1", "Fuga", 5L, "Plomería",
-                4.5, -74.1, FECHA, motivo);
+                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE);
     }
 
     @Test
@@ -28,6 +29,7 @@ class SolicitudManualAdminResponseMapperTest {
         assertEquals("300", r.telefono());
         assertEquals(FECHA, r.creadaEn());
         assertEquals("SIN_TECNICOS_ESPECIALIDAD", r.motivo());
+        assertEquals("PENDIENTE", r.estado());
     }
 
     @Test

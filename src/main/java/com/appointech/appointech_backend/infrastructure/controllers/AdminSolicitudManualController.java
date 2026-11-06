@@ -1,6 +1,8 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
 import com.appointech.appointech_backend.domain.models.Cita;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
+import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.in.AsignarSolicitudManualUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ListarSolicitudesManualesUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -24,6 +27,8 @@ import java.util.List;
 @RequestMapping("/api/admin/solicitudes-manuales")
 @PreAuthorize("hasRole('ADMINISTRADOR')")
 public class AdminSolicitudManualController {
+
+    static final String ENCABEZADO_TOTAL = "X-Total-Count";
 
     private final ListarSolicitudesManualesUseCase listarSolicitudesManualesUseCase;
     private final AsignarSolicitudManualUseCase asignarSolicitudManualUseCase;
@@ -37,11 +42,19 @@ public class AdminSolicitudManualController {
         this.obtenerDetalleCitaUseCase = obtenerDetalleCitaUseCase;
     }
 
+    /** El total de solicitudes que cumplen el filtro va en {@code X-Total-Count}; el cuerpo es solo la página (o todas si no se pagina). */
     @GetMapping
-    public ResponseEntity<List<SolicitudManualAdminResponse>> listar() {
-        return ResponseEntity.ok(listarSolicitudesManualesUseCase.listar().stream()
-                .map(SolicitudManualAdminResponseMapper::aRespuesta)
-                .toList());
+    public ResponseEntity<List<SolicitudManualAdminResponse>> listar(
+            @RequestParam(required = false) String motivo,
+            @RequestParam(required = false) Long especialidadId,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        ListadoConTotal<SolicitudManualDetalle> listado = listarSolicitudesManualesUseCase.listar(
+                SolicitudManualFiltroMapper.aFiltro(motivo, especialidadId, estado, page, size));
+        return ResponseEntity.ok()
+                .header(ENCABEZADO_TOTAL, String.valueOf(listado.total()))
+                .body(listado.elementos().stream().map(SolicitudManualAdminResponseMapper::aRespuesta).toList());
     }
 
     @PatchMapping("/{id}/asignar")

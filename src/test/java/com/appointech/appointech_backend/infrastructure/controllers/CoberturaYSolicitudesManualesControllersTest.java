@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
+import com.appointech.appointech_backend.domain.exception.FiltroCitasInvalidoException;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException;
@@ -11,7 +12,9 @@ import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.CoberturaConfigurada;
 import com.appointech.appointech_backend.domain.models.DetalleCita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
 import com.appointech.appointech_backend.domain.models.FranjaDisponible;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.MotivoSinFranjas;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
@@ -61,6 +64,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -218,19 +222,55 @@ class CoberturaYSolicitudesManualesControllersTest {
 
     @Test
     @WithMockUser(roles = "ADMINISTRADOR")
-    void adminListaLasSolicitudesManualesCon200() {
-        when(listarSolicitudes.listar()).thenReturn(List.of(new SolicitudManualDetalle(
-                70L, 2L, "Ana", "Ruiz", "3109998877", "Vereda", "Fuga", 5L, "Plomería", 4.5, -74.1, INICIO, MotivoSolicitudEspecial.FUERA_DE_COBERTURA)));
+    void adminListaLasSolicitudesManualesCon200YElTotalEnElEncabezado() {
+        when(listarSolicitudes.listar(any())).thenReturn(new ListadoConTotal<>(List.of(new SolicitudManualDetalle(
+                70L, 2L, "Ana", "Ruiz", "3109998877", "Vereda", "Fuga", 5L, "Plomería", 4.5, -74.1, INICIO,
+                MotivoSolicitudEspecial.FUERA_DE_COBERTURA, EstadoCita.PENDIENTE)), 41));
 
-        ResponseEntity<List<SolicitudManualAdminResponse>> r = solicitudesAdmin.listar();
+        ResponseEntity<List<SolicitudManualAdminResponse>> r = solicitudesAdmin.listar(null, null, null, null, null);
 
         assertEquals(HttpStatus.OK, r.getStatusCode());
+        assertEquals("41", r.getHeaders().getFirst("X-Total-Count"));
         SolicitudManualAdminResponse s = r.getBody().get(0);
         assertEquals("Ana", s.clienteNombre());
         assertEquals("3109998877", s.telefono());
         assertEquals("Vereda", s.direccionServicio());
         assertEquals("Fuga", s.descripcionProblema());
         assertEquals("Plomería", s.especialidadNombre());
+        assertEquals("FUERA_DE_COBERTURA", s.motivo());
+        assertEquals("PENDIENTE", s.estado());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMINISTRADOR")
+    void traduceLosParametrosAlFiltroDelDominio() {
+        when(listarSolicitudes.listar(any())).thenReturn(new ListadoConTotal<>(List.of(), 0));
+
+        ResponseEntity<List<SolicitudManualAdminResponse>> r =
+                solicitudesAdmin.listar("sin_tecnicos_especialidad", 5L, "confirmada", 2, 10);
+
+        assertEquals("0", r.getHeaders().getFirst("X-Total-Count"));
+        assertEquals(List.of(), r.getBody());
+        verify(listarSolicitudes).listar(new FiltroSolicitudesManuales(
+                MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, 5L, EstadoCita.CONFIRMADA, 2, 10));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMINISTRADOR")
+    void motivoOEstadoDesconocidoResponden400SinLlegarAlCasoDeUso() {
+        assertThrows(FiltroCitasInvalidoException.class,
+                () -> solicitudesAdmin.listar("OTRO", null, null, null, null));
+        assertThrows(FiltroCitasInvalidoException.class,
+                () -> solicitudesAdmin.listar(null, null, "EN_LA_LUNA", null, null));
+        verifyNoInteractions(listarSolicitudes);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMINISTRADOR")
+    void paginaOTamanioInvalidosLosRechazaElCasoDeUsoYElManejadorLosHace400() {
+        when(listarSolicitudes.listar(any())).thenThrow(new FiltroCitasInvalidoException("El tamaño debe estar entre 1 y 100"));
+
+        assertThrows(FiltroCitasInvalidoException.class, () -> solicitudesAdmin.listar(null, null, null, 0, 101));
     }
 
     @Test
@@ -278,7 +318,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @Test
     @WithMockUser(roles = "CLIENTE")
     void unClienteNoPuedeVerNiAsignarSolicitudesManuales403() {
-        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar());
+        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar(null, null, null, null, null));
         assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.asignar(70L,
                 new AsignarSolicitudManualRequest(3L, INICIO, INICIO.plusHours(2)), auth()));
         verifyNoInteractions(asignarSolicitud);
@@ -287,7 +327,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @Test
     @WithMockUser(roles = "TECNICO")
     void unTecnicoNoPuedeVerSolicitudesManuales403() {
-        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar());
+        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar(null, null, null, null, null));
     }
 
     // ---------- franjas con motivo ----------

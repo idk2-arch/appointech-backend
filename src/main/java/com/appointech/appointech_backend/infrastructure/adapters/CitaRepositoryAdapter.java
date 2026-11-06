@@ -2,11 +2,16 @@ package com.appointech.appointech_backend.infrastructure.adapters;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.CitaJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,6 +20,9 @@ import java.util.Optional;
 
 @Component
 public class CitaRepositoryAdapter implements CitaRepositoryPort {
+
+    private static final String SIN_MOTIVO = "-";
+    private static final Long SIN_ESPECIALIDAD = -1L;
 
     private final CitaJpaRepository citaJpaRepository;
 
@@ -49,9 +57,14 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
     }
 
     @Override
-    public List<Cita> buscarSolicitudesManualesPendientes() {
-        return citaJpaRepository.buscarSolicitudesManualesPorEstado(EstadoCitaEntity.PENDIENTE)
-                .stream().map(this::toDomain).toList();
+    public ListadoConTotal<Cita> buscarSolicitudesManuales(FiltroSolicitudesManuales filtro) {
+        Pageable pagina = filtro.paginado() ? PageRequest.of(filtro.pagina(), filtro.tamanio()) : Pageable.unpaged();
+        Page<CitaEntity> resultado = citaJpaRepository.buscarSolicitudesManuales(
+                EstadoCitaEntity.valueOf(filtro.estado().name()),
+                filtro.motivo() == null, filtro.motivo() == null ? SIN_MOTIVO : filtro.motivo().name(),
+                filtro.especialidadId() == null, filtro.especialidadId() == null ? SIN_ESPECIALIDAD : filtro.especialidadId(),
+                pagina);
+        return new ListadoConTotal<>(resultado.getContent().stream().map(this::toDomain).toList(), resultado.getTotalElements());
     }
 
     private CitaEntity toEntity(Cita cita) {

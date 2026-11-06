@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
+import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.in.ConsultarAlertasAdminUseCase;
@@ -58,7 +59,7 @@ class AdminAlertaControllerTest {
     void adminVeLasAlertasConSuContador() {
         when(consultarAlertas.sinTecnicosParaLaEspecialidad()).thenReturn(List.of(
                 new SolicitudManualDetalle(70L, 2L, "Ana", "Ruiz", "3001112233", "Calle 1", "Fuga", 5L, "Plomería",
-                        4.5, -74.1, FECHA, MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD)));
+                        4.5, -74.1, FECHA, MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, EstadoCita.PENDIENTE)));
 
         ResponseEntity<AlertasAdminResponse> r = controlador.listar();
 

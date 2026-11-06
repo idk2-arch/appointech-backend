@@ -10,7 +10,9 @@ import com.appointech.appointech_backend.domain.ports.out.CalculadoraDistanciaPo
 import com.appointech.appointech_backend.domain.models.ConfiguracionFranjas;
 import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
 import com.appointech.appointech_backend.domain.models.FranjaDisponible;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.RegistroLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
@@ -62,9 +64,10 @@ class AgendamientoUseCasesTest {
 
     private final CitaRepositoryPort citaRepositoryPort = new CitaRepositoryPort() {
         @Override
-        public List<Cita> buscarSolicitudesManualesPendientes() {
-            return citasGuardadas.stream().filter(Cita::isAgendamientoManual)
+        public ListadoConTotal<Cita> buscarSolicitudesManuales(FiltroSolicitudesManuales filtro) {
+            List<Cita> pendientes = citasGuardadas.stream().filter(Cita::isAgendamientoManual)
                     .filter(c -> c.getEstado() == EstadoCita.PENDIENTE && c.getTecnicoId() == null).toList();
+            return new ListadoConTotal<>(pendientes, pendientes.size());
         }
 
         @Override

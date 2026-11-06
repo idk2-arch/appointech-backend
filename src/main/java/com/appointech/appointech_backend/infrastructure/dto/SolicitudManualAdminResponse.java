@@ -15,6 +15,7 @@ public record SolicitudManualAdminResponse(
         Double latitud,
         Double longitud,
         LocalDateTime creadaEn,
-        String motivo
+        String motivo,
+        String estado
 ) {
 }

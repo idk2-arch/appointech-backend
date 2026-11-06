@@ -12,19 +12,16 @@ import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
-import com.appointech.appointech_backend.domain.models.ClienteResumen;
 import com.appointech.appointech_backend.domain.models.Especialidad;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.MotivoSinFranjas;
 import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
-import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.in.CalcularFranjasDisponiblesUseCase;
 import com.appointech.appointech_backend.domain.ports.out.BloqueIndisponibilidadRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
-import com.appointech.appointech_backend.domain.ports.out.ConsultaClientesPort;
 import com.appointech.appointech_backend.domain.ports.out.EspecialidadRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.NotificadorCitaPort;
 import com.appointech.appointech_backend.domain.ports.out.RegistroLogPort;
@@ -35,7 +32,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -190,40 +186,6 @@ class AgendamientoManualUseCasesTest {
         assertThrows(CoordenadasInvalidasException.class,
                 () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, null, null));
         verify(franjas, never()).calcularConMotivo(anyLong(), any(), any(), any());
-    }
-
-    // ---------- listar ----------
-
-    @Test
-    void listaLasSolicitudesConDatosDelClienteYLaEspecialidad() {
-        Cita c = manualPendiente(70L);
-        c.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
-        when(citaRepo.buscarSolicitudesManualesPendientes()).thenReturn(List.of(c));
-        ConsultaClientesPort consulta = mock(ConsultaClientesPort.class);
-        when(consulta.resumenesPorId(any())).thenReturn(Map.of(2L, new ClienteResumen("Ana", "Ruiz", "3001112233")));
-        when(especialidadRepo.buscarPorIds(List.of(5L))).thenReturn(List.of(especialidad(5L, "Plomería")));
-
-        List<SolicitudManualDetalle> lista =
-                new ListarSolicitudesManualesUseCaseImpl(citaRepo, consulta, especialidadRepo).listar();
-
-        assertEquals(1, lista.size());
-        SolicitudManualDetalle d = lista.get(0);
-        assertEquals("Ana", d.clienteNombre());
-        assertEquals("Ruiz", d.clienteApellido());
-        assertEquals("3109998877", d.telefonoContacto());     // el de contacto de la solicitud
-        assertEquals("Vereda", d.direccionServicio());
-        assertEquals("Fuga", d.descripcionProblema());
-        assertEquals("Plomería", d.especialidadNombre());
-        assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, d.motivo());
-    }
-
-    @Test
-    void sinSolicitudesNoConsultaClientesNiEspecialidades() {
-        when(citaRepo.buscarSolicitudesManualesPendientes()).thenReturn(List.of());
-        ConsultaClientesPort consulta = mock(ConsultaClientesPort.class);
-
-        assertTrue(new ListarSolicitudesManualesUseCaseImpl(citaRepo, consulta, especialidadRepo).listar().isEmpty());
-        verify(consulta, never()).resumenesPorId(any());
     }
 
     // ---------- asignar ----------

@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.domain.models.EstadoCita;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.domain.models.SolicitudManualDetalle;
 import com.appointech.appointech_backend.domain.ports.in.ListarSolicitudesManualesUseCase;
@@ -22,7 +23,7 @@ class ConsultarAlertasAdminUseCaseImplTest {
 
     private static SolicitudManualDetalle solicitud(long id, MotivoSolicitudEspecial motivo) {
         return new SolicitudManualDetalle(id, 2L, "Ana", "Ruiz", "300", "Calle 1", "Fuga", 5L, "Plomería",
-                4.5, -74.1, FECHA, motivo);
+                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE);
     }
 
     @Test

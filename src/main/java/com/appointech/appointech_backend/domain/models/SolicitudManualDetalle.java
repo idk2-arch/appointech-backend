@@ -2,7 +2,7 @@ package com.appointech.appointech_backend.domain.models;
 
 import java.time.LocalDateTime;
 
-/** Modelo de lectura de una solicitud de agendamiento manual con los datos del cliente y la especialidad; {@code motivo} dice por qué es especial. */
+/** Modelo de lectura de una solicitud de agendamiento manual con los datos del cliente y la especialidad; {@code motivo} dice por qué es especial y {@code estado} en qué punto está. */
 public record SolicitudManualDetalle(
         Long id,
         Long clienteId,
@@ -16,6 +16,7 @@ public record SolicitudManualDetalle(
         Double latitud,
         Double longitud,
         LocalDateTime creadaEn,
-        MotivoSolicitudEspecial motivo
+        MotivoSolicitudEspecial motivo,
+        EstadoCita estado
 ) {
 }

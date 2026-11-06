@@ -2,6 +2,8 @@ package com.appointech.appointech_backend.infrastructure.adapters;
 
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.EstadoCita;
+import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.MotivoSolicitudEspecial;
 import com.appointech.appointech_backend.infrastructure.entities.CitaEntity;
 import com.appointech.appointech_backend.infrastructure.entities.EstadoCitaEntity;
@@ -12,6 +14,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +24,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -136,10 +144,31 @@ class CitaRepositoryAdapterTest {
     }
 
     @Test
-    void buscarSolicitudesManualesPendientesConsultaPorEstadoPendiente() {
-        when(jpa.buscarSolicitudesManualesPorEstado(EstadoCitaEntity.PENDIENTE))
-                .thenReturn(List.of(entity(1L, EstadoCitaEntity.PENDIENTE), entity(2L, EstadoCitaEntity.PENDIENTE)));
+    void solicitudesManualesSinFiltrosNiPaginacionUsaCentinelasYPageableSinPaginar() {
+        when(jpa.buscarSolicitudesManuales(eq(EstadoCitaEntity.PENDIENTE), eq(true), anyString(), eq(true), anyLong(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(entity(1L, EstadoCitaEntity.PENDIENTE), entity(2L, EstadoCitaEntity.PENDIENTE))));
 
-        assertEquals(2, adapter.buscarSolicitudesManualesPendientes().size());
+        ListadoConTotal<Cita> r = adapter.buscarSolicitudesManuales(
+                new FiltroSolicitudesManuales(null, null, EstadoCita.PENDIENTE, null, null));
+
+        assertEquals(2, r.elementos().size());
+        assertEquals(2, r.total());
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(jpa).buscarSolicitudesManuales(any(), eq(true), anyString(), eq(true), anyLong(), pageable.capture());
+        assertTrue(pageable.getValue().isUnpaged());
+    }
+
+    @Test
+    void solicitudesManualesConFiltrosYPaginacionLosEnviaAlRepositorioYDevuelveElTotal() {
+        Pageable esperado = PageRequest.of(1, 2);
+        when(jpa.buscarSolicitudesManuales(EstadoCitaEntity.CONFIRMADA, false, "FUERA_DE_COBERTURA", false, 7L, esperado))
+                .thenReturn(new PageImpl<>(List.of(entity(5L, EstadoCitaEntity.CONFIRMADA)), esperado, 5));
+
+        ListadoConTotal<Cita> r = adapter.buscarSolicitudesManuales(new FiltroSolicitudesManuales(
+                MotivoSolicitudEspecial.FUERA_DE_COBERTURA, 7L, EstadoCita.CONFIRMADA, 1, 2));
+
+        assertEquals(1, r.elementos().size());
+        assertEquals(EstadoCita.CONFIRMADA, r.elementos().get(0).getEstado());
+        assertEquals(5, r.total());
     }
 }
