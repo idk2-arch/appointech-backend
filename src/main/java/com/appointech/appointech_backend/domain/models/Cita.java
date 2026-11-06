@@ -26,6 +26,9 @@ public class Cita {
     private MotivoSolicitudEspecial motivoSolicitudEspecial;
     private String recomendaciones;
     private LocalDateTime fechaDiagnostico;
+    private boolean asignacionManual;
+    private Long asignadaPorId;
+    private LocalDateTime asignadaEn;
 
     public Cita() {
     }
@@ -251,5 +254,45 @@ public class Cita {
 
     public void setTelefonoContacto(String telefonoContacto) {
         this.telefonoContacto = telefonoContacto;
+    }
+
+    /**
+     * El administrador asigna técnico y horario a una solicitud manual: la cita queda CONFIRMADA y se deja
+     * registrado quién la asignó y cuándo.
+     */
+    public void asignarManualmente(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin,
+                                   Long administradorId, LocalDateTime ahora) {
+        this.tecnicoId = tecnicoId;
+        this.fechaHoraInicio = inicio;
+        this.fechaHoraFin = fin;
+        this.estado = EstadoCita.CONFIRMADA;
+        this.asignacionManual = true;
+        this.asignadaPorId = administradorId;
+        this.asignadaEn = ahora;
+        this.actualizadaEn = ahora;
+    }
+
+    public boolean isAsignacionManual() {
+        return asignacionManual;
+    }
+
+    public void setAsignacionManual(boolean asignacionManual) {
+        this.asignacionManual = asignacionManual;
+    }
+
+    public Long getAsignadaPorId() {
+        return asignadaPorId;
+    }
+
+    public void setAsignadaPorId(Long asignadaPorId) {
+        this.asignadaPorId = asignadaPorId;
+    }
+
+    public LocalDateTime getAsignadaEn() {
+        return asignadaEn;
+    }
+
+    public void setAsignadaEn(LocalDateTime asignadaEn) {
+        this.asignadaEn = asignadaEn;
     }
 }

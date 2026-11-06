@@ -88,6 +88,9 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         entity.setMotivoSolicitudEspecial(cita.getMotivoSolicitudEspecial() == null ? null : cita.getMotivoSolicitudEspecial().name());
         entity.setRecomendaciones(cita.getRecomendaciones());
         entity.setFechaDiagnostico(cita.getFechaDiagnostico());
+        entity.setAsignacionManual(cita.isAsignacionManual());
+        entity.setAsignadaPorId(cita.getAsignadaPorId());
+        entity.setAsignadaEn(cita.getAsignadaEn());
         return entity;
     }
 
@@ -113,6 +116,9 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
                 : MotivoSolicitudEspecial.valueOf(entity.getMotivoSolicitudEspecial()));
         cita.setRecomendaciones(entity.getRecomendaciones());
         cita.setFechaDiagnostico(entity.getFechaDiagnostico());
+        cita.setAsignacionManual(entity.isAsignacionManual());
+        cita.setAsignadaPorId(entity.getAsignadaPorId());
+        cita.setAsignadaEn(entity.getAsignadaEn());
         return cita;
     }
 }

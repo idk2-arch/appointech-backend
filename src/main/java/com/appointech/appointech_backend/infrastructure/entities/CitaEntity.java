@@ -73,6 +73,15 @@ public class CitaEntity {
     @Column(columnDefinition = "text")
     private String recomendaciones;
 
+    @Column(name = "asignacion_manual", nullable = false)
+    private boolean asignacionManual;
+
+    @Column(name = "asignada_por")
+    private Long asignadaPorId;
+
+    @Column(name = "asignada_en")
+    private LocalDateTime asignadaEn;
+
     @Column(name = "fecha_diagnostico")
     private LocalDateTime fechaDiagnostico;
 }

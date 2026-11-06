@@ -68,7 +68,10 @@ class FotosElectrodomesticoEnDetalleTest {
 
     @Test
     void elNombreDelCampoJsonEsExactamenteFotosElectrodomestico() {
-        assertEquals("fotosElectrodomestico", ultimoComponente(CitaDetalleResponse.class));
+        // En el detalle de cita RF15 agregó dos campos después de las fotos (los cambios de DTO son aditivos, al final).
+        var detalle = CitaDetalleResponse.class.getRecordComponents();
+        assertEquals(List.of("fotosElectrodomestico", "asignadaManualmente", "asignacionManual"),
+                Arrays.stream(detalle).skip(detalle.length - 3L).map(c -> c.getName()).toList());
         assertEquals("fotosElectrodomestico", ultimoComponente(CitaTecnicoResponse.class));
         assertEquals(List.of("id", "url"), Arrays.stream(FotoCitaResponse.class.getRecordComponents())
                 .map(c -> c.getName()).toList());

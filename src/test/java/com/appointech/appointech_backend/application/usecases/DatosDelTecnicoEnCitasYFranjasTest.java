@@ -43,7 +43,7 @@ class DatosDelTecnicoEnCitasYFranjasTest {
     void preparar() {
         tecnicoRepo = mock(TecnicoRepositoryPort.class);
         especialidadRepo = mock(EspecialidadRepositoryPort.class);
-        detalle = new ObtenerDetalleCitaUseCaseImpl(tecnicoRepo, especialidadRepo);
+        detalle = new ObtenerDetalleCitaUseCaseImpl(tecnicoRepo, especialidadRepo, mock(com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort.class));
     }
 
     @Test

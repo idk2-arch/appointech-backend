@@ -24,6 +24,7 @@ import com.appointech.appointech_backend.domain.ports.in.AsignarSolicitudManualU
 import com.appointech.appointech_backend.domain.ports.in.CalcularFranjasDisponiblesUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ConfirmarCitaUseCase;
 import com.appointech.appointech_backend.domain.ports.in.FiltrarTecnicosPorEspecialidadUseCase;
+import com.appointech.appointech_backend.domain.ports.in.ConsultarTecnicosDisponiblesUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ListarSolicitudesManualesUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerCoberturaUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ObtenerDetalleCitaUseCase;
@@ -82,6 +83,7 @@ class CoberturaYSolicitudesManualesControllersTest {
         @Bean ListarSolicitudesManualesUseCase listarSolicitudes() { return mock(ListarSolicitudesManualesUseCase.class); }
         @Bean AsignarSolicitudManualUseCase asignarSolicitud() { return mock(AsignarSolicitudManualUseCase.class); }
         @Bean ObtenerDetalleCitaUseCase obtenerDetalle() { return mock(ObtenerDetalleCitaUseCase.class); }
+        @Bean ConsultarTecnicosDisponiblesUseCase consultarTecnicos() { return mock(ConsultarTecnicosDisponiblesUseCase.class); }
         @Bean SolicitarAgendamientoManualUseCase solicitarManual() { return mock(SolicitarAgendamientoManualUseCase.class); }
         @Bean ConfirmarCitaUseCase confirmarCita() { return mock(ConfirmarCitaUseCase.class); }
         @Bean CalcularFranjasDisponiblesUseCase calcularFranjas() { return mock(CalcularFranjasDisponiblesUseCase.class); }
@@ -91,8 +93,9 @@ class CoberturaYSolicitudesManualesControllersTest {
             return new AdminCoberturaController(o, a);
         }
         @Bean AdminSolicitudManualController adminSolicitudManualController(
-                ListarSolicitudesManualesUseCase l, AsignarSolicitudManualUseCase a, ObtenerDetalleCitaUseCase d) {
-            return new AdminSolicitudManualController(l, a, d);
+                ListarSolicitudesManualesUseCase l, AsignarSolicitudManualUseCase a, ObtenerDetalleCitaUseCase d,
+                ConsultarTecnicosDisponiblesUseCase t) {
+            return new AdminSolicitudManualController(l, a, d, t);
         }
         @Bean CitaController citaController(ConfirmarCitaUseCase c, ObtenerDetalleCitaUseCase d,
                                             SolicitarAgendamientoManualUseCase s) {
@@ -113,6 +116,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @Autowired ListarSolicitudesManualesUseCase listarSolicitudes;
     @Autowired AsignarSolicitudManualUseCase asignarSolicitud;
     @Autowired ObtenerDetalleCitaUseCase obtenerDetalle;
+    @Autowired ConsultarTecnicosDisponiblesUseCase consultarTecnicos;
     @Autowired SolicitarAgendamientoManualUseCase solicitarManual;
     @Autowired CalcularFranjasDisponiblesUseCase calcularFranjas;
 
@@ -121,7 +125,7 @@ class CoberturaYSolicitudesManualesControllersTest {
 
     @BeforeEach
     void limpiar() {
-        reset(obtenerCobertura, actualizarCobertura, listarSolicitudes, asignarSolicitud, obtenerDetalle,
+        reset(obtenerCobertura, actualizarCobertura, listarSolicitudes, asignarSolicitud, obtenerDetalle, consultarTecnicos,
                 solicitarManual, calcularFranjas);
     }
 
@@ -321,13 +325,15 @@ class CoberturaYSolicitudesManualesControllersTest {
         assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar(null, null, null, null, null));
         assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.asignar(70L,
                 new AsignarSolicitudManualRequest(3L, INICIO, INICIO.plusHours(2)), auth()));
-        verifyNoInteractions(asignarSolicitud);
+        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.tecnicosDisponibles(70L, "2030-05-06T09:00:00", "2030-05-06T11:00:00"));
+        verifyNoInteractions(asignarSolicitud, consultarTecnicos);
     }
 
     @Test
     @WithMockUser(roles = "TECNICO")
     void unTecnicoNoPuedeVerSolicitudesManuales403() {
         assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.listar(null, null, null, null, null));
+        assertThrows(AccessDeniedException.class, () -> solicitudesAdmin.tecnicosDisponibles(70L, "2030-05-06T09:00:00", "2030-05-06T11:00:00"));
     }
 
     // ---------- franjas con motivo ----------

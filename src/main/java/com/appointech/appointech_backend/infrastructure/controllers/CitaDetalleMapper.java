@@ -4,6 +4,7 @@ import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.DetalleCita;
 import com.appointech.appointech_backend.domain.models.DetalleCitaCompleto;
 import com.appointech.appointech_backend.domain.models.HistorialEstadoCita;
+import com.appointech.appointech_backend.infrastructure.dto.AsignacionManualResponse;
 import com.appointech.appointech_backend.infrastructure.dto.CitaDetalleResponse;
 import com.appointech.appointech_backend.infrastructure.dto.DiagnosticoResponse;
 import com.appointech.appointech_backend.infrastructure.dto.HistorialEstadoResponse;
@@ -13,7 +14,17 @@ final class CitaDetalleMapper {
     private CitaDetalleMapper() {
     }
 
+    /** Para el cliente dueño: indica si se asignó manualmente, pero no quién. */
     static CitaDetalleResponse aRespuesta(DetalleCitaCompleto completo) {
+        return construir(completo, null);
+    }
+
+    /** Para el administrador: incluye quién y cuándo asignó manualmente. */
+    static CitaDetalleResponse aRespuestaAdmin(DetalleCitaCompleto completo) {
+        return construir(completo, AsignacionManualMapper.aRespuesta(completo.detalle()));
+    }
+
+    private static CitaDetalleResponse construir(DetalleCitaCompleto completo, AsignacionManualResponse asignacion) {
         DetalleCita detalle = completo.detalle();
         Cita cita = detalle.cita();
         return new CitaDetalleResponse(
@@ -24,7 +35,9 @@ final class CitaDetalleMapper {
                 aDiagnostico(cita),
                 completo.historial().stream().map(CitaDetalleMapper::aHistorial).toList(),
                 FotoUrlMapper.aUrl(detalle.tecnicoFotoClave()),
-                FotoUrlMapper.aFotosCita(completo.fotos()));
+                FotoUrlMapper.aFotosCita(completo.fotos()),
+                cita.isAsignacionManual(),
+                asignacion);
     }
 
     /** Null mientras el técnico no haya registrado un diagnóstico. */

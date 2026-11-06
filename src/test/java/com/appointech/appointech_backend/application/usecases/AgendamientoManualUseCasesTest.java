@@ -1,6 +1,7 @@
 package com.appointech.appointech_backend.application.usecases;
 
 import com.appointech.appointech_backend.application.services.GestorCotizacion;
+import com.appointech.appointech_backend.application.services.ReglasAsignacionManual;
 import com.appointech.appointech_backend.domain.exception.CoordenadasInvalidasException;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
@@ -8,6 +9,7 @@ import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermi
 import com.appointech.appointech_backend.domain.exception.SolicitudNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.TecnicoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
+import com.appointech.appointech_backend.domain.exception.UsuarioNoEncontradoException;
 import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
@@ -30,7 +32,10 @@ import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +55,9 @@ class AgendamientoManualUseCasesTest {
 
     private static final LocalDateTime INICIO = LocalDateTime.of(2030, 5, 6, 9, 0);
     private static final LocalDateTime FIN = INICIO.plusHours(2);
+    private static final Instant AHORA = Instant.parse("2030-05-02T15:00:00Z");
+    private static final Clock RELOJ = Clock.fixed(AHORA, ZoneOffset.UTC);
+    private static final LocalDateTime AHORA_LOCAL = LocalDateTime.of(2030, 5, 2, 15, 0);
 
     private UsuarioRepositoryPort usuarioRepo;
     private ClienteRepositoryPort clienteRepo;
@@ -84,6 +92,12 @@ class AgendamientoManualUseCasesTest {
         cliente.setId(2L);
         cliente.setUsuario(usuarioCliente);
         when(usuarioRepo.buscarPorCorreo("cliente@x.com")).thenReturn(Optional.of(usuarioCliente));
+        Usuario admin = new Usuario();
+        admin.setId(1L);
+        admin.setNombre("Root");
+        admin.setApellido("Admin");
+        when(usuarioRepo.buscarPorCorreo("admin@x.com")).thenReturn(Optional.of(admin));
+        when(usuarioRepo.buscarPorCorreo("a")).thenReturn(Optional.of(admin));
         when(clienteRepo.buscarPorUsuarioId(8L)).thenReturn(Optional.of(cliente));
         when(clienteRepo.buscarPorId(2L)).thenReturn(Optional.of(cliente));
         when(especialidadRepo.buscarPorId(5L)).thenReturn(Optional.of(especialidad(5L, "Plomería")));
@@ -191,7 +205,8 @@ class AgendamientoManualUseCasesTest {
     // ---------- asignar ----------
 
     private AsignarSolicitudManualUseCaseImpl asignar() {
-        return new AsignarSolicitudManualUseCaseImpl(citaRepo, tecnicoRepo, bloquesRepo, clienteRepo, log, notificador);
+        return new AsignarSolicitudManualUseCaseImpl(citaRepo, tecnicoRepo, usuarioRepo, clienteRepo,
+                new ReglasAsignacionManual(citaRepo, bloquesRepo), log, notificador, RELOJ);
     }
 
     @Test
@@ -206,10 +221,62 @@ class AgendamientoManualUseCasesTest {
         assertEquals(3L, r.getTecnicoId());
         assertEquals(INICIO, r.getFechaHoraInicio());
         assertEquals(FIN, r.getFechaHoraFin());
+        assertTrue(r.isAsignacionManual());
+        assertEquals(1L, r.getAsignadaPorId());
+        assertEquals(AHORA_LOCAL, r.getAsignadaEn());
+        assertEquals(AHORA_LOCAL, r.getActualizadaEn());
         verify(notificador).notificarCitaConfirmada(r, "cliente@x.com");
         verify(log).registrar(any(), any(), anyString(), anyString(), anyString());
     }
 
+
+    @Test
+    void laTrazabilidadSeGuardaEnLaCitaPersistida() {
+        when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(manualPendiente(70L)));
+        when(tecnicoRepo.buscarPorIdBloqueando(3L)).thenReturn(Optional.of(tecnico(true, 5L)));
+
+        asignar().asignar("admin@x.com", 70L, 3L, INICIO, FIN);
+
+        org.mockito.ArgumentCaptor<Cita> guardada = org.mockito.ArgumentCaptor.forClass(Cita.class);
+        verify(citaRepo).guardar(guardada.capture());
+        assertTrue(guardada.getValue().isAsignacionManual());
+        assertEquals(1L, guardada.getValue().getAsignadaPorId());
+        assertEquals(AHORA_LOCAL, guardada.getValue().getAsignadaEn());
+    }
+
+    @Test
+    void siElCorreoDelAdministradorNoExisteLanza404SinGuardar() {
+        when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(manualPendiente(70L)));
+        when(usuarioRepo.buscarPorCorreo("fantasma@x.com")).thenReturn(Optional.empty());
+
+        assertThrows(UsuarioNoEncontradoException.class,
+                () -> asignar().asignar("fantasma@x.com", 70L, 3L, INICIO, FIN));
+        verify(citaRepo, never()).guardar(any());
+    }
+
+    @Test
+    void asignarFueraDeJornadaNiDuracionDeBloqueEstaPermitido() {
+        when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(manualPendiente(70L)));
+        when(tecnicoRepo.buscarPorIdBloqueando(3L)).thenReturn(Optional.of(tecnico(true, 5L)));
+        LocalDateTime madrugada = LocalDateTime.of(2030, 5, 5, 3, 0);
+
+        Cita r = asignar().asignar("admin@x.com", 70L, 3L, madrugada, madrugada.plusMinutes(10));
+
+        assertEquals(EstadoCita.CONFIRMADA, r.getEstado());
+        assertEquals(madrugada, r.getFechaHoraInicio());
+    }
+
+    @Test
+    void laPropiaSolicitudNoCuentaComoCruceDeHorario() {
+        Cita c = manualPendiente(70L);
+        c.setFechaHoraInicio(INICIO);
+        c.setFechaHoraFin(FIN);
+        when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(c));
+        when(tecnicoRepo.buscarPorIdBloqueando(3L)).thenReturn(Optional.of(tecnico(true, 5L)));
+        when(citaRepo.buscarActivasDelTecnicoEntre(3L, INICIO, FIN)).thenReturn(List.of(c));
+
+        assertEquals(EstadoCita.CONFIRMADA, asignar().asignar("admin@x.com", 70L, 3L, INICIO, FIN).getEstado());
+    }
     @Test
     void choqueConOtraCitaDelTecnicoLanza409() {
         when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(manualPendiente(70L)));
@@ -244,6 +311,16 @@ class AgendamientoManualUseCasesTest {
         FranjaNoDisponibleException ex = assertThrows(FranjaNoDisponibleException.class,
                 () -> asignar().asignar("a", 70L, 3L, INICIO, FIN));
         assertTrue(ex.getMessage().contains("especialidad"));
+    }
+
+    @Test
+    void tecnicoSinNingunaEspecialidadRegistradaLanza409() {
+        when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(manualPendiente(70L)));
+        Tecnico sinEspecialidades = tecnico(true, 5L);
+        sinEspecialidades.setEspecialidades(null);
+        when(tecnicoRepo.buscarPorIdBloqueando(3L)).thenReturn(Optional.of(sinEspecialidades));
+
+        assertThrows(FranjaNoDisponibleException.class, () -> asignar().asignar("a", 70L, 3L, INICIO, FIN));
     }
 
     @Test

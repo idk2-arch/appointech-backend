@@ -109,6 +109,41 @@ class CitaRepositoryAdapterTest {
     }
 
     @Test
+    void guardarYLeerConservanLaTrazabilidadDeLaAsignacionManual() {
+        LocalDateTime cuando = INICIO.minusDays(2);
+        Cita c = new Cita();
+        c.setEstado(EstadoCita.CONFIRMADA);
+        c.setAsignacionManual(true);
+        c.setAsignadaPorId(7L);
+        c.setAsignadaEn(cuando);
+        when(jpa.save(any(CitaEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Cita guardada = adapter.guardar(c);
+
+        ArgumentCaptor<CitaEntity> captor = ArgumentCaptor.forClass(CitaEntity.class);
+        verify(jpa).save(captor.capture());
+        assertTrue(captor.getValue().isAsignacionManual());
+        assertEquals(7L, captor.getValue().getAsignadaPorId());
+        assertEquals(cuando, captor.getValue().getAsignadaEn());
+        assertTrue(guardada.isAsignacionManual());
+        assertEquals(7L, guardada.getAsignadaPorId());
+        assertEquals(cuando, guardada.getAsignadaEn());
+    }
+
+    @Test
+    void filaAntiguaDelBackfillSeLeeAsignadaPeroSinQuienNiCuando() {
+        CitaEntity e = entity(4L, EstadoCitaEntity.CONFIRMADA);
+        e.setAsignacionManual(true);
+        when(jpa.findById(4L)).thenReturn(Optional.of(e));
+
+        Cita c = adapter.buscarPorId(4L).orElseThrow();
+
+        assertTrue(c.isAsignacionManual());
+        assertNull(c.getAsignadaPorId());
+        assertNull(c.getAsignadaEn());
+    }
+
+    @Test
     void buscarPorIdConvierteElMotivoGuardadoComoTexto() {
         CitaEntity e = entity(3L, EstadoCitaEntity.PENDIENTE);
         e.setMotivoSolicitudEspecial("FUERA_DE_COBERTURA");

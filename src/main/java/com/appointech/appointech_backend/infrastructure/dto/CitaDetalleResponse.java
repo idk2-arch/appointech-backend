@@ -19,6 +19,8 @@ public record CitaDetalleResponse(
         DiagnosticoResponse diagnostico,
         List<HistorialEstadoResponse> historial,
         String tecnicoFotoUrl,
-        List<FotoCitaResponse> fotosElectrodomestico
+        List<FotoCitaResponse> fotosElectrodomestico,
+        boolean asignadaManualmente,
+        AsignacionManualResponse asignacionManual
 ) {
 }

@@ -40,6 +40,6 @@ public class AdminCitaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CitaDetalleResponse> detallar(@PathVariable Long id) {
-        return ResponseEntity.ok(CitaDetalleMapper.aRespuesta(consultarDetalle.detallar(id)));
+        return ResponseEntity.ok(CitaDetalleMapper.aRespuestaAdmin(consultarDetalle.detallar(id)));
     }
 }
