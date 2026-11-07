@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import java.util.Map;
 public class ConsultarMetricasUseCaseImpl implements ConsultarMetricasUseCase {
 
     private static final int DECIMALES = 2;
+    /** Tope de técnicos en calificaciones.porTecnico (los mejor calificados). */
+    private static final int MAX_TECNICOS_CALIFICADOS = 20;
 
     private final ConsultaMetricasPort consultaMetricasPort;
     private final Clock reloj;
@@ -82,6 +85,10 @@ public class ConsultarMetricasUseCaseImpl implements ConsultarMetricasUseCase {
     private MetricasGenerales.Calificaciones calificaciones(RangoMetricas rango) {
         MetricasGenerales.ResumenCalificaciones resumen = consultaMetricasPort.calificacionesDelRango(rango);
         List<CalificacionesDeTecnico> porTecnico = consultaMetricasPort.calificacionesPorTecnico(rango).stream()
+                .sorted(Comparator.comparingDouble(CalificacionesDeTecnico::promedio).reversed()
+                        .thenComparing(Comparator.comparingLong(CalificacionesDeTecnico::cantidad).reversed())
+                        .thenComparingLong(CalificacionesDeTecnico::tecnicoId))
+                .limit(MAX_TECNICOS_CALIFICADOS)
                 .map(t -> new CalificacionesDeTecnico(t.tecnicoId(), t.nombre(), redondear(t.promedio()), t.cantidad()))
                 .toList();
         Double promedio = resumen.promedio() == null ? null : redondear(resumen.promedio());

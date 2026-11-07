@@ -267,6 +267,45 @@ class ConsultarMetricasUseCaseImplTest {
         assertEquals("Luis Mora", c.porTecnico().get(0).nombre());
     }
 
+    @Test
+    void porTecnicoSeOrdenaPorPromedioDescendenteLuegoPorCantidadDescendenteYLuegoPorId() {
+        when(puerto.calificacionesPorTecnico(any())).thenReturn(List.of(
+                new CalificacionesDeTecnico(5L, "E", 3.0, 9),
+                new CalificacionesDeTecnico(4L, "D", 4.0, 2),
+                new CalificacionesDeTecnico(3L, "C", 4.0, 7),
+                new CalificacionesDeTecnico(2L, "B", 4.0, 7),
+                new CalificacionesDeTecnico(1L, "A", 5.0, 1)));
+
+        List<Long> ids = casoDeUso.consultar(sinRango()).calificaciones().porTecnico().stream()
+                .map(CalificacionesDeTecnico::tecnicoId).toList();
+
+        assertEquals(List.of(1L, 2L, 3L, 4L, 5L), ids);
+    }
+
+    @Test
+    void porTecnicoDevuelveComoMaximoLos20MejoresCalificados() {
+        List<CalificacionesDeTecnico> treinta = new java.util.ArrayList<>();
+        for (long i = 1; i <= 30; i++) {
+            treinta.add(new CalificacionesDeTecnico(i, "T" + i, 1.0 + i / 10.0, 1));
+        }
+        when(puerto.calificacionesPorTecnico(any())).thenReturn(treinta);
+
+        List<CalificacionesDeTecnico> r = casoDeUso.consultar(sinRango()).calificaciones().porTecnico();
+
+        assertEquals(20, r.size());
+        assertEquals(30L, r.get(0).tecnicoId());
+        assertEquals(11L, r.get(19).tecnicoId());
+    }
+
+    @Test
+    void sinCalificacionesEnElRangoElPromedioEsNuloElTotalCeroYLaListaVacia() {
+        MetricasGenerales.Calificaciones c = casoDeUso.consultar(sinRango()).calificaciones();
+
+        assertNull(c.promedio());
+        assertEquals(0, c.total());
+        assertTrue(c.porTecnico().isEmpty());
+    }
+
     // ---------- usuarios ----------
 
     @Test
