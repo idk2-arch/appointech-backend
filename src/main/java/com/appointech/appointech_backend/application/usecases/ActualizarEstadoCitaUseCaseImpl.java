@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.GestorCambiosCita;
 import com.appointech.appointech_backend.application.services.ResolverTecnicoAutenticado;
 import com.appointech.appointech_backend.domain.exception.SolicitudNoEncontradaException;
@@ -21,13 +22,16 @@ public class ActualizarEstadoCitaUseCaseImpl implements ActualizarEstadoCitaUseC
     private final ResolverTecnicoAutenticado resolverTecnico;
     private final CitaRepositoryPort citaRepositoryPort;
     private final GestorCambiosCita gestor;
+    private final AvisosInternos avisos;
 
     public ActualizarEstadoCitaUseCaseImpl(ResolverTecnicoAutenticado resolverTecnico,
                                            CitaRepositoryPort citaRepositoryPort,
-                                           GestorCambiosCita gestor) {
+                                           GestorCambiosCita gestor,
+                                          AvisosInternos avisos) {
         this.resolverTecnico = resolverTecnico;
         this.citaRepositoryPort = citaRepositoryPort;
         this.gestor = gestor;
+        this.avisos = avisos;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class ActualizarEstadoCitaUseCaseImpl implements ActualizarEstadoCitaUseC
                 + anterior + " → " + guardada.getEstado());
         if (guardada.getEstado() == EstadoCita.FINALIZADA) {
             gestor.notificarFinalizacion(guardada);
+            avisos.citaFinalizada(guardada);
         }
         return guardada;
     }

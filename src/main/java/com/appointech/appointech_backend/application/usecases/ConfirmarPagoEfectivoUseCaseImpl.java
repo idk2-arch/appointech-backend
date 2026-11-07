@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.EmisorComprobante;
 import com.appointech.appointech_backend.application.services.PagosDeCita;
 import com.appointech.appointech_backend.application.services.VerificadorAccesoCita;
@@ -22,13 +23,15 @@ public class ConfirmarPagoEfectivoUseCaseImpl implements ConfirmarPagoEfectivoUs
     private final VerificadorAccesoCita verificadorAcceso;
     private final PagosDeCita pagos;
     private final EmisorComprobante emisorComprobante;
+    private final AvisosInternos avisos;
     private final Clock reloj;
 
     public ConfirmarPagoEfectivoUseCaseImpl(VerificadorAccesoCita verificadorAcceso, PagosDeCita pagos,
-                                            EmisorComprobante emisorComprobante, Clock reloj) {
+                                            EmisorComprobante emisorComprobante, AvisosInternos avisos, Clock reloj) {
         this.verificadorAcceso = verificadorAcceso;
         this.pagos = pagos;
         this.emisorComprobante = emisorComprobante;
+        this.avisos = avisos;
         this.reloj = reloj;
     }
 
@@ -42,7 +45,9 @@ public class ConfirmarPagoEfectivoUseCaseImpl implements ConfirmarPagoEfectivoUs
 
         pago.confirmarEfectivo(ahora);
         Pago guardado = pagos.guardar(pago, anterior, correoTecnico);
-        emisorComprobante.emitirSiPagado(guardado, ahora);
+        if (emisorComprobante.emitirSiPagado(guardado, ahora)) {
+            avisos.pagoRegistrado(guardado);
+        }
         return guardado;
     }
 }

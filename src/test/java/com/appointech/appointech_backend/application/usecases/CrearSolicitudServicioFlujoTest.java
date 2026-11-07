@@ -53,6 +53,8 @@ class CrearSolicitudServicioFlujoTest {
     private GestorCotizacion cotizador;
     @Mock
     private FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicos;
+    @Mock
+    private com.appointech.appointech_backend.application.services.AvisosInternos avisos;
     @InjectMocks
     private CrearSolicitudServicioUseCaseImpl useCase;
 
@@ -88,6 +90,7 @@ class CrearSolicitudServicioFlujoTest {
         });
 
         Cita r = useCase.crear("ana@mail.com", 2L, "fuga", "Calle 1", 4.6, -74.1);
+        verify(avisos).solicitudRecibida(r);
 
         ArgumentCaptor<Cita> captor = ArgumentCaptor.forClass(Cita.class);
         verify(citas).guardar(captor.capture());
@@ -127,6 +130,7 @@ class CrearSolicitudServicioFlujoTest {
         when(filtrarTecnicos.filtrar(2L)).thenReturn(List.of(new Tecnico()));
 
         Cita r = useCase.crear("ana@mail.com", 2L, "fuga", "Calle 1", 4.6, -74.1);
+        verify(avisos).solicitudRecibida(r);
 
         assertNull(r.getMotivoSolicitudEspecial());
         assertFalse(r.isAgendamientoManual());
@@ -140,6 +144,7 @@ class CrearSolicitudServicioFlujoTest {
         when(filtrarTecnicos.filtrar(2L)).thenReturn(List.of());
 
         Cita r = useCase.crear("ana@mail.com", 2L, "fuga", "Calle 1", 4.6, -74.1);
+        verify(avisos).solicitudRecibida(r);
 
         assertEquals(EstadoCita.PENDIENTE, r.getEstado());
         assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, r.getMotivoSolicitudEspecial());
@@ -159,6 +164,7 @@ class CrearSolicitudServicioFlujoTest {
         when(filtrarTecnicos.filtrar(2L)).thenReturn(List.of());
 
         Cita r = useCase.crear("ana@mail.com", 2L, "fuga", "Calle 1", 4.6, -74.1);
+        verify(avisos).solicitudRecibida(r);
 
         assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, r.getMotivoSolicitudEspecial());
         assertNull(r.getTelefonoContacto());

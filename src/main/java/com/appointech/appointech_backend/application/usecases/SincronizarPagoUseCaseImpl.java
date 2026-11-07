@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.EmisorComprobante;
 import com.appointech.appointech_backend.application.services.PagosDeCita;
 import com.appointech.appointech_backend.application.services.VerificadorAccesoCita;
@@ -33,14 +34,17 @@ public class SincronizarPagoUseCaseImpl implements SincronizarPagoUseCase {
     private final PagosDeCita pagos;
     private final PasarelaPagoPort pasarela;
     private final EmisorComprobante emisorComprobante;
+    private final AvisosInternos avisos;
     private final Clock reloj;
 
     public SincronizarPagoUseCaseImpl(VerificadorAccesoCita verificadorAcceso, PagosDeCita pagos,
-                                      PasarelaPagoPort pasarela, EmisorComprobante emisorComprobante, Clock reloj) {
+                                      PasarelaPagoPort pasarela, EmisorComprobante emisorComprobante,
+                                      AvisosInternos avisos, Clock reloj) {
         this.verificadorAcceso = verificadorAcceso;
         this.pagos = pagos;
         this.pasarela = pasarela;
         this.emisorComprobante = emisorComprobante;
+        this.avisos = avisos;
         this.reloj = reloj;
     }
 
@@ -57,7 +61,9 @@ public class SincronizarPagoUseCaseImpl implements SincronizarPagoUseCase {
 
         pago.aplicarResultado(consultarPasarela(pago, idTransaccion), ahora);
         Pago guardado = pagos.guardar(pago, anterior, correo);
-        emisorComprobante.emitirSiPagado(guardado, ahora);
+        if (emisorComprobante.emitirSiPagado(guardado, ahora)) {
+            avisos.pagoRegistrado(guardado);
+        }
         return guardado;
     }
 

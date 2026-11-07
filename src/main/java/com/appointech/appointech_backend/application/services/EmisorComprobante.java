@@ -18,13 +18,15 @@ public class EmisorComprobante {
         this.comprobanteRepositoryPort = comprobanteRepositoryPort;
     }
 
-    /** Emite el comprobante si el pago está PAGADO y aún no tiene uno; si ya existe, no hace nada. */
-    public void emitirSiPagado(Pago pago, LocalDateTime ahora) {
+    /** Emite el comprobante si el pago está PAGADO y aún no tiene uno; devuelve true solo cuando lo emitió ahora. */
+    public boolean emitirSiPagado(Pago pago, LocalDateTime ahora) {
         if (pago.getEstado() != EstadoPago.PAGADO) {
-            return;
+            return false;
         }
         if (comprobanteRepositoryPort.buscarPorPagoId(pago.getId()).isEmpty()) {
             comprobanteRepositoryPort.guardar(new ComprobantePago(null, pago.getId(), ahora));
+            return true;
         }
+        return false;
     }
 }

@@ -23,6 +23,21 @@ final class ParametrosDeConsulta {
         }
     }
 
+    /** Null si el texto falta o está en blanco; solo se aceptan "true" y "false" (en cualquier mayúscula). */
+    static Boolean aBooleano(String parametro, String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        String limpio = texto.trim();
+        if ("true".equalsIgnoreCase(limpio)) {
+            return Boolean.TRUE;
+        }
+        if ("false".equalsIgnoreCase(limpio)) {
+            return Boolean.FALSE;
+        }
+        throw new FiltroCitasInvalidoException("Valor inválido para " + parametro + ": " + texto);
+    }
+
     /** Null si el texto falta o está en blanco; el formato es yyyy-MM-dd. */
     static LocalDate aFecha(String parametro, String texto) {
         if (texto == null || texto.isBlank()) {

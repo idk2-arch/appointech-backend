@@ -4,6 +4,7 @@ import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoExc
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
 import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Especialidad;
@@ -44,6 +45,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
     private final CalcularFranjasDisponiblesUseCase calcularFranjasDisponiblesUseCase;
     private final RegistroLogPort registroLogPort;
     private final GestorCotizacion gestorCotizacion;
+    private final AvisosInternos avisos;
 
     public SolicitarAgendamientoManualUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                                   ClienteRepositoryPort clienteRepositoryPort,
@@ -51,7 +53,8 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
                                                   CitaRepositoryPort citaRepositoryPort,
                                                   CalcularFranjasDisponiblesUseCase calcularFranjasDisponiblesUseCase,
                                                   RegistroLogPort registroLogPort,
-                                                  GestorCotizacion gestorCotizacion) {
+                                                  GestorCotizacion gestorCotizacion,
+                                                  AvisosInternos avisos) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
@@ -59,6 +62,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         this.calcularFranjasDisponiblesUseCase = calcularFranjasDisponiblesUseCase;
         this.registroLogPort = registroLogPort;
         this.gestorCotizacion = gestorCotizacion;
+        this.avisos = avisos;
     }
 
     @Override
@@ -103,6 +107,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         gestorCotizacion.registrar(guardada.getId(), especialidad);
         registroLogPort.registrar(NivelLog.INFO, TipoLog.NEGOCIO, "SolicitarAgendamientoManualUseCaseImpl", correoCliente,
                 "Solicitud de agendamiento manual creada con id " + guardada.getId());
+        avisos.solicitudRecibida(guardada);
         return guardada;
     }
 

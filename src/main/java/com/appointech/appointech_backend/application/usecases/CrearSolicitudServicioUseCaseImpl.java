@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.GestorCotizacion;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Especialidad;
@@ -42,6 +43,7 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
     private final RegistroLogPort registroLogPort;
     private final GestorCotizacion gestorCotizacion;
     private final FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicosPorEspecialidadUseCase;
+    private final AvisosInternos avisos;
 
     public CrearSolicitudServicioUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                              ClienteRepositoryPort clienteRepositoryPort,
@@ -49,7 +51,8 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
                                              CitaRepositoryPort citaRepositoryPort,
                                              RegistroLogPort registroLogPort,
                                              GestorCotizacion gestorCotizacion,
-                                             FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicosPorEspecialidadUseCase) {
+                                             FiltrarTecnicosPorEspecialidadUseCase filtrarTecnicosPorEspecialidadUseCase,
+                                             AvisosInternos avisos) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
@@ -57,6 +60,7 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         this.registroLogPort = registroLogPort;
         this.gestorCotizacion = gestorCotizacion;
         this.filtrarTecnicosPorEspecialidadUseCase = filtrarTecnicosPorEspecialidadUseCase;
+        this.avisos = avisos;
     }
 
     @Override
@@ -91,6 +95,7 @@ public class CrearSolicitudServicioUseCaseImpl implements CrearSolicitudServicio
         Cita solicitudGuardada = citaRepositoryPort.guardar(solicitud);
         gestorCotizacion.registrar(solicitudGuardada.getId(), especialidad);
         registrarCreacion(solicitudGuardada, correoCliente);
+        avisos.solicitudRecibida(solicitudGuardada);
         return solicitudGuardada;
     }
 

@@ -7,6 +7,7 @@ import com.appointech.appointech_backend.domain.exception.AlmacenamientoNoDispon
 import com.appointech.appointech_backend.domain.exception.ComprobanteNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.DatosPagoInvalidosException;
 import com.appointech.appointech_backend.domain.exception.PagoInvalidoException;
+import com.appointech.appointech_backend.domain.exception.NotificacionNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.PagoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.PasarelaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.TransaccionNoCoincideException;
@@ -124,8 +125,8 @@ public class GlobalExceptionHandler {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(PagoNoEncontradoException.class)
-    public ProblemDetail manejarPagoNoEncontrado(PagoNoEncontradoException ex, HttpServletRequest request) {
+    @ExceptionHandler({PagoNoEncontradoException.class, NotificacionNoEncontradaException.class})
+    public ProblemDetail manejarPagoNoEncontrado(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 

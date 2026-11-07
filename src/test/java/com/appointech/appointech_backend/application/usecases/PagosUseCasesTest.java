@@ -62,6 +62,10 @@ import static org.mockito.Mockito.when;
 /** Casos de uso del módulo de pagos con puertos simulados; el verificador de acceso también es simulado. */
 class PagosUseCasesTest {
 
+    private final com.appointech.appointech_backend.application.services.AvisosInternos avisos =
+            org.mockito.Mockito.mock(com.appointech.appointech_backend.application.services.AvisosInternos.class);
+
+
     private static final Long CITA_ID = 10L;
     private static final String CLIENTE = "cliente@x.com";
     private static final String TECNICO = "tecnico@x.com";
@@ -173,6 +177,7 @@ class PagosUseCasesTest {
         pendiente.setId(1L);
         emisor.emitirSiPagado(pendiente, AHORA);
         verifyNoInteractions(comprobanteRepo);
+        verifyNoInteractions(avisos);
 
         Pago pagado = Pago.nuevo(CITA_ID);
         pagado.setId(1L);
@@ -394,7 +399,7 @@ class PagosUseCasesTest {
     // ---------- confirmar efectivo ----------
 
     private ConfirmarPagoEfectivoUseCaseImpl confirmar() {
-        return new ConfirmarPagoEfectivoUseCaseImpl(verificador, pagos, emisor, reloj);
+        return new ConfirmarPagoEfectivoUseCaseImpl(verificador, pagos, emisor, avisos, reloj);
     }
 
     @Test
@@ -408,6 +413,7 @@ class PagosUseCasesTest {
         assertEquals(EstadoPago.PAGADO, r.getEstado());
         assertEquals(AHORA, r.getPagadoEn());
         verify(comprobanteRepo).guardar(new ComprobantePago(null, 1L, AHORA));
+        verify(avisos).pagoRegistrado(r);
     }
 
     @Test
@@ -429,12 +435,13 @@ class PagosUseCasesTest {
         when(pagoRepo.buscarPorCitaIdBloqueando(CITA_ID)).thenReturn(Optional.empty());
         assertThrows(PagoNoEncontradoException.class, () -> confirmar().confirmar(TECNICO, CITA_ID));
         verifyNoInteractions(comprobanteRepo);
+        verifyNoInteractions(avisos);
     }
 
     // ---------- sincronizar ----------
 
     private SincronizarPagoUseCaseImpl sincronizar() {
-        return new SincronizarPagoUseCaseImpl(verificador, pagos, pasarela, emisor, reloj);
+        return new SincronizarPagoUseCaseImpl(verificador, pagos, pasarela, emisor, avisos, reloj);
     }
 
     private Pago pagoEnLinea() {
@@ -458,6 +465,7 @@ class PagosUseCasesTest {
         assertEquals(EstadoPago.PAGADO, r.getEstado());
         assertEquals("tx-1", r.getIdTransaccionExterna());
         verify(comprobanteRepo).guardar(new ComprobantePago(null, 1L, AHORA));
+        verify(avisos).pagoRegistrado(r);
     }
 
     @Test
@@ -469,6 +477,7 @@ class PagosUseCasesTest {
 
         assertEquals(EstadoPago.FALLIDO, r.getEstado());
         verifyNoInteractions(comprobanteRepo);
+        verifyNoInteractions(avisos);
     }
 
     @Test
@@ -481,6 +490,7 @@ class PagosUseCasesTest {
         assertSame(pago, r);
         verifyNoInteractions(pasarela);
         verifyNoInteractions(comprobanteRepo);
+        verifyNoInteractions(avisos);
     }
 
     @Test

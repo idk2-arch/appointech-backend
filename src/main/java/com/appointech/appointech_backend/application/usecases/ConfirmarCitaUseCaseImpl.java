@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad;
 import com.appointech.appointech_backend.domain.models.Cita;
 import com.appointech.appointech_backend.domain.models.Cliente;
@@ -51,6 +52,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
     private final ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort;
     private final RegistroLogPort registroLogPort;
     private final NotificadorCitaPort notificadorCitaPort;
+    private final AvisosInternos avisos;
     private final Clock reloj;
 
     public ConfirmarCitaUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
@@ -61,6 +63,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
                                     ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort,
                                     RegistroLogPort registroLogPort,
                                     NotificadorCitaPort notificadorCitaPort,
+                                    AvisosInternos avisos,
                                     Clock reloj) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
@@ -70,6 +73,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         this.configuracionFranjasRepositoryPort = configuracionFranjasRepositoryPort;
         this.registroLogPort = registroLogPort;
         this.notificadorCitaPort = notificadorCitaPort;
+        this.avisos = avisos;
         this.reloj = reloj;
     }
 
@@ -135,6 +139,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         registroLogPort.registrar(NivelLog.INFO, TipoLog.AUDITORIA, "ConfirmarCitaUseCaseImpl", correoCliente,
                 "Cita " + citaConfirmada.getId() + " confirmada con el técnico " + tecnicoId);
         notificadorCitaPort.notificarCitaConfirmada(citaConfirmada, correoCliente);
+        avisos.citaConfirmada(citaConfirmada);
         return citaConfirmada;
     }
 

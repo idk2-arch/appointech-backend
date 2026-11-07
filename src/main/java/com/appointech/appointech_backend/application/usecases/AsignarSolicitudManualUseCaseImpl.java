@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.ReglasAsignacionManual;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.TecnicoNoEncontradoException;
@@ -38,6 +39,7 @@ public class AsignarSolicitudManualUseCaseImpl implements AsignarSolicitudManual
     private final ReglasAsignacionManual reglasAsignacionManual;
     private final RegistroLogPort registroLogPort;
     private final NotificadorCitaPort notificadorCitaPort;
+    private final AvisosInternos avisos;
     private final Clock reloj;
 
     public AsignarSolicitudManualUseCaseImpl(CitaRepositoryPort citaRepositoryPort,
@@ -47,6 +49,7 @@ public class AsignarSolicitudManualUseCaseImpl implements AsignarSolicitudManual
                                              ReglasAsignacionManual reglasAsignacionManual,
                                              RegistroLogPort registroLogPort,
                                              NotificadorCitaPort notificadorCitaPort,
+                                             AvisosInternos avisos,
                                              Clock reloj) {
         this.citaRepositoryPort = citaRepositoryPort;
         this.tecnicoRepositoryPort = tecnicoRepositoryPort;
@@ -55,6 +58,7 @@ public class AsignarSolicitudManualUseCaseImpl implements AsignarSolicitudManual
         this.reglasAsignacionManual = reglasAsignacionManual;
         this.registroLogPort = registroLogPort;
         this.notificadorCitaPort = notificadorCitaPort;
+        this.avisos = avisos;
         this.reloj = reloj;
     }
 
@@ -89,6 +93,7 @@ public class AsignarSolicitudManualUseCaseImpl implements AsignarSolicitudManual
                 "Solicitud manual " + confirmada.getId() + " asignada al técnico " + tecnicoId);
         clienteRepositoryPort.buscarPorId(confirmada.getClienteId())
                 .ifPresent(cliente -> notificadorCitaPort.notificarCitaConfirmada(confirmada, cliente.getUsuario().getCorreo()));
+        avisos.citaConfirmada(confirmada);
         return confirmada;
     }
 }

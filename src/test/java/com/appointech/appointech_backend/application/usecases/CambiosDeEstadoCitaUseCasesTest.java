@@ -47,6 +47,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CambiosDeEstadoCitaUseCasesTest {
 
+    private final com.appointech.appointech_backend.application.services.AvisosInternos avisos =
+            org.mockito.Mockito.mock(com.appointech.appointech_backend.application.services.AvisosInternos.class);
+
+
     // 14:00 UTC = 09:00 en Bogotá
     private static final Clock RELOJ = Clock.fixed(Instant.parse("2026-10-27T14:00:00Z"), ZoneId.of("America/Bogota"));
     private static final LocalDateTime AHORA = LocalDateTime.of(2026, 10, 27, 9, 0);
@@ -122,7 +126,7 @@ class CambiosDeEstadoCitaUseCasesTest {
     // ================= ActualizarEstadoCita (SCRUM-19) =================
 
     private ActualizarEstadoCitaUseCaseImpl actualizarEstado() {
-        return new ActualizarEstadoCitaUseCaseImpl(resolverTecnico, citas, gestor);
+        return new ActualizarEstadoCitaUseCaseImpl(resolverTecnico, citas, gestor, avisos);
     }
 
     @Test
@@ -294,6 +298,7 @@ class CambiosDeEstadoCitaUseCasesTest {
         orden.verify(historial).registrar(any(HistorialEstadoCita.class));
         orden.verify(notificador).notificarCitaFinalizada(r, "ana@mail.com");
         verify(notificador, org.mockito.Mockito.times(1)).notificarCitaFinalizada(any(), anyString());
+        verify(avisos).citaFinalizada(r);
     }
 
     @Test
@@ -356,7 +361,7 @@ class CambiosDeEstadoCitaUseCasesTest {
     // ================= CancelarCitaCliente (SCRUM-21) =================
 
     private CancelarCitaClienteUseCaseImpl cancelarCliente() {
-        return new CancelarCitaClienteUseCaseImpl(resolverCliente, citas, gestor);
+        return new CancelarCitaClienteUseCaseImpl(resolverCliente, citas, gestor, avisos);
     }
 
     @Test
@@ -378,6 +383,7 @@ class CambiosDeEstadoCitaUseCasesTest {
         assertEquals("ana@mail.com", fila.actor());
         verify(notificador).notificarCambioDeCita(eq(r), eq("ana@mail.com"), contains("cancelada. Motivo: Ya no la necesito"));
         verify(notificador).notificarCambioDeCita(eq(r), eq("tec@mail.com"), contains("canceló la cita #10"));
+        verify(avisos).citaCanceladaPorCliente(r);
     }
 
     @Test
@@ -452,7 +458,7 @@ class CambiosDeEstadoCitaUseCasesTest {
     // ================= CancelarCitaTecnico (SCRUM-21) =================
 
     private CancelarCitaTecnicoUseCaseImpl cancelarTecnico() {
-        return new CancelarCitaTecnicoUseCaseImpl(resolverTecnico, citas, gestor);
+        return new CancelarCitaTecnicoUseCaseImpl(resolverTecnico, citas, gestor, avisos);
     }
 
     @Test
@@ -471,6 +477,7 @@ class CambiosDeEstadoCitaUseCasesTest {
         assertEquals("Falta de repuesto", fila.motivo());
         assertEquals("tec@mail.com", fila.actor());
         verify(notificador).notificarCambioDeCita(eq(r), eq("ana@mail.com"), contains("Motivo: Falta de repuesto"));
+        verify(avisos).citaCanceladaPorTecnico(r);
     }
 
     @Test

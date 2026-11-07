@@ -47,6 +47,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgendamientoUseCasesTest {
 
+    private final com.appointech.appointech_backend.application.services.AvisosInternos avisos =
+            org.mockito.Mockito.mock(com.appointech.appointech_backend.application.services.AvisosInternos.class);
+
+
     private static final double LATITUD_CLIENTE = 4.3365;
     private static final double LONGITUD_CLIENTE = -74.3638;
 
@@ -261,7 +265,7 @@ class AgendamientoUseCasesTest {
         confirmarCita = new ConfirmarCitaUseCaseImpl(
                 usuarioRepositoryPort, clienteRepositoryPort, citaRepositoryPort,
                 tecnicoRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort,
-                registroLogPort, notificadorCitaPort, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
+                registroLogPort, notificadorCitaPort, avisos, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
     }
 
     @Test
@@ -302,6 +306,7 @@ class AgendamientoUseCasesTest {
         assertEquals(1, logsRegistrados.size());
         assertTrue(logsRegistrados.get(0).startsWith("INFO|AUDITORIA"));
         assertEquals(List.of(cita.getId()), citasNotificadas);
+        org.mockito.Mockito.verify(avisos).citaConfirmada(cita);
     }
 
     @Test

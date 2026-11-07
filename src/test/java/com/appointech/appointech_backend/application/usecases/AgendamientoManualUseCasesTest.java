@@ -53,6 +53,10 @@ import static org.mockito.Mockito.when;
 
 class AgendamientoManualUseCasesTest {
 
+    private final com.appointech.appointech_backend.application.services.AvisosInternos avisos =
+            org.mockito.Mockito.mock(com.appointech.appointech_backend.application.services.AvisosInternos.class);
+
+
     private static final LocalDateTime INICIO = LocalDateTime.of(2030, 5, 6, 9, 0);
     private static final LocalDateTime FIN = INICIO.plusHours(2);
     private static final Instant AHORA = Instant.parse("2030-05-02T15:00:00Z");
@@ -112,7 +116,7 @@ class AgendamientoManualUseCasesTest {
 
     private SolicitarAgendamientoManualUseCaseImpl solicitar() {
         return new SolicitarAgendamientoManualUseCaseImpl(usuarioRepo, clienteRepo, especialidadRepo, citaRepo,
-                franjas, log, cotizador);
+                franjas, log, cotizador, avisos);
     }
 
     private void motivo(MotivoSinFranjas motivo) {
@@ -136,6 +140,7 @@ class AgendamientoManualUseCasesTest {
         assertEquals(MotivoSolicitudEspecial.FUERA_DE_COBERTURA, c.getMotivoSolicitudEspecial());
         assertEquals(4.5, c.getLatitud());
         org.mockito.Mockito.verify(cotizador).registrar(70L, especialidadRepo.buscarPorId(5L).orElseThrow());
+        verify(avisos).solicitudRecibida(c);
     }
 
     @Test
@@ -206,7 +211,7 @@ class AgendamientoManualUseCasesTest {
 
     private AsignarSolicitudManualUseCaseImpl asignar() {
         return new AsignarSolicitudManualUseCaseImpl(citaRepo, tecnicoRepo, usuarioRepo, clienteRepo,
-                new ReglasAsignacionManual(citaRepo, bloquesRepo), log, notificador, RELOJ);
+                new ReglasAsignacionManual(citaRepo, bloquesRepo), log, notificador, avisos, RELOJ);
     }
 
     @Test
@@ -226,6 +231,7 @@ class AgendamientoManualUseCasesTest {
         assertEquals(AHORA_LOCAL, r.getAsignadaEn());
         assertEquals(AHORA_LOCAL, r.getActualizadaEn());
         verify(notificador).notificarCitaConfirmada(r, "cliente@x.com");
+        verify(avisos).citaConfirmada(r);
         verify(log).registrar(any(), any(), anyString(), anyString(), anyString());
     }
 
@@ -384,7 +390,7 @@ class AgendamientoManualUseCasesTest {
         when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(c));
         var confirmar = new ConfirmarCitaUseCaseImpl(usuarioRepo, clienteRepo, citaRepo, tecnicoRepo, bloquesRepo,
                 mock(com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRepositoryPort.class),
-                log, notificador, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
+                log, notificador, avisos, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
 
         FranjaNoDisponibleException ex = assertThrows(FranjaNoDisponibleException.class,
                 () -> confirmar.confirmar("cliente@x.com", 70L, 3L, INICIO, FIN));

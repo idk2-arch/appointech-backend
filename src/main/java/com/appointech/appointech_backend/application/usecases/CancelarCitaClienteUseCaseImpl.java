@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.GestorCambiosCita;
 import com.appointech.appointech_backend.application.services.ResolverClienteAutenticado;
 import com.appointech.appointech_backend.domain.exception.SolicitudNoEncontradaException;
@@ -22,13 +23,16 @@ public class CancelarCitaClienteUseCaseImpl implements CancelarCitaClienteUseCas
     private final ResolverClienteAutenticado resolverCliente;
     private final CitaRepositoryPort citaRepositoryPort;
     private final GestorCambiosCita gestor;
+    private final AvisosInternos avisos;
 
     public CancelarCitaClienteUseCaseImpl(ResolverClienteAutenticado resolverCliente,
                                           CitaRepositoryPort citaRepositoryPort,
-                                          GestorCambiosCita gestor) {
+                                          GestorCambiosCita gestor,
+                                          AvisosInternos avisos) {
         this.resolverCliente = resolverCliente;
         this.citaRepositoryPort = citaRepositoryPort;
         this.gestor = gestor;
+        this.avisos = avisos;
     }
 
     @Override
@@ -47,6 +51,7 @@ public class CancelarCitaClienteUseCaseImpl implements CancelarCitaClienteUseCas
         String detalle = motivoLimpio == null ? "" : " Motivo: " + motivoLimpio;
         gestor.notificarAlCliente(guardada, "Tu cita #" + guardada.getId() + " fue cancelada." + detalle);
         gestor.notificarAlTecnico(guardada, "El cliente canceló la cita #" + guardada.getId() + "." + detalle);
+        avisos.citaCanceladaPorCliente(guardada);
         return guardada;
     }
 }

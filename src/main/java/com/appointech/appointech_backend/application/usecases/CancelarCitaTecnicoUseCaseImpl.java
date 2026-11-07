@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.application.services.AvisosInternos;
 import com.appointech.appointech_backend.application.services.GestorCambiosCita;
 import com.appointech.appointech_backend.application.services.ResolverTecnicoAutenticado;
 import com.appointech.appointech_backend.domain.exception.DatosCitaInvalidosException;
@@ -22,13 +23,16 @@ public class CancelarCitaTecnicoUseCaseImpl implements CancelarCitaTecnicoUseCas
     private final ResolverTecnicoAutenticado resolverTecnico;
     private final CitaRepositoryPort citaRepositoryPort;
     private final GestorCambiosCita gestor;
+    private final AvisosInternos avisos;
 
     public CancelarCitaTecnicoUseCaseImpl(ResolverTecnicoAutenticado resolverTecnico,
                                           CitaRepositoryPort citaRepositoryPort,
-                                          GestorCambiosCita gestor) {
+                                          GestorCambiosCita gestor,
+                                          AvisosInternos avisos) {
         this.resolverTecnico = resolverTecnico;
         this.citaRepositoryPort = citaRepositoryPort;
         this.gestor = gestor;
+        this.avisos = avisos;
     }
 
     @Override
@@ -49,6 +53,7 @@ public class CancelarCitaTecnicoUseCaseImpl implements CancelarCitaTecnicoUseCas
 
         gestor.notificarAlCliente(guardada, "El técnico canceló tu cita #" + guardada.getId()
                 + ". Motivo: " + motivoLimpio);
+        avisos.citaCanceladaPorTecnico(guardada);
         return guardada;
     }
 }
