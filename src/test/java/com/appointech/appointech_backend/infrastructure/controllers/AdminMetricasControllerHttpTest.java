@@ -80,6 +80,7 @@ class AdminMetricasControllerHttpTest {
                 .andExpect(jsonPath("$.solicitudesEspeciales.total").value(3))
                 .andExpect(jsonPath("$.solicitudesEspeciales.porMotivo.FUERA_DE_COBERTURA").value(2))
                 .andExpect(jsonPath("$.solicitudesEspeciales.porMotivo.SIN_TECNICOS_ESPECIALIDAD").value(1))
+                .andExpect(jsonPath("$.solicitudesEspeciales.porMotivo.SIN_HORARIOS").value(0))
                 .andExpect(jsonPath("$.ingresos.total").value(140000.75))
                 .andExpect(jsonPath("$.ingresos.cantidadPagos").value(2))
                 .andExpect(jsonPath("$.ingresos.porMetodo.EFECTIVO.monto").value(90000.50))

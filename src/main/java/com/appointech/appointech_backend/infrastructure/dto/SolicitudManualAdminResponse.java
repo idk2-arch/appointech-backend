@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.infrastructure.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record SolicitudManualAdminResponse(
@@ -16,6 +17,7 @@ public record SolicitudManualAdminResponse(
         Double longitud,
         LocalDateTime creadaEn,
         String motivo,
-        String estado
+        String estado,
+        LocalDate fechaDeseada
 ) {
 }

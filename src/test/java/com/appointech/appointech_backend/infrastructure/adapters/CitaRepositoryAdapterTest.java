@@ -72,6 +72,7 @@ class CitaRepositoryAdapterTest {
         c.setAgendamientoManual(true);
         c.setTelefonoContacto("3111111111");
         c.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD);
+        c.setFechaDeseada(java.time.LocalDate.of(2030, 5, 9));
         c.setFechaHoraInicio(INICIO);
         when(jpa.save(any(CitaEntity.class))).thenAnswer(inv -> {
             CitaEntity e = inv.getArgument(0);
@@ -90,6 +91,8 @@ class CitaRepositoryAdapterTest {
         assertEquals("3111111111", guardada.getTelefonoContacto());
         assertEquals("SIN_TECNICOS_ESPECIALIDAD", captor.getValue().getMotivoSolicitudEspecial());
         assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, guardada.getMotivoSolicitudEspecial());
+        assertEquals(java.time.LocalDate.of(2030, 5, 9), captor.getValue().getFechaDeseada());
+        assertEquals(java.time.LocalDate.of(2030, 5, 9), guardada.getFechaDeseada());
         assertEquals(INICIO, guardada.getFechaHoraInicio());
     }
 
@@ -104,6 +107,7 @@ class CitaRepositoryAdapterTest {
         assertEquals(4.1, c.getLatitud());
         assertEquals("ok", c.getDiagnostico());
         assertNull(c.getMotivoSolicitudEspecial());
+        assertNull(c.getFechaDeseada());
         assertEquals(INICIO.plusHours(1), c.getFechaHoraFin());
         assertTrue(adapter.buscarPorId(2L).isEmpty());
     }

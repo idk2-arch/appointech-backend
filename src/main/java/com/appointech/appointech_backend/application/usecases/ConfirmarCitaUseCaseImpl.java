@@ -21,6 +21,7 @@ import com.appointech.appointech_backend.domain.ports.out.BloqueIndisponibilidad
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRepositoryPort;
+import com.appointech.appointech_backend.domain.ports.out.FranjaTrabajoRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.NotificadorCitaPort;
 import com.appointech.appointech_backend.domain.ports.out.RegistroLogPort;
 import com.appointech.appointech_backend.domain.ports.out.TecnicoRepositoryPort;
@@ -44,12 +45,15 @@ import java.util.List;
 @Service
 public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
 
+    private static final String MENSAJE_NO_OFRECIDO = "La franja no corresponde a un horario ofrecido";
+
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final ClienteRepositoryPort clienteRepositoryPort;
     private final CitaRepositoryPort citaRepositoryPort;
     private final TecnicoRepositoryPort tecnicoRepositoryPort;
     private final BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort;
     private final ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort;
+    private final FranjaTrabajoRepositoryPort franjaTrabajoRepositoryPort;
     private final RegistroLogPort registroLogPort;
     private final NotificadorCitaPort notificadorCitaPort;
     private final AvisosInternos avisos;
@@ -61,6 +65,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
                                     TecnicoRepositoryPort tecnicoRepositoryPort,
                                     BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort,
                                     ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort,
+                                    FranjaTrabajoRepositoryPort franjaTrabajoRepositoryPort,
                                     RegistroLogPort registroLogPort,
                                     NotificadorCitaPort notificadorCitaPort,
                                     AvisosInternos avisos,
@@ -71,6 +76,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         this.tecnicoRepositoryPort = tecnicoRepositoryPort;
         this.bloqueIndisponibilidadRepositoryPort = bloqueIndisponibilidadRepositoryPort;
         this.configuracionFranjasRepositoryPort = configuracionFranjasRepositoryPort;
+        this.franjaTrabajoRepositoryPort = franjaTrabajoRepositoryPort;
         this.registroLogPort = registroLogPort;
         this.notificadorCitaPort = notificadorCitaPort;
         this.avisos = avisos;
@@ -105,7 +111,7 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
             throw new FranjaNoDisponibleException("Esta solicitud es de agendamiento manual: un administrador asignará el técnico y el horario");
         }
 
-        validarContraConfiguracion(inicio, fin);
+        int duracionMinutos = validarDuracionYDia(inicio, fin);
 
         Tecnico tecnico = tecnicoRepositoryPort.buscarPorIdBloqueando(tecnicoId)
                 .orElseThrow(() -> new TecnicoNoEncontradoException(tecnicoId));
@@ -117,6 +123,8 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         if (!atiendeEspecialidad || !tecnico.getUsuario().isActivo()) {
             throw new FranjaNoDisponibleException("El técnico seleccionado no puede atender esta solicitud");
         }
+
+        exigirBloqueOfrecido(tecnicoId, inicio, fin, duracionMinutos);
 
         List<Cita> citasQueCruzan = citaRepositoryPort.buscarActivasDelTecnicoEntre(tecnicoId, inicio, fin);
         List<BloqueIndisponibilidad> bloquesQueCruzan =
@@ -143,19 +151,28 @@ public class ConfirmarCitaUseCaseImpl implements ConfirmarCitaUseCase {
         return citaConfirmada;
     }
 
-    private void validarContraConfiguracion(LocalDateTime inicio, LocalDateTime fin) {
+    /** La franja debe ser de un solo día y durar lo que dura una cita; devuelve esa duración. */
+    private int validarDuracionYDia(LocalDateTime inicio, LocalDateTime fin) {
         ConfiguracionFranjas configuracion = configuracionFranjasRepositoryPort.obtenerActual()
                 .orElseGet(ConfiguracionFranjas::porDefecto);
 
         boolean mismoDia = inicio.toLocalDate().equals(fin.toLocalDate());
-        boolean dentroDeJornada = !inicio.toLocalTime().isBefore(configuracion.getHoraInicioJornada())
-                && !fin.toLocalTime().isAfter(configuracion.getHoraFinJornada());
         ZoneId zona = reloj.getZone();
         boolean duracionCorrecta = Duration.between(inicio.atZone(zona), fin.atZone(zona)).toMinutes()
                 == configuracion.getDuracionBloqueMinutos();
 
-        if (!mismoDia || !dentroDeJornada || !duracionCorrecta) {
-            throw new FranjaInvalidaException("La franja no corresponde a un horario ofrecido");
+        if (!mismoDia || !duracionCorrecta) {
+            throw new FranjaInvalidaException(MENSAJE_NO_OFRECIDO);
+        }
+        return configuracion.getDuracionBloqueMinutos();
+    }
+
+    /** El horario debe ser uno de los bloques de una franja de trabajo que el administrador abrió para ese técnico ese día. */
+    private void exigirBloqueOfrecido(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin, int duracionMinutos) {
+        boolean ofrecido = franjaTrabajoRepositoryPort.buscarDelTecnicoEnFecha(tecnicoId, inicio.toLocalDate()).stream()
+                .anyMatch(franja -> franja.ofreceBloque(inicio, fin, duracionMinutos));
+        if (!ofrecido) {
+            throw new FranjaInvalidaException(MENSAJE_NO_OFRECIDO);
         }
     }
 }

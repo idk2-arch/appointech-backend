@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -69,6 +70,9 @@ public class CitaEntity {
 
     @Column(name = "motivo_solicitud_especial", length = 40)
     private String motivoSolicitudEspecial;
+
+    @Column(name = "fecha_deseada")
+    private LocalDate fechaDeseada;
 
     @Column(columnDefinition = "text")
     private String recomendaciones;

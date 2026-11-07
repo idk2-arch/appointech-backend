@@ -30,6 +30,7 @@ public class AvisosInternos {
 
     private static final Logger log = LoggerFactory.getLogger(AvisosInternos.class);
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String TITULO_CANCELADA = "Cita cancelada";
 
     private final PublicadorNotificacionesPort publicador;
@@ -114,13 +115,25 @@ public class AvisosInternos {
     }
 
     private void alosAdministradores(Cita solicitud) {
-        boolean fueraDeCobertura = solicitud.getMotivoSolicitudEspecial() == MotivoSolicitudEspecial.FUERA_DE_COBERTURA;
-        TipoNotificacion tipo = fueraDeCobertura ? TipoNotificacion.SOLICITUD_FUERA_DE_COBERTURA
-                : TipoNotificacion.SOLICITUD_SIN_TECNICOS;
-        String titulo = fueraDeCobertura ? "Solicitud fuera de cobertura" : "Solicitud sin técnicos";
-        String mensaje = "La solicitud #" + solicitud.getId() + (fueraDeCobertura
-                ? " está fuera de cobertura y necesita agendamiento manual."
-                : " no tiene técnicos de la especialidad y necesita agendamiento manual.");
+        MotivoSolicitudEspecial motivo = solicitud.getMotivoSolicitudEspecial();
+        TipoNotificacion tipo = switch (motivo) {
+            case FUERA_DE_COBERTURA -> TipoNotificacion.SOLICITUD_FUERA_DE_COBERTURA;
+            case SIN_HORARIOS -> TipoNotificacion.SOLICITUD_SIN_HORARIOS;
+            case SIN_TECNICOS_ESPECIALIDAD -> TipoNotificacion.SOLICITUD_SIN_TECNICOS;
+        };
+        String titulo = switch (motivo) {
+            case FUERA_DE_COBERTURA -> "Solicitud fuera de cobertura";
+            case SIN_HORARIOS -> "Solicitud sin horarios disponibles";
+            case SIN_TECNICOS_ESPECIALIDAD -> "Solicitud sin técnicos";
+        };
+        String causa = switch (motivo) {
+            case FUERA_DE_COBERTURA -> " está fuera de cobertura";
+            case SIN_HORARIOS -> " no tiene horarios disponibles con los técnicos que cubren la dirección";
+            case SIN_TECNICOS_ESPECIALIDAD -> " no tiene técnicos de la especialidad";
+        };
+        String deseada = solicitud.getFechaDeseada() == null ? ""
+                : " El cliente quiere la cita para el " + solicitud.getFechaDeseada().format(FECHA) + ".";
+        String mensaje = "La solicitud #" + solicitud.getId() + causa + " y necesita agendamiento manual." + deseada;
         try {
             for (Long administradorId : destinatariosAdmin.idsAdministradoresActivos()) {
                 publicador.publicar(Notificacion.nueva(administradorId, tipo, titulo, mensaje, solicitud.getId(), ahora()));

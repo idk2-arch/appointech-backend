@@ -33,7 +33,7 @@ class CalificacionMapperTest {
     }
 
     @Test
-    void elDetalleDelAdminTraeLaCalificacionAlFinal() {
+    void elDetalleDelAdminTraeLaCalificacionYLaFechaDeseadaAlFinal() {
         CitaDetalleAdminResponse r = CitaDetalleMapper.aRespuestaAdmin(
                 new DetalleCitaCompleto(detalle(), List.of(), List.of(), new Calificacion(1L, 10L, 4, "Bien", FECHA)));
 
@@ -41,7 +41,8 @@ class CalificacionMapperTest {
         assertEquals(10L, r.id());
         assertEquals("Luis", r.tecnicoNombre());
         var componentes = CitaDetalleAdminResponse.class.getRecordComponents();
-        assertEquals("calificacion", componentes[componentes.length - 1].getName());
+        assertEquals("calificacion", componentes[componentes.length - 2].getName());
+        assertEquals("fechaDeseada", componentes[componentes.length - 1].getName());
     }
 
     @Test
@@ -55,7 +56,7 @@ class CalificacionMapperTest {
         var delAdmin = Arrays.stream(CitaDetalleAdminResponse.class.getRecordComponents()).map(c -> c.getName()).toList();
 
         assertEquals(delCliente, delAdmin.subList(0, delCliente.size()));
-        assertEquals(List.of("calificacion"), delAdmin.subList(delCliente.size(), delAdmin.size()));
+        assertEquals(List.of("calificacion", "fechaDeseada"), delAdmin.subList(delCliente.size(), delAdmin.size()));
     }
 
     @Test

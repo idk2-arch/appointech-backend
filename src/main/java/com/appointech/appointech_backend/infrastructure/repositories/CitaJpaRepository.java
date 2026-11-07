@@ -18,11 +18,13 @@ public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
     /**
      * Solicitudes manuales del estado dado. Los filtros opcionales se activan con un indicador y un valor
      * centinela no nulo (evita parámetros nulos, que PostgreSQL no sabe tipar).
+     * Orden: primero las que el cliente necesita antes (fecha deseada ascendente), las que no indicaron fecha al final y,
+     * a igual fecha, las más antiguas.
      */
     @Query("SELECT c FROM CitaEntity c WHERE c.agendamientoManual = true AND c.estado = :estado "
             + "AND (:todosLosMotivos = true OR c.motivoSolicitudEspecial = :motivo) "
             + "AND (:todasLasEspecialidades = true OR c.especialidadId = :especialidadId) "
-            + "ORDER BY c.creadaEn ASC, c.id ASC")
+            + "ORDER BY c.fechaDeseada ASC NULLS LAST, c.creadaEn ASC, c.id ASC")
     Page<CitaEntity> buscarSolicitudesManuales(@Param("estado") EstadoCitaEntity estado,
                                                @Param("todosLosMotivos") boolean todosLosMotivos,
                                                @Param("motivo") String motivo,

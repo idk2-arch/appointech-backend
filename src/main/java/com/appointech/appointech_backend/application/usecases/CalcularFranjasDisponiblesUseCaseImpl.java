@@ -18,6 +18,8 @@ import com.appointech.appointech_backend.domain.ports.out.BloqueIndisponibilidad
 import com.appointech.appointech_backend.domain.ports.out.CalculadoraDistanciaPort;
 import com.appointech.appointech_backend.domain.ports.out.CitaRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRepositoryPort;
+import com.appointech.appointech_backend.domain.ports.out.FranjaTrabajoRepositoryPort;
+import com.appointech.appointech_backend.domain.models.FranjaTrabajo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +29,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
- * Caso de uso: calcular las franjas libres de un día combinando especialidad, citas, bloques de indisponibilidad y cercanía.
+ * Caso de uso: calcular las franjas libres de un día combinando especialidad, franjas de trabajo que el administrador abrió,
+ * citas, bloques de indisponibilidad y cercanía (con el radio de atención de cada técnico). La jornada y el radio globales
+ * ya no se usan aquí; solo la duración del bloque.
  * <p>Historias de usuario:
  * <ul>
  * <li><a href="https://rossas2111.atlassian.net/browse/SCRUM-12">SCRUM-12</a> - RF19 - Calcular franjas horarias disponibles</li>
@@ -49,6 +55,7 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
     private final CitaRepositoryPort citaRepositoryPort;
     private final BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort;
     private final ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort;
+    private final FranjaTrabajoRepositoryPort franjaTrabajoRepositoryPort;
     private final CalculadoraDistanciaPort calculadoraDistanciaPort;
     private final ContactoAdminConfig contactoAdminConfig;
 
@@ -57,9 +64,10 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
             CitaRepositoryPort citaRepositoryPort,
             BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort,
             ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort,
+            FranjaTrabajoRepositoryPort franjaTrabajoRepositoryPort,
             CalculadoraDistanciaPort calculadoraDistanciaPort) {
         this(filtrarTecnicosPorEspecialidadUseCase, citaRepositoryPort, bloqueIndisponibilidadRepositoryPort,
-                configuracionFranjasRepositoryPort, calculadoraDistanciaPort, new ContactoAdminConfig(null));
+                configuracionFranjasRepositoryPort, franjaTrabajoRepositoryPort, calculadoraDistanciaPort, new ContactoAdminConfig(null));
     }
 
     @Autowired
@@ -68,6 +76,7 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
             CitaRepositoryPort citaRepositoryPort,
             BloqueIndisponibilidadRepositoryPort bloqueIndisponibilidadRepositoryPort,
             ConfiguracionFranjasRepositoryPort configuracionFranjasRepositoryPort,
+            FranjaTrabajoRepositoryPort franjaTrabajoRepositoryPort,
             CalculadoraDistanciaPort calculadoraDistanciaPort,
             ContactoAdminConfig contactoAdminConfig) {
         this.contactoAdminConfig = contactoAdminConfig;
@@ -75,6 +84,7 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
         this.citaRepositoryPort = citaRepositoryPort;
         this.bloqueIndisponibilidadRepositoryPort = bloqueIndisponibilidadRepositoryPort;
         this.configuracionFranjasRepositoryPort = configuracionFranjasRepositoryPort;
+        this.franjaTrabajoRepositoryPort = franjaTrabajoRepositoryPort;
         this.calculadoraDistanciaPort = calculadoraDistanciaPort;
     }
 
@@ -124,40 +134,45 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
             throw new IllegalStateException("El calculador de distancias devolvió una cantidad inesperada de resultados");
         }
 
-        boolean algunoDentroDeCobertura = false;
+        // Cobertura: cada técnico se evalúa con SU radio de atención (el radio global ya no interviene).
+        Map<Long, Double> distanciaDeLosQueCubren = new LinkedHashMap<>();
+        Map<Long, Tecnico> tecnicosQueCubren = new LinkedHashMap<>();
         for (int i = 0; i < candidatos.size(); i++) {
             Tecnico tecnico = candidatos.get(i);
             double distanciaKm = distancias.get(i).kilometros();
-            // Límite único del sistema: el radio por técnico ya no se usa.
-            if (distanciaKm > configuracion.getRadioMaximoKm()) {
-                continue;
+            if (tecnico.getRadioCoberturaKm() != null && distanciaKm <= tecnico.getRadioCoberturaKm()) {
+                distanciaDeLosQueCubren.put(tecnico.getId(), distanciaKm);
+                tecnicosQueCubren.put(tecnico.getId(), tecnico);
             }
-            algunoDentroDeCobertura = true;
+        }
+        if (tecnicosQueCubren.isEmpty()) {
+            return fueraDeCobertura(configuracion);
+        }
 
+        // Disponibilidad: solo lo que el administrador abrió ese día; un técnico sin franjas no ofrece nada.
+        int duracionMinutos = configuracion.getDuracionBloqueMinutos();
+        Map<Long, List<FranjaTrabajo>> franjasPorTecnico = franjaTrabajoRepositoryPort
+                .buscarDeTecnicosEnFecha(tecnicosQueCubren.keySet(), fecha).stream()
+                .collect(Collectors.groupingBy(FranjaTrabajo::tecnicoId));
+        for (Map.Entry<Long, List<FranjaTrabajo>> entrada : franjasPorTecnico.entrySet()) {
+            Tecnico tecnico = tecnicosQueCubren.get(entrada.getKey());
+            double distanciaKm = distanciaDeLosQueCubren.get(tecnico.getId());
             List<Cita> citasDelDia = citaRepositoryPort.buscarActivasDelTecnicoEntre(tecnico.getId(), inicioDia, finDia);
             List<BloqueIndisponibilidad> bloquesDelDia =
                     bloqueIndisponibilidadRepositoryPort.buscarDelTecnicoEntre(tecnico.getId(), inicioDia, finDia);
 
-            LocalDateTime inicioBloque = fecha.atTime(configuracion.getHoraInicioJornada());
-            LocalDateTime finJornada = fecha.atTime(configuracion.getHoraFinJornada());
-
-            while (!inicioBloque.plusMinutes(configuracion.getDuracionBloqueMinutos()).isAfter(finJornada)) {
-                LocalDateTime finBloque = inicioBloque.plusMinutes(configuracion.getDuracionBloqueMinutos());
-
-                if (inicioBloque.isAfter(ahora) && estaLibre(inicioBloque, finBloque, citasDelDia, bloquesDelDia)) {
-                    FranjaDisponible candidata = new FranjaDisponible(tecnico.getId(), inicioBloque, finBloque, distanciaKm,
-                            tecnico.getUsuario().getNombre(), tecnico.getUsuario().getApellido());
-                    FranjaDisponible actual = mejorFranjaPorHorario.get(inicioBloque);
-                    if (actual == null || candidata.getDistanciaKm() < actual.getDistanciaKm()) {
-                        mejorFranjaPorHorario.put(inicioBloque, candidata);
+            for (FranjaTrabajo franja : entrada.getValue()) {
+                for (FranjaTrabajo.Bloque bloque : franja.bloques(duracionMinutos)) {
+                    if (bloque.inicio().isAfter(ahora) && estaLibre(bloque.inicio(), bloque.fin(), citasDelDia, bloquesDelDia)) {
+                        FranjaDisponible candidata = new FranjaDisponible(tecnico.getId(), bloque.inicio(), bloque.fin(), distanciaKm,
+                                tecnico.getUsuario().getNombre(), tecnico.getUsuario().getApellido());
+                        FranjaDisponible actual = mejorFranjaPorHorario.get(bloque.inicio());
+                        if (actual == null || candidata.getDistanciaKm() < actual.getDistanciaKm()) {
+                            mejorFranjaPorHorario.put(bloque.inicio(), candidata);
+                        }
                     }
                 }
-                inicioBloque = finBloque;
             }
-        }
-
-        if (!algunoDentroDeCobertura) {
-            return fueraDeCobertura(configuracion);
         }
 
         List<FranjaDisponible> resultado = new ArrayList<>(mejorFranjaPorHorario.values());

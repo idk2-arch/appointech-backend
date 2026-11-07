@@ -28,7 +28,8 @@ final class CitaDetalleMapper {
                 base.tecnicoTelefono(), base.especialidadNombre(), base.descripcionProblema(), base.direccionServicio(),
                 base.fechaHoraInicio(), base.fechaHoraFin(), base.diagnostico(), base.historial(), base.tecnicoFotoUrl(),
                 base.fotosElectrodomestico(), base.asignadaManualmente(), base.asignacionManual(),
-                CalificacionMapper.aRespuestaAdmin(completo.calificacion()));
+                CalificacionMapper.aRespuestaAdmin(completo.calificacion()),
+                completo.detalle().cita().getFechaDeseada());
     }
 
     private static CitaDetalleResponse construir(DetalleCitaCompleto completo, AsignacionManualResponse asignacion) {

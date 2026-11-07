@@ -6,6 +6,7 @@ import com.appointech.appointech_backend.domain.models.Coordenadas;
 import com.appointech.appointech_backend.domain.models.Distancia;
 import com.appointech.appointech_backend.domain.models.MotivoSinFranjas;
 import com.appointech.appointech_backend.domain.models.ResultadoFranjas;
+import com.appointech.appointech_backend.domain.models.FranjaDisponible;
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.in.FiltrarTecnicosPorEspecialidadUseCase;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -42,6 +44,7 @@ class CoberturaYMotivosUseCasesTest {
     private CitaRepositoryPort citas;
     private BloqueIndisponibilidadRepositoryPort bloques;
     private ConfiguracionFranjasRepositoryPort configuracionPort;
+    private final FranjasEnMemoria franjas = new FranjasEnMemoria();
     private CalcularFranjasDisponiblesUseCaseImpl calcular;
 
     @BeforeEach
@@ -52,7 +55,8 @@ class CoberturaYMotivosUseCasesTest {
         bloques = mock(BloqueIndisponibilidadRepositoryPort.class);
         configuracionPort = mock(ConfiguracionFranjasRepositoryPort.class);
         when(configuracionPort.obtenerActual()).thenReturn(Optional.of(configuracion(15)));
-        calcular = new CalcularFranjasDisponiblesUseCaseImpl(filtrar, citas, bloques, configuracionPort, distancia);
+        calcular = new CalcularFranjasDisponiblesUseCaseImpl(filtrar, citas, bloques, configuracionPort, franjas, distancia);
+        franjas.abrir(1L, MANANA, 8, 18);
     }
 
     // ---------- motivos ----------
@@ -70,7 +74,7 @@ class CoberturaYMotivosUseCasesTest {
 
     @Test
     void tecnicosQueNoLleganDentroDelLimiteDanFueraDeCobertura() {
-        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 100)));
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 30)));
         when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(40.0, 60.0)));
 
         ResultadoFranjas r = calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638);
@@ -118,25 +122,134 @@ class CoberturaYMotivosUseCasesTest {
         assertNull(r.motivo());
     }
 
-    // ---------- límite único ----------
+    // ---------- radio por técnico (el global ya no interviene) ----------
 
     @Test
-    void elRadioDelTecnicoYaNoSeUsaSoloElMaximoDelSistema() {
-        // Radio propio de 2 km, pero está a 10 km y el máximo del sistema es 15: se ofrece.
+    void elRadioPropioDelTecnicoDecideLaCoberturaAunqueElGlobalSeaMayor() {
+        // Radio propio de 2 km y está a 10 km: aunque el global sea 15 km, no cubre.
         when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 2)));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(10.0, 15.0)));
+
+        assertEquals(MotivoSinFranjas.FUERA_DE_COBERTURA,
+                calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638).motivo());
+    }
+
+    @Test
+    void unTecnicoConRadioPropioMayorQueElGlobalSiCubre() {
+        when(configuracionPort.obtenerActual()).thenReturn(Optional.of(configuracion(8)));
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 40)));
         when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(10.0, 15.0)));
 
         assertFalse(calcular.calcular(5L, MANANA, 4.3365, -74.3638).isEmpty());
     }
 
     @Test
-    void unTecnicoConRadioPropioMayorNoSuperaElMaximoDelSistema() {
-        when(configuracionPort.obtenerActual()).thenReturn(Optional.of(configuracion(8)));
-        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 100)));
-        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(10.0, 15.0)));
+    void cadaTecnicoSeEvaluaConSuRadioYSoloOfreceElQueCubre() {
+        franjas.abrir(2L, MANANA, 8, 18);
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 5), tecnico(2L, 20)));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(10.0, 15.0), new Distancia(12.0, 15.0)));
+
+        List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+
+        assertFalse(ofrecidas.isEmpty());
+        assertTrue(ofrecidas.stream().allMatch(f -> f.getTecnicoId().equals(2L)));
+    }
+
+    @Test
+    void sinRadioPropioElTecnicoNoCubreNada() {
+        Tecnico sinRadio = tecnico(1L, 10);
+        sinRadio.setRadioCoberturaKm(null);
+        when(filtrar.filtrar(5L)).thenReturn(List.of(sinRadio));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(1.0, 5.0)));
 
         assertEquals(MotivoSinFranjas.FUERA_DE_COBERTURA,
                 calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638).motivo());
+    }
+
+    // ---------- franjas de trabajo ----------
+
+    @Test
+    void unaVentanaDe08a12conCitasDe120MinutosOfreceDosBloques() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA, 8, 12);
+        coberturaDeUnTecnico();
+
+        List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+
+        assertEquals(List.of(MANANA.atTime(8, 0), MANANA.atTime(10, 0)),
+                ofrecidas.stream().map(FranjaDisponible::getInicio).toList());
+    }
+
+    @Test
+    void variasVentanasDelMismoDiaOfreceLosBloquesDeCadaUna() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA, 8, 10);
+        franjas.abrir(1L, MANANA, 14, 18);
+        coberturaDeUnTecnico();
+
+        List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+
+        assertEquals(List.of(MANANA.atTime(8, 0), MANANA.atTime(14, 0), MANANA.atTime(16, 0)),
+                ofrecidas.stream().map(FranjaDisponible::getInicio).toList());
+    }
+
+    @Test
+    void elTiempoSobranteMenorQueUnaCitaSeDescarta() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA, 8, 11);
+        coberturaDeUnTecnico();
+
+        List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+
+        assertEquals(List.of(MANANA.atTime(8, 0)), ofrecidas.stream().map(FranjaDisponible::getInicio).toList());
+    }
+
+    @Test
+    void unTecnicoSinFranjasEseDiaNoOfreceNadaAunqueCubra() {
+        franjas.franjas.clear();
+        coberturaDeUnTecnico();
+
+        ResultadoFranjas r = calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638);
+
+        assertEquals(List.of(), r.franjas());
+        assertEquals(MotivoSinFranjas.SIN_HORARIOS, r.motivo());
+    }
+
+    @Test
+    void lasFranjasDeOtroDiaNoCuentan() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA.plusDays(1), 8, 18);
+        coberturaDeUnTecnico();
+
+        assertEquals(MotivoSinFranjas.SIN_HORARIOS, calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638).motivo());
+        assertFalse(calcular.calcular(5L, MANANA.plusDays(1), 4.3365, -74.3638).isEmpty());
+    }
+
+    @Test
+    void unBloqueDeNoDisponibilidadDescartaSoloLasCitasQueChocan() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA, 8, 12);
+        coberturaDeUnTecnico();
+        var bloque = new com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad(
+                1L, 1L, MANANA.atTime(9, 0), MANANA.atTime(9, 30), "x");
+        when(bloques.buscarDelTecnicoEntre(anyLong(), any(), any())).thenReturn(List.of(bloque));
+
+        List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+
+        assertEquals(List.of(MANANA.atTime(10, 0)), ofrecidas.stream().map(FranjaDisponible::getInicio).toList());
+    }
+
+    @Test
+    void sinTecnicoQueCubraNoSeConsultanLasFranjas() {
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 3)));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(40.0, 60.0)));
+
+        assertEquals(MotivoSinFranjas.FUERA_DE_COBERTURA, calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638).motivo());
+    }
+
+    private void coberturaDeUnTecnico() {
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 10)));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(3.0, 5.0)));
     }
 
     // ---------- configuración del límite ----------

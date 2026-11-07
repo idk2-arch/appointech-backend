@@ -81,6 +81,6 @@ public class ListarSolicitudesManualesUseCaseImpl implements ListarSolicitudesMa
                 telefono, cita.getDireccionServicio(), cita.getDescripcionProblema(),
                 cita.getEspecialidadId(), especialidades.get(cita.getEspecialidadId()),
                 cita.getLatitud(), cita.getLongitud(), cita.getCreadaEn(), cita.getMotivoSolicitudEspecial(),
-                cita.getEstado());
+                cita.getEstado(), cita.getFechaDeseada());
     }
 }

@@ -60,6 +60,7 @@ class ListarSolicitudesManualesUseCaseImplTest {
         c.setAgendamientoManual(true);
         c.setMotivoSolicitudEspecial(motivo);
         c.setTelefonoContacto("3109998877");
+        c.setFechaDeseada(id == 70L ? java.time.LocalDate.of(2030, 5, 9) : null);
         c.setCreadaEn(LocalDateTime.of(2030, 5, 1, 8, 0));
         return c;
     }
@@ -99,6 +100,7 @@ class ListarSolicitudesManualesUseCaseImplTest {
         assertEquals("Plomería", d.especialidadNombre());
         assertEquals(MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, d.motivo());
         assertEquals(EstadoCita.PENDIENTE, d.estado());
+        assertEquals(java.time.LocalDate.of(2030, 5, 9), d.fechaDeseada());
     }
 
     @Test

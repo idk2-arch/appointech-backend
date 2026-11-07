@@ -23,7 +23,7 @@ class ConsultarAlertasAdminUseCaseImplTest {
 
     private static SolicitudManualDetalle solicitud(long id, MotivoSolicitudEspecial motivo) {
         return new SolicitudManualDetalle(id, 2L, "Ana", "Ruiz", "300", "Calle 1", "Fuga", 5L, "Plomería",
-                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE);
+                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE, null);
     }
 
     @Test

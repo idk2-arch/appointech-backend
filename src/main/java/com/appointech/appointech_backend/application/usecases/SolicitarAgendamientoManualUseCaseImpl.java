@@ -2,6 +2,7 @@ package com.appointech.appointech_backend.application.usecases;
 
 import com.appointech.appointech_backend.domain.exception.ClienteNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.EspecialidadNoEncontradaException;
+import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.SolicitudManualNoPermitidaException;
 import com.appointech.appointech_backend.domain.exception.TelefonoContactoRequeridoException;
 import com.appointech.appointech_backend.application.services.AvisosInternos;
@@ -27,6 +28,7 @@ import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +40,8 @@ import java.util.List;
 @Service
 public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendamientoManualUseCase {
 
+    static final int DIAS_MAXIMOS_HACIA_ADELANTE = 90;
+
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final ClienteRepositoryPort clienteRepositoryPort;
     private final EspecialidadRepositoryPort especialidadRepositoryPort;
@@ -46,6 +50,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
     private final RegistroLogPort registroLogPort;
     private final GestorCotizacion gestorCotizacion;
     private final AvisosInternos avisos;
+    private final Clock reloj;
 
     public SolicitarAgendamientoManualUseCaseImpl(UsuarioRepositoryPort usuarioRepositoryPort,
                                                   ClienteRepositoryPort clienteRepositoryPort,
@@ -54,7 +59,7 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
                                                   CalcularFranjasDisponiblesUseCase calcularFranjasDisponiblesUseCase,
                                                   RegistroLogPort registroLogPort,
                                                   GestorCotizacion gestorCotizacion,
-                                                  AvisosInternos avisos) {
+                                                  AvisosInternos avisos, Clock reloj) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.clienteRepositoryPort = clienteRepositoryPort;
         this.especialidadRepositoryPort = especialidadRepositoryPort;
@@ -63,13 +68,16 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         this.registroLogPort = registroLogPort;
         this.gestorCotizacion = gestorCotizacion;
         this.avisos = avisos;
+        this.reloj = reloj;
     }
 
     @Override
     @Transactional
     public Cita solicitar(String correoCliente, Long especialidadId, String descripcionProblema,
-                          String direccionServicio, Double latitud, Double longitud, String telefonoContacto) {
+                          String direccionServicio, Double latitud, Double longitud, String telefonoContacto,
+                          LocalDate fecha) {
         Coordenadas ubicacion = Coordenadas.de(latitud, longitud);
+        LocalDate diaConsultado = diaConsultado(fecha);
 
         Usuario usuario = usuarioRepositoryPort.buscarPorCorreo(correoCliente)
                 .orElseThrow(() -> new ClienteNoEncontradoException(correoCliente));
@@ -83,12 +91,13 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         String telefono = elegirTelefono(telefonoContacto, usuario.getTelefono());
 
         ResultadoFranjas resultado = calcularFranjasDisponiblesUseCase.calcularConMotivo(
-                especialidadId, LocalDate.now(), ubicacion.latitud(), ubicacion.longitud());
-        if (resultado.motivo() != MotivoSinFranjas.FUERA_DE_COBERTURA) {
+                especialidadId, diaConsultado, ubicacion.latitud(), ubicacion.longitud());
+        MotivoSolicitudEspecial motivoEspecial = motivoEspecialDe(resultado.motivo());
+        if (motivoEspecial == null) {
             throw new SolicitudManualNoPermitidaException(mensajeNoPermitida(resultado.motivo()));
         }
 
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = LocalDateTime.now(reloj);
         Cita solicitud = new Cita();
         solicitud.setClienteId(cliente.getId());
         solicitud.setEspecialidadId(especialidadId);
@@ -98,7 +107,8 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         solicitud.setLongitud(ubicacion.longitud());
         solicitud.setEstado(EstadoCita.PENDIENTE);
         solicitud.setAgendamientoManual(true);
-        solicitud.setMotivoSolicitudEspecial(MotivoSolicitudEspecial.FUERA_DE_COBERTURA);
+        solicitud.setFechaDeseada(fecha);
+        solicitud.setMotivoSolicitudEspecial(motivoEspecial);
         solicitud.setTelefonoContacto(telefono);
         solicitud.setCreadaEn(ahora);
         solicitud.setActualizadaEn(ahora);
@@ -122,12 +132,35 @@ public class SolicitarAgendamientoManualUseCaseImpl implements SolicitarAgendami
         throw new TelefonoContactoRequeridoException();
     }
 
+    /** El día cuya disponibilidad se revisa: el que el cliente consultaba (hoy si no lo indica); no puede ser pasado ni superar 90 días. */
+    private LocalDate diaConsultado(LocalDate fecha) {
+        LocalDate hoy = LocalDate.now(reloj);
+        if (fecha == null) {
+            return hoy;
+        }
+        if (fecha.isBefore(hoy)) {
+            throw new FranjaInvalidaException("La fecha no puede ser anterior a hoy");
+        }
+        if (fecha.isAfter(hoy.plusDays(DIAS_MAXIMOS_HACIA_ADELANTE))) {
+            throw new FranjaInvalidaException("La fecha no puede superar " + DIAS_MAXIMOS_HACIA_ADELANTE + " días desde hoy");
+        }
+        return fecha;
+    }
+
+    /** Fuera de cobertura y sin horarios habilitan la solicitud manual; sin técnicos o con franjas libres, no (null). */
+    private static MotivoSolicitudEspecial motivoEspecialDe(MotivoSinFranjas motivo) {
+        if (motivo == MotivoSinFranjas.FUERA_DE_COBERTURA) {
+            return MotivoSolicitudEspecial.FUERA_DE_COBERTURA;
+        }
+        return motivo == MotivoSinFranjas.SIN_HORARIOS ? MotivoSolicitudEspecial.SIN_HORARIOS : null;
+    }
+
     private String mensajeNoPermitida(MotivoSinFranjas motivo) {
         if (motivo == MotivoSinFranjas.SIN_TECNICOS_ESPECIALIDAD) {
             return "No hay técnicos disponibles para esta especialidad; el agendamiento manual solo aplica "
                     + "cuando la dirección está fuera de cobertura";
         }
         return "La dirección está dentro de la cobertura; elige una de las franjas disponibles. "
-                + "El agendamiento manual solo aplica cuando la dirección está fuera de cobertura";
+                + "El agendamiento manual solo aplica cuando la dirección está fuera de cobertura o no hay horarios disponibles";
     }
 }

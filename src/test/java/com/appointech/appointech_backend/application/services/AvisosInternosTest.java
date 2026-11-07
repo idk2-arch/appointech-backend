@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -128,6 +129,31 @@ class AvisosInternosTest {
         Notificacion admin = publicadas(2).get(1);
         assertEquals(TipoNotificacion.SOLICITUD_SIN_TECNICOS, admin.tipo());
         assertEquals("Solicitud sin técnicos", admin.titulo());
+    }
+
+    @Test
+    void solicitudSinHorariosAvisaALosAdministradoresConSuPropioTipoYTexto() {
+        when(admins.idsAdministradoresActivos()).thenReturn(List.of(1L));
+
+        avisos.solicitudRecibida(cita(null, MotivoSolicitudEspecial.SIN_HORARIOS));
+
+        Notificacion admin = publicadas(2).get(1);
+        assertEquals(TipoNotificacion.SOLICITUD_SIN_HORARIOS, admin.tipo());
+        assertEquals("Solicitud sin horarios disponibles", admin.titulo());
+        assertTrue(admin.mensaje().contains("#55") && admin.mensaje().contains("horarios disponibles"));
+    }
+
+    @Test
+    void siElClienteIndicoUnaFechaElAvisoAlAdminLaIncluyeSinDatosPersonales() {
+        when(admins.idsAdministradoresActivos()).thenReturn(List.of(1L));
+        Cita solicitud = cita(null, MotivoSolicitudEspecial.SIN_HORARIOS);
+        solicitud.setFechaDeseada(LocalDate.of(2030, 5, 9));
+
+        avisos.solicitudRecibida(solicitud);
+
+        List<Notificacion> enviadas = publicadas(2);
+        assertTrue(enviadas.get(1).mensaje().endsWith("El cliente quiere la cita para el 09/05/2030."));
+        assertFalse(enviadas.get(0).mensaje().contains("09/05/2030"), "al cliente no se le repite su propia fecha");
     }
 
     @Test

@@ -181,11 +181,11 @@ class CoberturaYSolicitudesManualesControllersTest {
     @WithMockUser(roles = "CLIENTE")
     void clienteCreaSolicitudManualCon201() {
         Cita solicitud = pendienteManual();
-        when(solicitarManual.solicitar(any(), any(), any(), any(), any(), any(), any())).thenReturn(solicitud);
+        when(solicitarManual.solicitar(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(solicitud);
         when(obtenerDetalle.detallar(solicitud)).thenReturn(new DetalleCita(solicitud, null, null, null, "Plomería"));
 
         ResponseEntity<CitaResponse> r = citaController.solicitudManual(
-                new SolicitudManualRequest(5L, "Fuga", "Vereda", 4.5, -74.1, "3109998877"), auth());
+                new SolicitudManualRequest(5L, "Fuga", "Vereda", 4.5, -74.1, "3109998877", null), auth());
 
         assertEquals(HttpStatus.CREATED, r.getStatusCode());
         assertEquals("PENDIENTE", r.getBody().estado());
@@ -197,12 +197,34 @@ class CoberturaYSolicitudesManualesControllersTest {
 
     @Test
     @WithMockUser(roles = "CLIENTE")
+    void laFechaConsultadaLlegaComoFechaAlCasoDeUso() {
+        Cita solicitud = pendienteManual();
+        when(solicitarManual.solicitar(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(solicitud);
+        when(obtenerDetalle.detallar(solicitud)).thenReturn(new DetalleCita(solicitud, null, null, null, "Plomería"));
+
+        citaController.solicitudManual(new SolicitudManualRequest(5L, "Fuga", "Vereda", 4.5, -74.1, null, " 2030-05-09 "), auth());
+
+        verify(solicitarManual).solicitar(any(), eq(5L), any(), any(), any(), any(), any(), eq(LocalDate.of(2030, 5, 9)));
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENTE")
+    void unaFechaMalEscritaEs400SinLlegarAlCasoDeUso() {
+        FiltroCitasInvalidoException ex = assertThrows(FiltroCitasInvalidoException.class, () -> citaController.solicitudManual(
+                new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null, "09/05/2030"), auth()));
+
+        assertEquals("fecha debe tener el formato yyyy-MM-dd", ex.getMessage());
+        verifyNoInteractions(solicitarManual);
+    }
+
+    @Test
+    @WithMockUser(roles = "CLIENTE")
     void solicitudManualDentroDeCoberturaSeTraduceA409() {
-        when(solicitarManual.solicitar(any(), any(), any(), any(), any(), any(), any()))
+        when(solicitarManual.solicitar(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new SolicitudManualNoPermitidaException("La dirección está dentro de la cobertura"));
 
         SolicitudManualNoPermitidaException ex = assertThrows(SolicitudManualNoPermitidaException.class,
-                () -> citaController.solicitudManual(new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null), auth()));
+                () -> citaController.solicitudManual(new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null, null), auth()));
 
         assertEquals(409, global.manejarSolicitudManualNoPermitida(ex, peticion("/api/citas/solicitud-manual")).getStatus());
     }
@@ -211,7 +233,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @WithMockUser(roles = "TECNICO")
     void soloElClientePuedeCrearSolicitudManual403() {
         assertThrows(AccessDeniedException.class, () -> citaController.solicitudManual(
-                new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null), auth()));
+                new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null, null), auth()));
         verifyNoInteractions(solicitarManual);
     }
 
@@ -219,7 +241,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     @WithMockUser(roles = "ADMINISTRADOR")
     void elAdminNoCreaSolicitudesManualesPorElEndpointDelCliente403() {
         assertThrows(AccessDeniedException.class, () -> citaController.solicitudManual(
-                new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null), auth()));
+                new SolicitudManualRequest(5L, "Fuga", "Calle", 4.5, -74.1, null, null), auth()));
     }
 
     // ---------- admin: listar y asignar ----------
@@ -229,7 +251,7 @@ class CoberturaYSolicitudesManualesControllersTest {
     void adminListaLasSolicitudesManualesCon200YElTotalEnElEncabezado() {
         when(listarSolicitudes.listar(any())).thenReturn(new ListadoConTotal<>(List.of(new SolicitudManualDetalle(
                 70L, 2L, "Ana", "Ruiz", "3109998877", "Vereda", "Fuga", 5L, "Plomería", 4.5, -74.1, INICIO,
-                MotivoSolicitudEspecial.FUERA_DE_COBERTURA, EstadoCita.PENDIENTE)), 41));
+                MotivoSolicitudEspecial.FUERA_DE_COBERTURA, EstadoCita.PENDIENTE, null)), 41));
 
         ResponseEntity<List<SolicitudManualAdminResponse>> r = solicitudesAdmin.listar(null, null, null, null, null);
 

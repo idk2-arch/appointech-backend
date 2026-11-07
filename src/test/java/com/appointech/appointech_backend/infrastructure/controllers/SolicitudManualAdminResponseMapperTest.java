@@ -17,7 +17,7 @@ class SolicitudManualAdminResponseMapperTest {
 
     private static SolicitudManualDetalle detalle(MotivoSolicitudEspecial motivo) {
         return new SolicitudManualDetalle(70L, 2L, "Ana", "Ruiz", "300", "Calle 1", "Fuga", 5L, "Plomería",
-                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE);
+                4.5, -74.1, FECHA, motivo, EstadoCita.PENDIENTE, java.time.LocalDate.of(2030, 5, 9));
     }
 
     @Test
@@ -30,6 +30,7 @@ class SolicitudManualAdminResponseMapperTest {
         assertEquals(FECHA, r.creadaEn());
         assertEquals("SIN_TECNICOS_ESPECIALIDAD", r.motivo());
         assertEquals("PENDIENTE", r.estado());
+        assertEquals(java.time.LocalDate.of(2030, 5, 9), r.fechaDeseada());
     }
 
     @Test

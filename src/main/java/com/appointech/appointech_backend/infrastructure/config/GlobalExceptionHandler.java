@@ -8,6 +8,9 @@ import com.appointech.appointech_backend.domain.exception.ComprobanteNoDisponibl
 import com.appointech.appointech_backend.domain.exception.DatosPagoInvalidosException;
 import com.appointech.appointech_backend.domain.exception.PagoInvalidoException;
 import com.appointech.appointech_backend.domain.exception.NotificacionNoEncontradaException;
+import com.appointech.appointech_backend.domain.exception.FranjaTrabajoConflictoException;
+import com.appointech.appointech_backend.domain.exception.FranjaTrabajoInvalidaException;
+import com.appointech.appointech_backend.domain.exception.FranjaTrabajoNoEncontradaException;
 import com.appointech.appointech_backend.domain.exception.PagoNoEncontradoException;
 import com.appointech.appointech_backend.domain.exception.PasarelaNoDisponibleException;
 import com.appointech.appointech_backend.domain.exception.TransaccionNoCoincideException;
@@ -60,7 +63,7 @@ public class GlobalExceptionHandler {
         return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({RadioCoberturaInvalidoException.class, ReglasFranjasInvalidasException.class,
+    @ExceptionHandler({RadioCoberturaInvalidoException.class, ReglasFranjasInvalidasException.class, FranjaTrabajoInvalidaException.class,
             TelefonoContactoRequeridoException.class,
             TelefonoWhatsappInvalidoException.class, FiltroCitasInvalidoException.class,
             PreDiagnosticoInvalidoException.class, DatosPagoInvalidosException.class,
@@ -125,12 +128,12 @@ public class GlobalExceptionHandler {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({PagoNoEncontradoException.class, NotificacionNoEncontradaException.class})
+    @ExceptionHandler({PagoNoEncontradoException.class, NotificacionNoEncontradaException.class, FranjaTrabajoNoEncontradaException.class})
     public ProblemDetail manejarPagoNoEncontrado(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
-    @ExceptionHandler({PagoInvalidoException.class, ComprobanteNoDisponibleException.class})
+    @ExceptionHandler({PagoInvalidoException.class, ComprobanteNoDisponibleException.class, FranjaTrabajoConflictoException.class})
     public ProblemDetail manejarPagoNoValidoParaElEstado(RuntimeException ex, HttpServletRequest request) {
         return construirProblemDetail(HttpStatus.CONFLICT, ex.getMessage(), request);
     }

@@ -6,6 +6,12 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Objects;
 
+/**
+ * Configuración global de franjas. EN DESUSO para calcular disponibilidad: la jornada (horaInicioJornada, horaFinJornada) y el
+ * radio máximo global ya no se leen; cada técnico tiene sus franjas de trabajo por fecha y su propio radio de atención.
+ * Solo sigue vigente la duración del bloque (duración de cada cita). Los campos en desuso se conservan para no romper
+ * los endpoints de reglas y de cobertura del frontend actual.
+ */
 public class ConfiguracionFranjas {
 
     public static final int DURACION_MINIMA_PERMITIDA_MINUTOS = 15;

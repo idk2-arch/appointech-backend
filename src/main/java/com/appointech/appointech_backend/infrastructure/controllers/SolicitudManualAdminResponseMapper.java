@@ -12,6 +12,7 @@ final class SolicitudManualAdminResponseMapper {
         return new SolicitudManualAdminResponse(
                 d.id(), d.clienteId(), d.clienteNombre(), d.clienteApellido(), d.telefonoContacto(),
                 d.direccionServicio(), d.descripcionProblema(), d.especialidadId(), d.especialidadNombre(),
-                d.latitud(), d.longitud(), d.creadaEn(), d.motivo() == null ? null : d.motivo().name(), d.estado().name());
+                d.latitud(), d.longitud(), d.creadaEn(), d.motivo() == null ? null : d.motivo().name(), d.estado().name(),
+                d.fechaDeseada());
     }
 }

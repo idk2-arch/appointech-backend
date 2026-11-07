@@ -5,5 +5,7 @@ public enum MotivoSolicitudEspecial {
     /** No hay ningún técnico activo con la especialidad pedida (RF28). */
     SIN_TECNICOS_ESPECIALIDAD,
     /** Hay técnicos con la especialidad, pero ninguno cubre la dirección. */
-    FUERA_DE_COBERTURA
+    FUERA_DE_COBERTURA,
+    /** Hay técnicos que cubren la dirección, pero ninguno tiene bloques libres (aún no abrieron franjas o están llenas). */
+    SIN_HORARIOS
 }

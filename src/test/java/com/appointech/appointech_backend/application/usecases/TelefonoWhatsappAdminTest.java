@@ -120,6 +120,12 @@ class TelefonoWhatsappAdminTest {
 
     // ---------- en la respuesta de franjas ----------
 
+    private static FranjasEnMemoria franjasDeManana() {
+        FranjasEnMemoria franjas = new FranjasEnMemoria();
+        franjas.abrir(1L, MANANA, 8, 18);
+        return franjas;
+    }
+
     private CalcularFranjasDisponiblesUseCaseImpl calcular(ContactoAdminConfig contacto, boolean fuera) {
         FiltrarTecnicosPorEspecialidadUseCase filtrar = mock(FiltrarTecnicosPorEspecialidadUseCase.class);
         Usuario u = new Usuario();
@@ -131,11 +137,12 @@ class TelefonoWhatsappAdminTest {
         t.setUsuario(u);
         t.setLatitudBase(4.40);
         t.setLongitudBase(-74.30);
+        t.setRadioCoberturaKm(15);
         when(filtrar.filtrar(5L)).thenReturn(List.of(t));
         CalculadoraDistanciaPort distancia = mock(CalculadoraDistanciaPort.class);
         when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(fuera ? 90.0 : 3.0, 60.0)));
         return new CalcularFranjasDisponiblesUseCaseImpl(filtrar, mock(CitaRepositoryPort.class),
-                mock(BloqueIndisponibilidadRepositoryPort.class), configuracionPort, distancia, contacto);
+                mock(BloqueIndisponibilidadRepositoryPort.class), configuracionPort, franjasDeManana(), distancia, contacto);
     }
 
     @Test

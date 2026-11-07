@@ -61,6 +61,7 @@ class AgendamientoUseCasesTest {
     private String nivelConsultado;
     private int limiteConsultado;
     private final LocalDate fechaPrueba = LocalDate.now().plusDays(3);
+    private final FranjasEnMemoria franjasRepositoryPort = new FranjasEnMemoria();
 
     private Usuario usuarioCliente;
     private Cliente cliente;
@@ -256,15 +257,16 @@ class AgendamientoUseCasesTest {
 
         tecnicosDisponibles.clear();
         tecnicosDisponibles.add(crearTecnico(1L, LATITUD_CLIENTE, LONGITUD_CLIENTE, 10));
+        franjasRepositoryPort.abrir(1L, fechaPrueba, 8, 18);
 
         calcularFranjas = new CalcularFranjasDisponiblesUseCaseImpl(
                 new FiltrarTecnicosPorEspecialidadUseCaseImpl(tecnicoRepositoryPort),
-                citaRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort,
+                citaRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort, franjasRepositoryPort,
                 new HaversineDistanciaAdapter());
 
         confirmarCita = new ConfirmarCitaUseCaseImpl(
                 usuarioRepositoryPort, clienteRepositoryPort, citaRepositoryPort,
-                tecnicoRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort,
+                tecnicoRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort, franjasRepositoryPort,
                 registroLogPort, notificadorCitaPort, avisos, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
     }
 
@@ -342,6 +344,34 @@ class AgendamientoUseCasesTest {
     }
 
     @Test
+    void rechazaUnHorarioQueNoEsUnBloqueDeLaFranjaDeTrabajoDelTecnico() {
+        // La ventana 08:00-18:00 se divide desde las 08:00: 09:00-11:00 tiene la duración correcta pero no es un bloque.
+        assertThrows(FranjaInvalidaException.class, () ->
+                confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
+                        fechaPrueba.atTime(9, 0), fechaPrueba.atTime(11, 0)));
+    }
+
+    @Test
+    void rechazaUnDiaEnElQueElTecnicoNoTieneFranjas() {
+        assertThrows(FranjaInvalidaException.class, () ->
+                confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
+                        fechaPrueba.plusDays(1).atTime(8, 0), fechaPrueba.plusDays(1).atTime(10, 0)));
+    }
+
+    @Test
+    void soloAceptaLosBloquesDeLaVentanaYNoLosDeFueraDeElla() {
+        franjasRepositoryPort.franjas.clear();
+        franjasRepositoryPort.abrir(1L, fechaPrueba, 8, 12);
+
+        assertThrows(FranjaInvalidaException.class, () ->
+                confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
+                        fechaPrueba.atTime(14, 0), fechaPrueba.atTime(16, 0)));
+        Cita cita = confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
+                fechaPrueba.atTime(10, 0), fechaPrueba.atTime(12, 0));
+        assertEquals(EstadoCita.CONFIRMADA, cita.getEstado());
+    }
+
+    @Test
     void rechazaUnaFranjaMasLargaQueElBloqueConfigurado() {
         assertThrows(FranjaInvalidaException.class, () ->
                 confirmarCita.confirmar("cliente@correo.com", solicitudPendiente.getId(), 1L,
@@ -366,7 +396,9 @@ class AgendamientoUseCasesTest {
         // Ambos técnicos están en el mismo punto (Haversine daría 0 km); manda la distancia por carretera.
         tecnicosDisponibles.clear();
         tecnicosDisponibles.add(crearTecnico(1L, LATITUD_CLIENTE, LONGITUD_CLIENTE, 10));
+        franjasRepositoryPort.abrir(1L, fechaPrueba, 8, 18);
         tecnicosDisponibles.add(crearTecnico(2L, LATITUD_CLIENTE, LONGITUD_CLIENTE, 10));
+        franjasRepositoryPort.abrir(2L, fechaPrueba, 8, 18);
         List<List<Coordenadas>> llamadas = new ArrayList<>();
         List<Double> kmPorCarretera = List.of(25.0, 4.0);
         int[] indice = {0};
@@ -396,7 +428,7 @@ class AgendamientoUseCasesTest {
         };
         return new CalcularFranjasDisponiblesUseCaseImpl(
                 new FiltrarTecnicosPorEspecialidadUseCaseImpl(tecnicoRepositoryPort),
-                citaRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort, puertoSimulado);
+                citaRepositoryPort, bloquesRepositoryPort, configuracionRepositoryPort, franjasRepositoryPort, puertoSimulado);
     }
 
     private Tecnico crearTecnicoSinCoordenadas(Long id) {

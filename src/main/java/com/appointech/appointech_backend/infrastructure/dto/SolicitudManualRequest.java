@@ -20,6 +20,9 @@ public record SolicitudManualRequest(
         Double longitud,
 
         /** Obligatorio solo si la cuenta del cliente no tiene teléfono registrado. */
-        String telefonoContacto
+        String telefonoContacto,
+
+        /** Opcional (yyyy-MM-dd): el día que el cliente estaba consultando; sin él se evalúa hoy. Hasta 90 días hacia adelante. */
+        String fecha
 ) {
 }

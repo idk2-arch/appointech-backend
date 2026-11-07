@@ -93,7 +93,7 @@ class AdminSolicitudManualListadoHttpTest {
     private ListadoConTotal<SolicitudManualDetalle> unaSolicitud(long total) {
         return new ListadoConTotal<>(List.of(new SolicitudManualDetalle(15L, 2L, "Ana", "Ruiz", "3001112233",
                 "Calle 1", "No enfría", 9L, "Aires acondicionados", 4.6, -74.0, CREADA,
-                MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, EstadoCita.PENDIENTE)), total);
+                MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, EstadoCita.PENDIENTE, java.time.LocalDate.of(2030, 5, 9))), total);
     }
 
     @Test
@@ -109,7 +109,8 @@ class AdminSolicitudManualListadoHttpTest {
                 .andExpect(jsonPath("$[0].telefono").value("3001112233"))
                 .andExpect(jsonPath("$[0].especialidadNombre").value("Aires acondicionados"))
                 .andExpect(jsonPath("$[0].motivo").value("SIN_TECNICOS_ESPECIALIDAD"))
-                .andExpect(jsonPath("$[0].estado").value("PENDIENTE"));
+                .andExpect(jsonPath("$[0].estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$[0].fechaDeseada").value("2030-05-09"));
 
         ArgumentCaptor<FiltroSolicitudesManuales> captor = ArgumentCaptor.forClass(FiltroSolicitudesManuales.class);
         verify(listar).listar(captor.capture());

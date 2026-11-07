@@ -86,6 +86,7 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         entity.setAgendamientoManual(cita.isAgendamientoManual());
         entity.setTelefonoContacto(cita.getTelefonoContacto());
         entity.setMotivoSolicitudEspecial(cita.getMotivoSolicitudEspecial() == null ? null : cita.getMotivoSolicitudEspecial().name());
+        entity.setFechaDeseada(cita.getFechaDeseada());
         entity.setRecomendaciones(cita.getRecomendaciones());
         entity.setFechaDiagnostico(cita.getFechaDiagnostico());
         entity.setAsignacionManual(cita.isAsignacionManual());
@@ -112,6 +113,7 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         cita.setActualizadaEn(entity.getActualizadaEn());
         cita.setAgendamientoManual(entity.isAgendamientoManual());
         cita.setTelefonoContacto(entity.getTelefonoContacto());
+        cita.setFechaDeseada(entity.getFechaDeseada());
         cita.setMotivoSolicitudEspecial(entity.getMotivoSolicitudEspecial() == null ? null
                 : MotivoSolicitudEspecial.valueOf(entity.getMotivoSolicitudEspecial()));
         cita.setRecomendaciones(entity.getRecomendaciones());

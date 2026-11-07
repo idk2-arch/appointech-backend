@@ -79,7 +79,7 @@ class MetricasMapperTest {
         assertEquals(0L, r.citas().porEstado().get("EN_CAMINO"));
         assertEquals(8, r.citas().total());
         assertEquals(25.0, r.citas().tasaCancelacion());
-        assertEquals(List.of("SIN_TECNICOS_ESPECIALIDAD", "FUERA_DE_COBERTURA"),
+        assertEquals(List.of("SIN_TECNICOS_ESPECIALIDAD", "FUERA_DE_COBERTURA", "SIN_HORARIOS"),
                 List.copyOf(r.solicitudesEspeciales().porMotivo().keySet()));
         assertEquals(3, r.solicitudesEspeciales().total());
         assertEquals(List.of("CLIENTE", "TECNICO", "ADMINISTRADOR"), List.copyOf(r.usuariosActivos().porRol().keySet()));

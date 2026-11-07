@@ -3,6 +3,7 @@ package com.appointech.appointech_backend.domain.models;
 import com.appointech.appointech_backend.domain.exception.DatosCitaInvalidosException;
 import com.appointech.appointech_backend.domain.exception.EstadoCitaInvalidoException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Cita {
@@ -24,6 +25,7 @@ public class Cita {
     private boolean agendamientoManual;
     private String telefonoContacto;
     private MotivoSolicitudEspecial motivoSolicitudEspecial;
+    private LocalDate fechaDeseada;
     private String recomendaciones;
     private LocalDateTime fechaDiagnostico;
     private boolean asignacionManual;
@@ -246,6 +248,15 @@ public class Cita {
 
     public void setMotivoSolicitudEspecial(MotivoSolicitudEspecial motivoSolicitudEspecial) {
         this.motivoSolicitudEspecial = motivoSolicitudEspecial;
+    }
+
+    /** Día que el cliente consultaba al pedir la solicitud manual; null si no lo indicó. */
+    public LocalDate getFechaDeseada() {
+        return fechaDeseada;
+    }
+
+    public void setFechaDeseada(LocalDate fechaDeseada) {
+        this.fechaDeseada = fechaDeseada;
     }
 
     public String getTelefonoContacto() {

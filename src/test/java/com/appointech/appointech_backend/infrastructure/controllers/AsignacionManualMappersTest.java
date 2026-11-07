@@ -106,6 +106,17 @@ class AsignacionManualMappersTest {
     }
 
     @Test
+    void elDetalleDelAdminTraeLaFechaDeseadaAlFinalYNuloSiNoLaHay() {
+        com.appointech.appointech_backend.domain.models.Cita conFecha = cita();
+        conFecha.setFechaDeseada(java.time.LocalDate.of(2030, 5, 9));
+
+        assertEquals(java.time.LocalDate.of(2030, 5, 9), CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
+                new DetalleCita(conFecha, "Ana", "Ruiz", "311", "Aires"), List.of())).fechaDeseada());
+        assertNull(CitaDetalleMapper.aRespuestaAdmin(new DetalleCitaCompleto(
+                new DetalleCita(cita(), "Ana", "Ruiz", "311", "Aires"), List.of())).fechaDeseada());
+    }
+
+    @Test
     void elAdministradorVeUnaCitaNormalSinTrazabilidad() {
         DetalleCita normal = new DetalleCita(cita(), "Ana", "Ruiz", "311", "Aires");
 

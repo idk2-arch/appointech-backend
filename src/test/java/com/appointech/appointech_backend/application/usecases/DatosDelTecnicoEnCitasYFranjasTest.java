@@ -39,6 +39,13 @@ class DatosDelTecnicoEnCitasYFranjasTest {
     private EspecialidadRepositoryPort especialidadRepo;
     private ObtenerDetalleCitaUseCaseImpl detalle;
 
+    private static FranjasEnMemoria franjasDeManana() {
+        FranjasEnMemoria franjas = new FranjasEnMemoria();
+        franjas.abrir(1L, LocalDate.now().plusDays(1), 8, 18);
+        franjas.abrir(2L, LocalDate.now().plusDays(1), 8, 18);
+        return franjas;
+    }
+
     @BeforeEach
     void preparar() {
         tecnicoRepo = mock(TecnicoRepositoryPort.class);
@@ -57,7 +64,7 @@ class DatosDelTecnicoEnCitasYFranjasTest {
                 List.of(new Distancia(3.0, 5.0), new Distancia(8.0, 10.0)));
         CitaRepositoryPort citas = mock(CitaRepositoryPort.class);
         var sut = new CalcularFranjasDisponiblesUseCaseImpl(filtrar, citas,
-                mock(BloqueIndisponibilidadRepositoryPort.class), mock(ConfiguracionFranjasRepositoryPort.class),
+                mock(BloqueIndisponibilidadRepositoryPort.class), mock(ConfiguracionFranjasRepositoryPort.class), franjasDeManana(),
                 distancia);
 
         List<FranjaDisponible> franjas = sut.calcular(5L, LocalDate.now().plusDays(1), 4.3365, -74.3638);

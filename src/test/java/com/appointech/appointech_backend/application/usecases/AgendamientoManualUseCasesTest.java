@@ -116,7 +116,7 @@ class AgendamientoManualUseCasesTest {
 
     private SolicitarAgendamientoManualUseCaseImpl solicitar() {
         return new SolicitarAgendamientoManualUseCaseImpl(usuarioRepo, clienteRepo, especialidadRepo, citaRepo,
-                franjas, log, cotizador, avisos);
+                franjas, log, cotizador, avisos, RELOJ);
     }
 
     private void motivo(MotivoSinFranjas motivo) {
@@ -128,7 +128,7 @@ class AgendamientoManualUseCasesTest {
     void solicitudManualValidaQuedaPendienteSinTecnicoNiHorario() {
         motivo(MotivoSinFranjas.FUERA_DE_COBERTURA);
 
-        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda Lejana", 4.5, -74.1, null);
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda Lejana", 4.5, -74.1, null, null);
 
         assertEquals(EstadoCita.PENDIENTE, c.getEstado());
         assertTrue(c.isAgendamientoManual());
@@ -147,7 +147,7 @@ class AgendamientoManualUseCasesTest {
     void elTelefonoIndicadoTienePrioridadSobreElDeLaCuenta() {
         motivo(MotivoSinFranjas.FUERA_DE_COBERTURA);
 
-        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, " 3109998877 ");
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, " 3109998877 ", null);
 
         assertEquals("3109998877", c.getTelefonoContacto());
     }
@@ -158,7 +158,7 @@ class AgendamientoManualUseCasesTest {
         motivo(MotivoSinFranjas.FUERA_DE_COBERTURA);
 
         assertThrows(TelefonoContactoRequeridoException.class,
-                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, "  "));
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, "  ", null));
         verify(citaRepo, never()).guardar(any());
     }
 
@@ -168,27 +168,34 @@ class AgendamientoManualUseCasesTest {
         motivo(MotivoSinFranjas.FUERA_DE_COBERTURA);
 
         assertEquals("3109998877",
-                solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, "3109998877")
+                solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Vereda", 4.5, -74.1, "3109998877", null)
                         .getTelefonoContacto());
     }
 
     @Test
-    void dentroDeCoberturaNoSePermiteSolicitudManual() {
+    void sinHorariosConTecnicosQueCubrenSiPermiteLaSolicitudManualYGuardaElMotivo() {
         motivo(MotivoSinFranjas.SIN_HORARIOS);
 
-        SolicitudManualNoPermitidaException ex = assertThrows(SolicitudManualNoPermitidaException.class,
-                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null));
-        assertTrue(ex.getMessage().contains("dentro de la cobertura"));
-        verify(citaRepo, never()).guardar(any());
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, null);
+
+        assertEquals(EstadoCita.PENDIENTE, c.getEstado());
+        assertTrue(c.isAgendamientoManual());
+        assertNull(c.getTecnicoId());
+        assertNull(c.getFechaHoraInicio());
+        assertEquals(MotivoSolicitudEspecial.SIN_HORARIOS, c.getMotivoSolicitudEspecial());
+        verify(citaRepo).guardar(c);
+        verify(avisos).solicitudRecibida(c);
     }
 
     @Test
     void conFranjasDisponiblesTampocoSePermite() {
         when(franjas.calcularConMotivo(anyLong(), any(), any(), any()))
                 .thenReturn(new ResultadoFranjas(List.of(), null));
-
-        assertThrows(SolicitudManualNoPermitidaException.class,
-                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null));
+        SolicitudManualNoPermitidaException ex = assertThrows(SolicitudManualNoPermitidaException.class,
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, null));
+        assertTrue(ex.getMessage().contains("dentro de la cobertura"));
+        assertTrue(ex.getMessage().contains("no hay horarios disponibles"));
+        verify(citaRepo, never()).guardar(any());
     }
 
     @Test
@@ -196,14 +203,14 @@ class AgendamientoManualUseCasesTest {
         motivo(MotivoSinFranjas.SIN_TECNICOS_ESPECIALIDAD);
 
         SolicitudManualNoPermitidaException ex = assertThrows(SolicitudManualNoPermitidaException.class,
-                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null));
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, null));
         assertTrue(ex.getMessage().contains("No hay técnicos"));
     }
 
     @Test
     void coordenadasInvalidasSeRechazanAntesDeConsultarCobertura() {
         assertThrows(CoordenadasInvalidasException.class,
-                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, null, null));
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, null, null, null));
         verify(franjas, never()).calcularConMotivo(anyLong(), any(), any(), any());
     }
 
@@ -382,6 +389,81 @@ class AgendamientoManualUseCasesTest {
         verify(franjas, never()).calcularConMotivo(anyLong(), any(), any(), any());
     }
 
+    // ---------- fecha consultada ----------
+
+    private static final java.time.LocalDate HOY = java.time.LocalDate.of(2030, 5, 2);
+
+    @Test
+    void sinFechaSeEvaluaHoyConElRelojInyectado() {
+        motivo(MotivoSinFranjas.SIN_HORARIOS);
+
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, null);
+        verify(franjas).calcularConMotivo(anyLong(), org.mockito.ArgumentMatchers.eq(HOY), any(), any());
+        assertNull(c.getFechaDeseada());
+    }
+
+    @Test
+    void conFechaSeEvaluaLaDisponibilidadDeESaFechaYConSinHorariosSePermite() {
+        motivo(MotivoSinFranjas.SIN_HORARIOS);
+
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(5));
+
+        verify(franjas).calcularConMotivo(anyLong(), org.mockito.ArgumentMatchers.eq(HOY.plusDays(5)), any(), any());
+        assertEquals(MotivoSolicitudEspecial.SIN_HORARIOS, c.getMotivoSolicitudEspecial());
+        assertEquals(HOY.plusDays(5), c.getFechaDeseada());
+    }
+
+    @Test
+    void conFechaYFueraDeCoberturaSePermiteConEseMotivo() {
+        motivo(MotivoSinFranjas.FUERA_DE_COBERTURA);
+
+        Cita c = solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(1));
+
+        assertEquals(MotivoSolicitudEspecial.FUERA_DE_COBERTURA, c.getMotivoSolicitudEspecial());
+        assertEquals(HOY.plusDays(1), c.getFechaDeseada());
+    }
+
+    @Test
+    void siEsaFechaTieneFranjasLibresSeRechazaConElMismoMensaje() {
+        when(franjas.calcularConMotivo(anyLong(), any(), any(), any())).thenReturn(new ResultadoFranjas(List.of(), null));
+
+        SolicitudManualNoPermitidaException ex = assertThrows(SolicitudManualNoPermitidaException.class,
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(3)));
+
+        assertTrue(ex.getMessage().contains("dentro de la cobertura"));
+        verify(citaRepo, never()).guardar(any());
+    }
+
+    @Test
+    void sinTecnicosDeLaEspecialidadSigueRechazandoConFecha() {
+        motivo(MotivoSinFranjas.SIN_TECNICOS_ESPECIALIDAD);
+
+        assertThrows(SolicitudManualNoPermitidaException.class,
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(3)));
+    }
+
+    @Test
+    void unaFechaPasadaEs400SinCalcularNiGuardar() {
+        FranjaInvalidaException ex = assertThrows(FranjaInvalidaException.class,
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.minusDays(1)));
+
+        assertEquals("La fecha no puede ser anterior a hoy", ex.getMessage());
+        verify(franjas, never()).calcularConMotivo(anyLong(), any(), any(), any());
+        verify(citaRepo, never()).guardar(any());
+    }
+
+    @Test
+    void hoyEsValidoYHastaNoventaDiasAdelanteTambienPeroNoElDiaNoventaYUno() {
+        motivo(MotivoSinFranjas.SIN_HORARIOS);
+        solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY);
+        solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(90));
+
+        FranjaInvalidaException ex = assertThrows(FranjaInvalidaException.class,
+                () -> solicitar().solicitar("cliente@x.com", 5L, "Fuga", "Calle 1", 4.5, -74.1, null, HOY.plusDays(91)));
+
+        assertEquals("La fecha no puede superar 90 días desde hoy", ex.getMessage());
+    }
+
     // ---------- confirmar normal no puede tomar una solicitud manual ----------
 
     @Test
@@ -390,6 +472,7 @@ class AgendamientoManualUseCasesTest {
         when(citaRepo.buscarPorId(70L)).thenReturn(Optional.of(c));
         var confirmar = new ConfirmarCitaUseCaseImpl(usuarioRepo, clienteRepo, citaRepo, tecnicoRepo, bloquesRepo,
                 mock(com.appointech.appointech_backend.domain.ports.out.ConfiguracionFranjasRepositoryPort.class),
+                mock(com.appointech.appointech_backend.domain.ports.out.FranjaTrabajoRepositoryPort.class),
                 log, notificador, avisos, java.time.Clock.system(java.time.ZoneId.of("America/Bogota")));
 
         FranjaNoDisponibleException ex = assertThrows(FranjaNoDisponibleException.class,

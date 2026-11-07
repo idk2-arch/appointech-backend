@@ -57,7 +57,8 @@ public class CitaController {
                 request.direccionServicio(),
                 request.latitud(),
                 request.longitud(),
-                request.telefonoContacto()
+                request.telefonoContacto(),
+                ParametrosDeConsulta.aFecha("fecha", request.fecha())
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CitaResponseMapper.aRespuesta(obtenerDetalleCitaUseCase.detallar(solicitud)));

@@ -49,7 +49,7 @@ public class ActualizarTecnicoUseCaseImpl implements ActualizarTecnicoUseCase {
         usuarioRepositoryPort.guardar(usuario);
 
         if (datos.direccionBase() != null) tecnico.setDireccionBase(datos.direccionBase());
-        if (datos.radioCoberturaKm() != null) tecnico.setRadioCoberturaKm(datos.radioCoberturaKm());
+        if (datos.radioCoberturaKm() != null) tecnico.cambiarRadioCobertura(datos.radioCoberturaKm());
         if (base != null) {
             tecnico.setLatitudBase(base.latitud());
             tecnico.setLongitudBase(base.longitud());

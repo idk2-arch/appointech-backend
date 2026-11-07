@@ -59,7 +59,7 @@ class AdminAlertaControllerTest {
     void adminVeLasAlertasConSuContador() {
         when(consultarAlertas.sinTecnicosParaLaEspecialidad()).thenReturn(List.of(
                 new SolicitudManualDetalle(70L, 2L, "Ana", "Ruiz", "3001112233", "Calle 1", "Fuga", 5L, "Plomería",
-                        4.5, -74.1, FECHA, MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, EstadoCita.PENDIENTE)));
+                        4.5, -74.1, FECHA, MotivoSolicitudEspecial.SIN_TECNICOS_ESPECIALIDAD, EstadoCita.PENDIENTE, null)));
 
         ResponseEntity<AlertasAdminResponse> r = controlador.listar();
 

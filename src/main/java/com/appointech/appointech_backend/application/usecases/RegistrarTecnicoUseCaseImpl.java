@@ -65,7 +65,7 @@ public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
             tecnico.setLatitudBase(base.latitud());
             tecnico.setLongitudBase(base.longitud());
         }
-        tecnico.setRadioCoberturaKm(radioCoberturaKm != null ? radioCoberturaKm : 10);
+        tecnico.cambiarRadioCobertura(radioCoberturaKm != null ? radioCoberturaKm : 10);
 
         return tecnicoRepositoryPort.guardar(tecnico);
     }

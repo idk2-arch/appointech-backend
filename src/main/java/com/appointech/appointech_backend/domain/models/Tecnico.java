@@ -65,8 +65,22 @@ public class Tecnico {
         this.longitudBase = longitudBase;
     }
 
+    /** Radio mínimo y máximo (km) que el administrador puede fijar a un técnico. */
+    public static final int RADIO_MINIMO_KM = 1;
+    public static final int RADIO_MAXIMO_KM = 100;
+
+    /** Distancia máxima (km) desde su base a la que este técnico atiende; la fija el administrador. */
     public Integer getRadioCoberturaKm() {
         return radioCoberturaKm;
+    }
+
+    /** Fija el radio de atención validándolo: de {@value #RADIO_MINIMO_KM} a {@value #RADIO_MAXIMO_KM} km. */
+    public void cambiarRadioCobertura(Integer kilometros) {
+        if (kilometros == null || kilometros < RADIO_MINIMO_KM || kilometros > RADIO_MAXIMO_KM) {
+            throw new com.appointech.appointech_backend.domain.exception.RadioCoberturaInvalidoException(
+                    "El radio de atención debe estar entre " + RADIO_MINIMO_KM + " y " + RADIO_MAXIMO_KM + " km");
+        }
+        this.radioCoberturaKm = kilometros;
     }
 
     public void setRadioCoberturaKm(Integer radioCoberturaKm) {

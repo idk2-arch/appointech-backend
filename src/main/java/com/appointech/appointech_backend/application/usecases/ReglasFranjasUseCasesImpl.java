@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalTime;
 
 /**
- * Casos de uso: consultar y editar las reglas de franjas horarias (radio, duración del bloque y jornada).
+ * Casos de uso: consultar y editar las reglas de franjas horarias (radio, duración del bloque y jornada). El radio y la
+ * jornada globales están EN DESUSO (no afectan el cálculo; se conservan por compatibilidad); la duración sí está vigente.
  * <p>Historia: RF17 - Configurar reglas de franjas horarias. Las reglas se leen en cada cálculo (RF19), por lo
  * que aplican desde el siguiente cálculo de disponibilidad.
  */

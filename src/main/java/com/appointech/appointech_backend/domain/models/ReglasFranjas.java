@@ -2,7 +2,7 @@ package com.appointech.appointech_backend.domain.models;
 
 import java.time.LocalTime;
 
-/** Reglas con las que se calculan las franjas (RF19): radio, duración del bloque y jornada. */
+/** Reglas de franjas (RF17/RF19). Vigente: duración del bloque. EN DESUSO (no afectan el cálculo): radio global y jornada. */
 public record ReglasFranjas(int radioMaximoKm, int duracionBloqueMinutos,
                             LocalTime horaInicioJornada, LocalTime horaFinJornada) {
 
