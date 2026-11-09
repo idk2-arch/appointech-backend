@@ -10,6 +10,7 @@ import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.PasswordEncoderPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ public class RegistrarClienteUseCaseImpl implements RegistrarClienteUseCase {
     }
 
     @Override
+    @Transactional
     public Cliente registrar(String nombre, String apellido, String correo, String contrasena, String telefono,
                              TipoDocumento tipoDocumento, String numeroDocumento, String direccion) {
         if (usuarioRepositoryPort.buscarPorCorreo(correo).isPresent()) {

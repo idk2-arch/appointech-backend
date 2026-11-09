@@ -11,10 +11,11 @@ import com.appointech.appointech_backend.domain.ports.out.GoogleTokenVerifierPor
 import com.appointech.appointech_backend.domain.ports.out.GoogleTokenVerifierPort.GoogleUser;
 import com.appointech.appointech_backend.domain.ports.out.TokenGeneratorPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
+import com.appointech.appointech_backend.application.services.RegistroClienteGoogle;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,8 +40,13 @@ class LoginConGoogleUseCaseImplTest {
     private ClienteRepositoryPort clientes;
     @Mock
     private TokenGeneratorPort tokens;
-    @InjectMocks
     private LoginConGoogleUseCaseImpl useCase;
+
+    @BeforeEach
+    void preparar() {
+        useCase = new LoginConGoogleUseCaseImpl(verificador, usuarios, clientes, tokens,
+                new RegistroClienteGoogle(usuarios, clientes));
+    }
 
     private Usuario existente(RolUsuario rol, boolean activo) {
         Usuario u = new Usuario();

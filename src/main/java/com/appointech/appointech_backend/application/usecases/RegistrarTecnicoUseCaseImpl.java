@@ -12,11 +12,14 @@ import com.appointech.appointech_backend.domain.ports.out.PasswordEncoderPort;
 import com.appointech.appointech_backend.domain.ports.out.TecnicoRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
 public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
+
+    private static final int RADIO_POR_DEFECTO_KM = 10;
 
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final TecnicoRepositoryPort tecnicoRepositoryPort;
@@ -31,10 +34,15 @@ public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
     }
 
     @Override
+    @Transactional
     public Tecnico registrar(String nombre, String apellido, String correo, String contrasena, String telefono,
                              TipoDocumento tipoDocumento, String numeroDocumento, String direccionBase,
                              Integer radioCoberturaKm, Double latitudBase, Double longitudBase) {
         Coordenadas base = Coordenadas.opcional(latitudBase, longitudBase);
+
+        // Se valida el radio (1-100 km) antes de guardar nada: lanza RadioCoberturaInvalidoException (400).
+        Tecnico tecnico = new Tecnico();
+        tecnico.cambiarRadioCobertura(radioCoberturaKm != null ? radioCoberturaKm : RADIO_POR_DEFECTO_KM);
 
         if (usuarioRepositoryPort.buscarPorCorreo(correo).isPresent()) {
             throw new CorreoYaRegistradoException(correo);
@@ -58,14 +66,12 @@ public class RegistrarTecnicoUseCaseImpl implements RegistrarTecnicoUseCase {
 
         Usuario usuarioGuardado = usuarioRepositoryPort.guardar(usuario);
 
-        Tecnico tecnico = new Tecnico();
         tecnico.setUsuario(usuarioGuardado);
         tecnico.setDireccionBase(direccionBase);
         if (base != null) {
             tecnico.setLatitudBase(base.latitud());
             tecnico.setLongitudBase(base.longitud());
         }
-        tecnico.cambiarRadioCobertura(radioCoberturaKm != null ? radioCoberturaKm : 10);
 
         return tecnicoRepositoryPort.guardar(tecnico);
     }

@@ -2,7 +2,7 @@ package com.appointech.appointech_backend.application.usecases;
 
 import com.appointech.appointech_backend.domain.models.Cliente;
 import com.appointech.appointech_backend.domain.models.PerfilUtil;
-import com.appointech.appointech_backend.domain.models.RolUsuario;
+import com.appointech.appointech_backend.application.services.RegistroClienteGoogle;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.exception.CredencialesInvalidasException;
 import com.appointech.appointech_backend.domain.ports.in.LoginConGoogleUseCase;
@@ -12,8 +12,6 @@ import com.appointech.appointech_backend.domain.ports.out.GoogleTokenVerifierPor
 import com.appointech.appointech_backend.domain.ports.out.TokenGeneratorPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 /**
  * Caso de uso: iniciar sesión con Google.
@@ -33,15 +31,18 @@ public class LoginConGoogleUseCaseImpl implements LoginConGoogleUseCase {
     private final UsuarioRepositoryPort usuarioRepository;
     private final ClienteRepositoryPort clienteRepository;
     private final TokenGeneratorPort tokenGenerator;
+    private final RegistroClienteGoogle registroClienteGoogle;
 
     public LoginConGoogleUseCaseImpl(GoogleTokenVerifierPort googleVerifier,
                                      UsuarioRepositoryPort usuarioRepository,
                                      ClienteRepositoryPort clienteRepository,
-                                     TokenGeneratorPort tokenGenerator) {
+                                     TokenGeneratorPort tokenGenerator,
+                                     RegistroClienteGoogle registroClienteGoogle) {
         this.googleVerifier = googleVerifier;
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
         this.tokenGenerator = tokenGenerator;
+        this.registroClienteGoogle = registroClienteGoogle;
     }
 
     @Override
@@ -50,7 +51,7 @@ public class LoginConGoogleUseCaseImpl implements LoginConGoogleUseCase {
                 .orElseThrow(CredencialesInvalidasException::new);
 
         Usuario usuario = usuarioRepository.buscarPorCorreo(googleUser.correo())
-                .orElseGet(() -> registrarClienteNuevo(googleUser));
+                .orElseGet(() -> registroClienteGoogle.registrar(googleUser));
 
         if (!usuario.isActivo()) {
             throw new CredencialesInvalidasException();
@@ -69,30 +70,5 @@ public class LoginConGoogleUseCaseImpl implements LoginConGoogleUseCase {
                 perfilCompleto,
                 usuario.getFotoClave()
         );
-    }
-
-    /**
-     * Registra un cliente nuevo con los datos de Google, incluyendo su fila
-     * en la tabla cliente (sin dirección todavía — se completa después con
-     * PATCH /api/auth/completar-perfil).
-     * Queda SIN contraseña: solo puede entrar con Google
-     * (la columna "contrasena" debe permitir null).
-     */
-    private Usuario registrarClienteNuevo(GoogleUser googleUser) {
-        Usuario nuevo = new Usuario();
-        nuevo.setNombre(googleUser.nombre());
-        nuevo.setApellido(googleUser.apellido());
-        nuevo.setCorreo(googleUser.correo());
-        nuevo.setContrasena(null);
-        nuevo.setRol(RolUsuario.CLIENTE);
-        nuevo.setActivo(true);
-        nuevo.setCreadoEn(LocalDateTime.now());
-        Usuario usuarioGuardado = usuarioRepository.guardar(nuevo);
-
-        Cliente cliente = new Cliente();
-        cliente.setUsuario(usuarioGuardado);
-        clienteRepository.guardar(cliente);
-
-        return usuarioGuardado;
     }
 }
