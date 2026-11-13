@@ -37,6 +37,31 @@ import static org.mockito.Mockito.when;
 
 class CoberturaYMotivosUseCasesTest {
 
+    @Test
+    void cargaCitasYBloqueosUnaVezYRespetaElTecnicoDeCadaOcupacion() {
+        franjas.franjas.clear();
+        franjas.abrir(1L, MANANA, 8, 12);
+        franjas.abrir(2L, MANANA, 8, 12);
+        when(filtrar.filtrar(5L)).thenReturn(List.of(tecnico(1L, 10), tecnico(2L, 10)));
+        when(distancia.calcular(any(), any())).thenReturn(List.of(new Distancia(1.0, 1.0), new Distancia(2.0, 2.0)));
+        var cita = new com.appointech.appointech_backend.domain.models.Cita();
+        cita.setTecnicoId(1L);
+        cita.setFechaHoraInicio(MANANA.atTime(8, 0));
+        cita.setFechaHoraFin(MANANA.atTime(12, 0));
+        when(citas.buscarActivasDeTecnicosEntre(any(), any(), any())).thenReturn(List.of(cita));
+        when(bloques.buscarDeTecnicosEntre(any(), any(), any())).thenReturn(List.of(
+                new com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad(
+                        1L, 2L, MANANA.atTime(8, 0), MANANA.atTime(10, 0), "ocupado")));
+        var resultado = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
+        assertEquals(1, resultado.size());
+        assertEquals(2L, resultado.get(0).getTecnicoId());
+        assertEquals(MANANA.atTime(10, 0), resultado.get(0).getInicio());
+        verify(citas).buscarActivasDeTecnicosEntre(java.util.Set.of(1L, 2L), MANANA.atStartOfDay(), MANANA.plusDays(1).atStartOfDay());
+        verify(bloques).buscarDeTecnicosEntre(java.util.Set.of(1L, 2L), MANANA.atStartOfDay(), MANANA.plusDays(1).atStartOfDay());
+        verify(citas, never()).buscarActivasDelTecnicoEntre(anyLong(), any(), any());
+        verify(bloques, never()).buscarDelTecnicoEntre(anyLong(), any(), any());
+    }
+
     private static final LocalDate MANANA = LocalDate.now().plusDays(1);
 
     private FiltrarTecnicosPorEspecialidadUseCase filtrar;
@@ -101,9 +126,10 @@ class CoberturaYMotivosUseCasesTest {
         // Todo el día ocupado por una cita.
         var cita = new com.appointech.appointech_backend.domain.models.Cita();
         cita.setId(9L);
+        cita.setTecnicoId(1L);
         cita.setFechaHoraInicio(MANANA.atStartOfDay());
         cita.setFechaHoraFin(MANANA.plusDays(1).atStartOfDay());
-        when(citas.buscarActivasDelTecnicoEntre(anyLong(), any(), any())).thenReturn(List.of(cita));
+        when(citas.buscarActivasDeTecnicosEntre(any(), any(), any())).thenReturn(List.of(cita));
 
         ResultadoFranjas r = calcular.calcularConMotivo(5L, MANANA, 4.3365, -74.3638);
 
@@ -232,7 +258,7 @@ class CoberturaYMotivosUseCasesTest {
         coberturaDeUnTecnico();
         var bloque = new com.appointech.appointech_backend.domain.models.BloqueIndisponibilidad(
                 1L, 1L, MANANA.atTime(9, 0), MANANA.atTime(9, 30), "x");
-        when(bloques.buscarDelTecnicoEntre(anyLong(), any(), any())).thenReturn(List.of(bloque));
+        when(bloques.buscarDeTecnicosEntre(any(), any(), any())).thenReturn(List.of(bloque));
 
         List<FranjaDisponible> ofrecidas = calcular.calcular(5L, MANANA, 4.3365, -74.3638);
 

@@ -17,6 +17,7 @@ import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.RegistroLog;
 import com.appointech.appointech_backend.domain.models.TipoLog;
 import com.appointech.appointech_backend.domain.models.Tecnico;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.exception.FranjaInvalidaException;
 import com.appointech.appointech_backend.domain.exception.FranjaNoDisponibleException;
@@ -101,10 +102,19 @@ class AgendamientoUseCasesTest {
                     .filter(c -> c.getFechaHoraInicio().isBefore(fin) && c.getFechaHoraFin().isAfter(inicio))
                     .toList();
         }
+
+        @Override
+        public List<Cita> buscarActivasDeTecnicosEntre(java.util.Collection<Long> ids, LocalDateTime inicio, LocalDateTime fin) {
+            return citasGuardadas.stream()
+                    .filter(c -> ids.contains(c.getTecnicoId()) && c.getEstado() != EstadoCita.CANCELADA)
+                    .filter(c -> c.getFechaHoraInicio().isBefore(fin) && c.getFechaHoraFin().isAfter(inicio)).toList();
+        }
     };
 
-    private final BloqueIndisponibilidadRepositoryPort bloquesRepositoryPort =
-            (tecnicoId, inicio, fin) -> new ArrayList<BloqueIndisponibilidad>();
+    private final BloqueIndisponibilidadRepositoryPort bloquesRepositoryPort = new BloqueIndisponibilidadRepositoryPort() {
+        public List<BloqueIndisponibilidad> buscarDelTecnicoEntre(Long id, LocalDateTime inicio, LocalDateTime fin) { return List.of(); }
+        public List<BloqueIndisponibilidad> buscarDeTecnicosEntre(java.util.Collection<Long> ids, LocalDateTime inicio, LocalDateTime fin) { return List.of(); }
+    };
 
     private final ConfiguracionFranjasRepositoryPort configuracionRepositoryPort = new ConfiguracionFranjasRepositoryPort() {
         @Override
@@ -142,6 +152,11 @@ class AgendamientoUseCasesTest {
         @Override
         public List<Usuario> listarTodos() {
             return List.of();
+        }
+
+        @Override
+        public ListadoConTotal<Usuario> listarPagina(int pagina, int tamanio) {
+            throw new UnsupportedOperationException();
         }
     };
 

@@ -1,5 +1,7 @@
 package com.appointech.appointech_backend.application.usecases;
 
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
+import com.appointech.appointech_backend.domain.models.PaginacionOpcional;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.in.ListarUsuariosUseCase;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
@@ -19,5 +21,10 @@ public class ListarUsuariosUseCaseImpl implements ListarUsuariosUseCase {
     @Override
     public List<Usuario> listar() {
         return usuarioRepositoryPort.listarTodos();
+    }
+
+    @Override
+    public ListadoConTotal<Usuario> listarPagina(PaginacionOpcional paginacion) {
+        return usuarioRepositoryPort.listarPagina(paginacion.pagina(), paginacion.tamanio());
     }
 }

@@ -1,0 +1,77 @@
+# Entorno de pruebas de carga AISLADO. Proyecto propio (appointech-perf): no comparte contenedores, red ni volumenes
+# con el docker-compose.yml de desarrollo y nunca toca tu base real.
+#
+# Uso (desde la carpeta del backend), con las variables de perf\.env.perf (lo crea perf\iniciar.ps1):
+#   docker compose --env-file perf/.env.perf -f perf/docker-compose.perf.yml up -d --build
+#   docker compose --env-file perf/.env.perf -f perf/docker-compose.perf.yml down        (sin -v: la base es tmpfs)
+name: appointech-perf
+
+services:
+  db-perf:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${PERF_DB_NAME:-appointech_perf}
+      POSTGRES_USER: ${PERF_DB_USER:-perf}
+      POSTGRES_PASSWORD: ${PERF_DB_PASSWORD:?Define PERF_DB_PASSWORD (perf/iniciar.ps1 lo genera)}
+      TZ: America/Bogota
+    # Base TEMPORAL: vive en memoria, desaparece al detener el contenedor. fsync apagado = mas rapida (solo para pruebas)
+    tmpfs:
+      - /var/lib/postgresql/data
+    command: ["postgres", "-c", "max_connections=200", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "timezone=America/Bogota"]
+    ports:
+      - "${PERF_DB_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: ${PERF_DB_MEM:-1g}
+    networks:
+      - perf-net
+
+  backend-perf:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: appointech-backend-perf
+    depends_on:
+      db-perf:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: perf
+      DB_URL: jdbc:postgresql://db-perf:5432/${PERF_DB_NAME:-appointech_perf}
+      DB_USER: ${PERF_DB_USER:-perf}
+      DB_PASSWORD: ${PERF_DB_PASSWORD:?Define PERF_DB_PASSWORD (perf/iniciar.ps1 lo genera)}
+      JWT_SECRET: ${PERF_JWT_SECRET:?Define PERF_JWT_SECRET (perf/iniciar.ps1 lo genera)}
+      # Servicios externos apagados: sin NOTIFICACIONES_URL no se llama al microservicio (ni hay correo), sin GROQ_API_KEY
+      # el pre-diagnostico queda "no disponible", sin ORS_API_KEY ni mapas ors se usa linea recta, Google no se invoca.
+      NOTIFICACIONES_URL: ""
+      ORS_API_KEY: ""
+      GROQ_API_KEY: ""
+      # El almacenamiento de fotos apunta a un puerto cerrado: solo deja un WARN al arrancar, las pruebas no suben fotos
+      ALMACENAMIENTO_ENDPOINT: http://127.0.0.1:9
+      ALMACENAMIENTO_ACCESS_KEY: perf-sin-almacenamiento
+      ALMACENAMIENTO_SECRET_KEY: perf-sin-almacenamiento
+      # Parametros del estres: pool de conexiones, hilos de Tomcat y umbral de [LENTO]
+      DB_POOL_MAX: ${PERF_DB_POOL_MAX:-10}
+      DB_POOL_TIMEOUT_MS: ${PERF_DB_POOL_TIMEOUT_MS:-5000}
+      TOMCAT_MAX_THREADS: ${PERF_TOMCAT_MAX_THREADS:-200}
+      PERF_UMBRAL_LENTO_MS: ${PERF_UMBRAL_LENTO_MS:-300}
+      TZ: America/Bogota
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Bogota
+    # Limites de recursos del backend (para que el estres sea comparable y repetible)
+    cpus: ${PERF_BACKEND_CPUS:-2}
+    mem_limit: ${PERF_BACKEND_MEM:-1g}
+    ports:
+      - "${PERF_API_PORT:-18080}:8080"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - perf-net
+
+networks:
+  perf-net:
+    driver: bridge

@@ -162,6 +162,7 @@ jobs:
         with:
           context: .
           push: false
+          platforms: linux/amd64
           tags: appointech-backend:ci
 
   publicar-imagenes:
@@ -187,6 +188,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64
           tags: |
             ${{ env.IMAGEN_BACKEND }}:latest
             ${{ env.IMAGEN_BACKEND }}:${{ github.sha }}
@@ -195,6 +197,7 @@ jobs:
         with:
           context: ./microservicio-notificaciones
           push: true
+          platforms: linux/amd64
           tags: |
             ${{ env.IMAGEN_NOTIFICACIONES }}:latest
             ${{ env.IMAGEN_NOTIFICACIONES }}:${{ github.sha }}

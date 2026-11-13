@@ -1,5 +1,7 @@
 package com.appointech.appointech_backend.infrastructure.controllers;
 
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
+import com.appointech.appointech_backend.domain.models.PaginacionOpcional;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.in.ActualizarUsuarioUseCase;
 import com.appointech.appointech_backend.domain.ports.in.CambiarEstadoUsuarioUseCase;
@@ -19,6 +21,8 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMINISTRADOR')")
 public class AdminUsuarioController {
 
+    static final String ENCABEZADO_TOTAL = "X-Total-Count";
+
     private final CrearAdministradorUseCase crearAdministradorUseCase;
     private final ListarUsuariosUseCase listarUsuariosUseCase;
     private final ActualizarUsuarioUseCase actualizarUsuarioUseCase;
@@ -34,10 +38,22 @@ public class AdminUsuarioController {
         this.cambiarEstadoUsuarioUseCase = cambiarEstadoUsuarioUseCase;
     }
 
+    /**
+     * Sin page ni size devuelve todos los usuarios (comportamiento original). Con alguno de los dos devuelve solo esa
+     * página (page desde 0; size por defecto 20, máximo 100) y el total de usuarios va en {@code X-Total-Count}.
+     */
     @GetMapping
-    public ResponseEntity<List<UsuarioAdminResponse>> listar() {
-        List<Usuario> usuarios = listarUsuariosUseCase.listar();
-        return ResponseEntity.ok(usuarios.stream().map(this::toResponse).toList());
+    public ResponseEntity<List<UsuarioAdminResponse>> listar(@RequestParam(required = false) Integer page,
+                                                             @RequestParam(required = false) Integer size) {
+        PaginacionOpcional paginacion = PaginacionOpcional.de(page, size);
+        if (!paginacion.paginado()) {
+            List<Usuario> usuarios = listarUsuariosUseCase.listar();
+            return ResponseEntity.ok(usuarios.stream().map(this::toResponse).toList());
+        }
+        ListadoConTotal<Usuario> pagina = listarUsuariosUseCase.listarPagina(paginacion);
+        return ResponseEntity.ok()
+                .header(ENCABEZADO_TOTAL, String.valueOf(pagina.total()))
+                .body(pagina.elementos().stream().map(this::toResponse).toList());
     }
 
     @PostMapping

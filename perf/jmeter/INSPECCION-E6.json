@@ -1,0 +1,88 @@
+﻿{
+    "fechaUTC":  "2026-11-11T15:02:44.6289596Z",
+    "proyecto":  "appointech-perf",
+    "base":  "appointech_perf",
+    "sqlSoloLectura":  true,
+    "solicitudesHTTP":  0,
+    "identidadesPreparables":  300,
+    "especialidades":  6,
+    "notificacionesMin":  3,
+    "notificacionesMax":  23,
+    "citasMin":  1,
+    "citasMax":  11,
+    "limites":  [
+                    {
+                        "id":  "09a96b1c788d0c0de266a610b6556dbce08a10aff970c9c25c46b1791d872c90",
+                        "servicio":  "backend-perf",
+                        "inicio":  "2026-11-10T22:34:34.488641227Z",
+                        "reinicios":  0,
+                        "oom":  false,
+                        "salud":  "healthy",
+                        "activo":  true,
+                        "memoria":  1073741824,
+                        "nanoCpus":  2000000000,
+                        "cuota":  0,
+                        "periodo":  0,
+                        "cpuSet":  ""
+                    },
+                    {
+                        "id":  "a1177a234f904ffb77a0ae09377ac385d9d70161f562667a841b1943d63f5280",
+                        "servicio":  "db-perf",
+                        "inicio":  "2026-11-10T22:34:27.24086174Z",
+                        "reinicios":  0,
+                        "oom":  false,
+                        "salud":  "healthy",
+                        "activo":  true,
+                        "memoria":  1073741824,
+                        "nanoCpus":  0,
+                        "cuota":  0,
+                        "periodo":  0,
+                        "cpuSet":  ""
+                    }
+                ],
+    "integridadAgregada":  [
+                               {
+                                   "tabla":  "cita",
+                                   "cantidad":  490,
+                                   "huella":  "70ea7a4aee401524920a9483de9114a3"
+                               },
+                               {
+                                   "tabla":  "cita_historial_estado",
+                                   "cantidad":  150,
+                                   "huella":  "42692ca1e96810e7665b0059614950aa"
+                               },
+                               {
+                                   "tabla":  "cliente",
+                                   "cantidad":  5080,
+                                   "huella":  "7fd3db4aaeba220ad21f7aecf67404cf"
+                               },
+                               {
+                                   "tabla":  "especialidad",
+                                   "cantidad":  6,
+                                   "huella":  "ac8cc3cd8e521205870a06c9096cd351"
+                               },
+                               {
+                                   "tabla":  "notificacion",
+                                   "cantidad":  3300,
+                                   "huella":  "e6f6e1d93b48b391013be61ca2f6ed33"
+                               },
+                               {
+                                   "tabla":  "pago",
+                                   "cantidad":  490,
+                                   "huella":  "05428bc403a3bf3e491a23114cf5a5b9"
+                               },
+                               {
+                                   "tabla":  "tecnico",
+                                   "cantidad":  50,
+                                   "huella":  "8f3a0591a90ea862e7037662411679de"
+                               },
+                               {
+                                   "tabla":  "usuario",
+                                   "cantidad":  5131,
+                                   "huella":  "906d0100f06cab657dcaf8c7942d3f5e"
+                               }
+                           ],
+    "administradoresSinteticosPerf":  0,
+    "paginasAdminCompletas":  256,
+    "cohorteElegible":  340
+}

@@ -8,6 +8,7 @@ import com.appointech.appointech_backend.domain.ports.in.AsignarEspecialidadesTe
 import com.appointech.appointech_backend.domain.ports.out.EspecialidadRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.TecnicoRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class AsignarEspecialidadesTecnicoUseCaseImpl implements AsignarEspeciali
     }
 
     @Override
+    @Transactional
     public Tecnico asignar(Long tecnicoId, List<Long> especialidadIds) {
         Tecnico tecnico = tecnicoRepositoryPort.buscarPorId(tecnicoId)
                 .orElseThrow(() -> new TecnicoNoEncontradoException(tecnicoId));

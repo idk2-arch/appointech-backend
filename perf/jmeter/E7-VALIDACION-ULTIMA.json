@@ -1,0 +1,57 @@
+﻿{
+    "completa":  true,
+    "fechaUTC":  "2026-11-12T00:48:17.2539841Z",
+    "HTTP":  0,
+    "sinBackend":  true,
+    "usuariosNormales":  150,
+    "ciclos":  20,
+    "pasos":  6,
+    "tecnicosDistintos":  50,
+    "hilosPorTecnico":  3,
+    "reservasPorHiloDistintas":  true,
+    "extraccionIdRealFicticio":  true,
+    "ordenValidado":  true,
+    "incertidumbrePOSTPUTDELETE":  true,
+    "rechazoDeIdAusente":  true,
+    "recolectorValidadoYCerrado":  true,
+    "JMeterCerrado":  true,
+    "evidencias":  "C:\\Users\\Juan David\\Downloads\\appointech-backend\\appointech-backend\\perf\\diagnosticos\\e7-ficticio-20261111-194715-edab27b23a724db8bf632e77062aa846",
+    "hashes":  [
+                   {
+                       "sha256":  "0FF721138B5527A9B0F5E27E7A11C0507E3E5B1301FB1A06909C924ABDAF07B2",
+                       "archivo":  "generar-e7.js"
+                   },
+                   {
+                       "sha256":  "7856B3D15B37BA748319F1455F37117186BDB393CDE81BCFF8A2097DD4607413",
+                       "archivo":  "e7-crud.jmx"
+                   },
+                   {
+                       "sha256":  "F8537C5FB39851323AC38BA18064AA453D918E4FA2B6245722210AAF217C2D8A",
+                       "archivo":  "e7-ficticio.jmx"
+                   },
+                   {
+                       "sha256":  "593B0DF00E0E072412751D03A1E31BB4B76D89D5A85A2240A9CD443468AC13BD",
+                       "archivo":  "e7-motor.groovy"
+                   },
+                   {
+                       "sha256":  "EF8CD9D8D75E57CE053962F6AA9067BF49AF1F1A4815FD0BE6CBD1E349E1F6E1",
+                       "archivo":  "analizar-e7.js"
+                   },
+                   {
+                       "sha256":  "DD73A22F7F0D1441A74F23762A6D76E5CFEC5B2B82D3695F823A77CC11DDB78C",
+                       "archivo":  "e7-comun.ps1"
+                   },
+                   {
+                       "sha256":  "2F63484AE6A039DB10619ADAB02E6FDA637E497392215578192385E94440FFF1",
+                       "archivo":  "recursos-e7.ps1"
+                   },
+                   {
+                       "sha256":  "088730C29710A83B5B28B632ADF4D534C53C79336C873D587FF036B12C9EDE71",
+                       "archivo":  "ejecutar-e7.ps1"
+                   },
+                   {
+                       "sha256":  "E0FB882EA7FCEFE6DF8CFB25556F7E8AFE3E269BDAF8BD2ABA8036018443FD24",
+                       "archivo":  "validar-e7.ps1"
+                   }
+               ]
+}

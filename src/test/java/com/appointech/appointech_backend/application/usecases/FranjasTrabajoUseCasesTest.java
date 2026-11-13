@@ -45,6 +45,16 @@ import static org.mockito.Mockito.when;
 /** Crear, cambiar, borrar y listar franjas de trabajo, y el radio de atención por técnico. */
 class FranjasTrabajoUseCasesTest {
 
+    @Test
+    void listarVariasFranjasConsultaLaConfiguracionUnaSolaVez() {
+        franjas.abrir(1L, MANANA, 8, 12);
+        franjas.abrir(1L, MANANA.plusDays(1), 8, 12);
+        var resultado = consultar.listar(1L, MANANA, MANANA.plusDays(1));
+        assertEquals(2, resultado.size());
+        assertTrue(resultado.stream().allMatch(f -> f.bloques() == 2 && f.bloquesOcupados() == 0));
+        verify(configuracion, org.mockito.Mockito.times(1)).obtenerActual();
+    }
+
     private static final ZoneId BOGOTA = ZoneId.of("America/Bogota");
     /** Jueves 2030-05-02 a las 10:00 en Bogotá. */
     private static final Clock RELOJ = Clock.fixed(Instant.parse("2030-05-02T15:00:00Z"), BOGOTA);

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="AppoinTech E1 - Login concurrente" enabled="true">
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="E1 - Usuarios de login" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Iteraciones">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">${__P(loops,5)}</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(usuarios,20)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampa,10)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Credenciales sinteticas compartidas" enabled="true">
+          <stringProp name="filename">${__P(credenciales,clientes.csv)}</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="variableNames">correo,contrasena</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">false</boolProp>
+          <boolProp name="stopThread">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="JSON UTF-8" enabled="true">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-Type</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E1 POST /api/auth/login" enabled="true">
+          <stringProp name="HTTPSampler.protocol">${__P(protocolo,http)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(puerto,18080)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">${__P(timeoutConexionMs,5000)}</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">${__P(timeoutRespuestaMs,10000)}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${e1LoginBody}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Serializar credenciales como JSON" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+vars.remove('e1Token')
+vars.put('e1LoginBody', groovy.json.JsonOutput.toJson([
+    correo: vars.get('correo'),
+    contrasena: vars.get('contrasena')
+]))
+]]></stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extraer datos.token" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">e1Token</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.datos.token</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">E1_TOKEN_AUSENTE</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Normalizar diagnostico sin datos de autenticacion" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+vars.remove('e1LoginBody')
+if (prev.getResponseCode() ==~ /[0-9]{3}/) {
+    prev.setResponseMessage('HTTP ' + prev.getResponseCode())
+} else {
+    prev.setResponseCode('TRANSPORT_ERROR')
+    prev.setResponseMessage('Fallo de transporte')
+}
+]]></stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP - estado exactamente 200" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="200">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">HTTP - se esperaba estado 200. TRANSPORT_ERROR indica que no hubo respuesta HTTP.</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="Contenido - JSON, exito y datos.token" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+
+try {
+    if (prev.getResponseCode() != '200') return
+
+    def json
+    try {
+        json = new ObjectMapper()
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .readTree(prev.getResponseData())
+    } catch (IOException ignored) {
+        AssertionResult.setFailure(true)
+        AssertionResult.setFailureMessage('Contenido - JSON invalido')
+        return
+    }
+
+    def exito = json?.path('exito')
+    def token = json?.path('datos')?.path('token')
+    if (!exito?.isBoolean() || !exito.booleanValue()) {
+        AssertionResult.setFailure(true)
+        AssertionResult.setFailureMessage('Contenido - exito debe ser el booleano true')
+    } else if (!token?.isTextual() || token.textValue().trim().isEmpty() ||
+               vars.get('e1Token') != token.textValue()) {
+        AssertionResult.setFailure(true)
+        AssertionResult.setFailureMessage('Contenido - datos.token ausente, invalido o no extraido')
+    }
+} finally {
+    vars.remove('e1Token')
+}
+]]></stringProp>
+          </JSR223Assertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Duracion - umbral de login en ms" enabled="true">
+            <stringProp name="DurationAssertion.duration">${__P(umbralLoginMs,2000)}</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

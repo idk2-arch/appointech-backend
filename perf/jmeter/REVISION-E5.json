@@ -1,0 +1,29 @@
+﻿{
+    "powershell":  "5.1.26100.9711",
+    "xmlValido":  true,
+    "samplersHTTP":  1,
+    "propiedadesVerificadas":  [
+                                   "soporte",
+                                   "loops",
+                                   "usuarios",
+                                   "rampa",
+                                   "host",
+                                   "puerto",
+                                   "timeoutConexionMs",
+                                   "timeoutRespuestaMs"
+                               ],
+    "erroresSintaxis":  0,
+    "groovyCompilado":  true,
+    "codigoCompilador":  0,
+    "planSha256":  "F6447357CA48D8A51AD47ECD669BCF0E795179B3566F02B04466F7EC877F5B17",
+    "soporteSha256":  "1ED668E23FD43C31694A523CE01DF3A81B880D8DDD41917ABF9D76326AB78DF1",
+    "ejecutorSha256":  "BDBC7A4EE716C51BB3FDFD56D751A520E072F84FC40995C2E7E536F2DFC79311",
+    "analizadorSha256":  "14C9D655C8794D04BC7443BB9492CE120BF9A3BE34A970AB56085986528330B0",
+    "archivosPreviosComprobados":  31,
+    "archivosPreviosModificados":  0,
+    "JMeterIniciado":  false,
+    "GroovyEjecutado":  false,
+    "solicitudesHTTP":  0,
+    "fasesEjecutadas":  0,
+    "alcance":  "Parser XML/PowerShell y compilacion de Groovy, sin ejecutar scripts de carga o comprobacion de recuperacion"
+}

@@ -12,6 +12,7 @@ import com.appointech.appointech_backend.domain.models.NivelLog;
 import com.appointech.appointech_backend.domain.models.RegistroLog;
 import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.models.TipoLog;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.Usuario;
 import com.appointech.appointech_backend.domain.ports.out.BloqueIndisponibilidadRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.CalculadoraDistanciaPort;
@@ -86,6 +87,11 @@ class AgendaTecnicoEscenario {
         public List<Usuario> listarTodos() {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public ListadoConTotal<Usuario> listarPagina(int pagina, int tamanio) {
+            throw new UnsupportedOperationException();
+        }
     };
 
     final TecnicoRepositoryPort tecnicoRepositoryPort = new TecnicoRepositoryPort() {
@@ -139,6 +145,11 @@ class AgendaTecnicoEscenario {
 
     /** Un mismo fake cumple los dos puertos de bloques: lectura para franjas y gestión para el técnico. */
     final class BloquesFake implements GestionBloquesPort, BloqueIndisponibilidadRepositoryPort {
+        @Override
+        public List<BloqueIndisponibilidad> buscarDeTecnicosEntre(java.util.Collection<Long> ids, LocalDateTime inicio, LocalDateTime fin) {
+            return bloques.stream().filter(b -> ids.contains(b.getTecnicoId()))
+                    .filter(b -> b.getInicio().isBefore(fin) && b.getFin().isAfter(inicio)).toList();
+        }
         @Override
         public BloqueIndisponibilidad guardar(BloqueIndisponibilidad bloque) {
             bloque.setId(siguienteBloqueId++);

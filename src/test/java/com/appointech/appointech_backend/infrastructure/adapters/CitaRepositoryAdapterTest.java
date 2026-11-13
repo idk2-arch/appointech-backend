@@ -183,6 +183,18 @@ class CitaRepositoryAdapterTest {
     }
 
     @Test
+    void buscarActivasPorLoteConservaLimitesYExclusionDeCanceladas() {
+        var ids = List.of(2L, 3L);
+        var fin = INICIO.plusDays(1);
+        when(jpa.buscarDeTecnicosEntre(ids, INICIO, fin, EstadoCitaEntity.CANCELADA))
+                .thenReturn(List.of(entity(1L, EstadoCitaEntity.CONFIRMADA)));
+        var citas = adapter.buscarActivasDeTecnicosEntre(ids, INICIO, fin);
+        assertEquals(1, citas.size());
+        assertEquals(EstadoCita.CONFIRMADA, citas.get(0).getEstado());
+        verify(jpa).buscarDeTecnicosEntre(ids, INICIO, fin, EstadoCitaEntity.CANCELADA);
+    }
+
+    @Test
     void solicitudesManualesSinFiltrosNiPaginacionUsaCentinelasYPageableSinPaginar() {
         when(jpa.buscarSolicitudesManuales(eq(EstadoCitaEntity.PENDIENTE), eq(true), anyString(), eq(true), anyLong(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(entity(1L, EstadoCitaEntity.PENDIENTE), entity(2L, EstadoCitaEntity.PENDIENTE))));

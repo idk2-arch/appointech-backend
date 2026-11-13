@@ -1,0 +1,6 @@
+diff --git a/src/app/core/config/api.config.ts b/src/app/core/config/api.config.ts
+--- a/src/app/core/config/api.config.ts
++++ b/src/app/core/config/api.config.ts
+@@ -1 +1 @@
+-export const API_BASE_URL = 'http://localhost:8080/api';
++export const API_BASE_URL = '/api';

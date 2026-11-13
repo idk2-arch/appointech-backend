@@ -1,0 +1,81 @@
+﻿{
+    "fechaUTC":  "2026-11-11T20:15:45.1373407Z",
+    "powershell":  "5.1.26100.9711",
+    "erroresSintaxis":  0,
+    "xmlValido":  true,
+    "paresHashTreeValidos":  true,
+    "samplersHTTP":  1,
+    "metodo":  "GET",
+    "groovyCompilado":  true,
+    "codigoCompilador":  0,
+    "propiedadesVerificadas":  [
+                                   "usuarios",
+                                   "rampa",
+                                   "loops",
+                                   "host",
+                                   "puerto",
+                                   "timeoutConexionMs",
+                                   "timeoutRespuestaMs",
+                                   "paquete",
+                                   "soporte"
+                               ],
+    "JMeterEjecutado":  false,
+    "GroovyEjecutado":  false,
+    "solicitudesHTTP":  0,
+    "cargaEjecutada":  false,
+    "hashes":  [
+                   {
+                       "archivo":  "analizar-e6.ps1",
+                       "sha256":  "B2F6ACAF3CAC5EFE4AF2044438E3CB796FE39D9A7BCF1F1DB167701FBF44EB14"
+                   },
+                   {
+                       "archivo":  "E6-archivos.zip",
+                       "sha256":  "23C106188C91275E6D8908A7156A681D5827F337087B22C11D884782BA429F7E"
+                   },
+                   {
+                       "archivo":  "e6-expectativas.sql",
+                       "sha256":  "E48F9FE43C415B8F9CFE9B9CD8CCF2993EEB1E91FC1A8411722A66779C67194E"
+                   },
+                   {
+                       "archivo":  "e6-lecturas.groovy",
+                       "sha256":  "38D1EA9FA025202B1A79F98A2D0D3A2E73BE2A88210DCC117F1E29B3E3226B2B"
+                   },
+                   {
+                       "archivo":  "e6-lecturas.jmx",
+                       "sha256":  "A5B4756C1589FC7DBEEC5F8F12CCA1D03DEDD12C8BFE12CE2F9BA7785A1CA39D"
+                   },
+                   {
+                       "archivo":  "ejecutar-e6.ps1",
+                       "sha256":  "88A9162AA5CE937A2501F02C42DB2604F528D38FF4AC4035DDF8F1E694ABC940"
+                   },
+                   {
+                       "archivo":  "errores-e6.ps1",
+                       "sha256":  "5B0AE643954AF4DC70CB9F61A5CE9E4A7702C3C1506F6B8BA1231F6D9EB8EE5A"
+                   },
+                   {
+                       "archivo":  "INSPECCION-E6.json",
+                       "sha256":  "713D5A6BC8D14E53450B7EEBA0CE3B2148E43020C52FC022184F49FB6D8A97B2"
+                   },
+                   {
+                       "archivo":  "preparar-e6.ps1",
+                       "sha256":  "74A60EBD037FEFFB159919C93E251FFAFA45B002A19CDE8B057D1B48DD17D96B"
+                   },
+                   {
+                       "archivo":  "procesos-e6.ps1",
+                       "sha256":  "CA07459A608A6259F40829222A8A5BFF49857165FC061A60C15B51D19BBA526A"
+                   },
+                   {
+                       "archivo":  "README-E6.md",
+                       "sha256":  "5E441A0981002ED6500C4BFBF20BE7FEEE2B45DE125ECD995177D0C8BE2952A8"
+                   },
+                   {
+                       "archivo":  "validar-bucles-e6.ps1",
+                       "sha256":  "5A7AB17279DD9EA7450784C9D7550C67F7F8ED9BED14AC804435B5674399DFDF"
+                   },
+                   {
+                       "archivo":  "validar-e6.ps1",
+                       "sha256":  "449EE7F60940930ECE0E81035E04945C96F8DD4E2DBF1785CC7123B292348C40"
+                   }
+               ],
+    "pendiente":  "Autenticacion, ACL/limpieza real, mezcla medida, contenido, recursos, integridad y recuperacion en ejecucion autorizada"
+}

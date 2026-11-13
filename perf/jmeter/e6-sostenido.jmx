@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="E6 lecturas REST 40/40/20">
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="Preparacion local E6 sin HTTP">
+        <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">0</stringProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Leer paquete y precalentar scripts sin red">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(soporte)}</stringProp>
+          <stringProp name="parameters">preparar</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Compilar reloj antes de rampa sin HTTP">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(relojSoporte)}</stringProp>
+          <stringProp name="parameters">calentar</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="E6 Lecturas">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(usuarios,100)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampa,20)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Inicio efectivo sostenido sin HTTP">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(relojSoporte)}</stringProp>
+          <stringProp name="parameters">iniciar</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+        <WhileController guiclass="WhileControllerGui" testclass="WhileController" testname="Ciclos hasta plazo comun">
+          <stringProp name="WhileController.condition">${e6Continuar}</stringProp>
+        </WhileController>
+        <hashTree>
+          <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Cinco GET por ciclo: N,H,E,N,H">
+            <boolProp name="LoopController.continue_forever">true</boolProp>
+            <stringProp name="LoopController.loops">5</stringProp>
+          </LoopController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="${e6Etiqueta}">
+              <stringProp name="HTTPSampler.protocol">http</stringProp>
+              <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
+              <stringProp name="HTTPSampler.port">${__P(puerto,18080)}</stringProp>
+              <stringProp name="HTTPSampler.path">${e6Ruta}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <stringProp name="HTTPSampler.connect_timeout">${__P(timeoutConexionMs,5000)}</stringProp>
+              <stringProp name="HTTPSampler.response_timeout">${__P(timeoutRespuestaMs,10000)}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Solo cabeceras necesarias">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Accept</stringProp>
+                    <stringProp name="Header.value">application/json</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Identidad estable y mezcla determinista">
+                <stringProp name="scriptLanguage">groovy</stringProp>
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="filename">${__P(soporte)}</stringProp>
+                <stringProp name="parameters">antes</stringProp>
+              </JSR223PreProcessor>
+              <hashTree />
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="HTTP transporte contenido pertenencia y orden">
+                <stringProp name="scriptLanguage">groovy</stringProp>
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="filename">${__P(soporte)}</stringProp>
+                <stringProp name="parameters">validar</stringProp>
+              </JSR223PostProcessor>
+              <hashTree />
+              <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Duracion E6: lecturas 800 ms / especialidades 300 ms">
+                <stringProp name="DurationAssertion.duration">${e6Umbral}</stringProp>
+              </DurationAssertion>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+          <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Limite al completar ciclo sin HTTP">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename">${__P(relojSoporte)}</stringProp>
+            <stringProp name="parameters">ciclo</stringProp>
+          </JSR223Sampler>
+          <hashTree />
+        </hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Registrar cierre de hilo sin HTTP">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(relojSoporte)}</stringProp>
+          <stringProp name="parameters">finHilo</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+      </hashTree>
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="Retirar memoria E6">
+        <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">0</stringProp>
+      </PostThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Cerrar sin muestras auxiliares">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(soporte)}</stringProp>
+          <stringProp name="parameters">cerrar</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Guardar cierres sin HTTP">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename">${__P(relojSoporte)}</stringProp>
+          <stringProp name="parameters">cerrar</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

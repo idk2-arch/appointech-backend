@@ -1,21 +1,42 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: appointech-config
-  namespace: appointech
-data:
-  DB_URL: jdbc:postgresql://postgres:5432/appointech
-  DB_USER: appointech
-  NOTIFICACIONES_URL: http://notificaciones:8081
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: appointech-secretos
-  namespace: appointech
-type: Opaque
-stringData:
-  DB_PASSWORD: devpassword
-  JWT_SECRET: cambia-este-texto-por-uno-largo-de-minimo-32-caracteres
-  # Clave de OpenRouteService; vacia = respaldo Haversine
-  ORS_API_KEY: ""
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "appointech-config",
+    "namespace": "appointech"
+  },
+  "data": {
+    "DB_URL": "jdbc:postgresql://postgres:5432/appointech",
+    "DB_USER": "appointech",
+    "DB_NAME": "appointech",
+    "NOTIFICACIONES_URL": "http://notificaciones:8081",
+    "GOOGLE_CLIENT_ID": "REEMPLAZAR_CLIENT_ID",
+    "CORS_ORIGINS": "https://appointech.duckdns.org",
+    "MAIL_HOST": "",
+    "MAIL_PORT": "587",
+    "MAIL_FROM": "",
+    "ALMACENAMIENTO_ENDPOINT": "",
+    "ALMACENAMIENTO_BUCKET": "fotos-perfil",
+    "ALMACENAMIENTO_REGION": "us-east-1",
+    "GROQ_MODEL": "openai/gpt-oss-20b",
+    "GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+    "GROQ_TIMEOUT_MS": "6000",
+    "HAVERSINE_VELOCIDAD_KMH": "40",
+    "RUTA_MARGEN_MINUTOS": "0",
+    "RUTA_TOLERANCIA_MINUTOS": "5",
+    "APP_ZONA_HORARIA": "America/Bogota",
+    "FORWARD_HEADERS_STRATEGY": "framework",
+    "CONTACTO_ADMIN_TELEFONO": "",
+    "PASARELA_PAGOS": "wompi",
+    "PASARELA_SIMULADA_APROBAR": "true",
+    "PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE": "20",
+    "PAGOS_URL_RETORNO": "https://appointech.duckdns.org/cliente/pago/resultado",
+    "CALIFICACION_PLAZO_DIAS": "30",
+    "REGISTRO_LOG_COLA_MAXIMA": "5000",
+    "SPRING_PROFILES_ACTIVE": "prod",
+    "SPRINGDOC_API_DOCS_ENABLED": "false",
+    "SPRINGDOC_SWAGGER_UI_ENABLED": "false",
+    "JAVA_TOOL_OPTIONS": "-XX:MaxRAMPercentage=70 -Duser.timezone=America/Bogota",
+    "TZ": "America/Bogota"
+  }
+}

@@ -28,6 +28,7 @@ services:
     restart: unless-stopped
     environment:
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
+     
       # Correo SMTP (vacio = el microservicio responde 202 pero no envia y registra un WARN)
       MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
@@ -44,6 +45,7 @@ services:
     environment:
       DB_URL: jdbc:postgresql://database:5432/${DB_NAME:-appointech}
       DB_USER: ${DB_USER:-appointech}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Define GOOGLE_CLIENT_ID en el archivo .env}
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el archivo .env}
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en el archivo .env}
       NOTIFICACIONES_URL: http://notificaciones:8081

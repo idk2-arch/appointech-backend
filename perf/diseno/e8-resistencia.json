@@ -1,0 +1,30 @@
+{
+  "escenario": "E8 resistencia de lecturas",
+  "estado": "diseno_revisable_no_ejecutado",
+  "destino": "http://localhost:18080",
+  "perfil": "perf",
+  "usuarios": 50,
+  "cohorte": {"rol": "CLIENTE", "ordinalDesde": 1, "ordinalHasta": 50, "tokenEstablePorHilo": true},
+  "tiemposSeg": {"preparacionMax": 180, "arranqueLocal": 20, "calentamiento": 60, "medicion": 600, "drenajeMax": 20, "recuperacionMax": 60, "margenToken": 120},
+  "ritmo": {
+    "objetivoHTTPPorSegundoGlobal": 10,
+    "periodoPorHiloMs": 5000,
+    "desfaseEntreHilosMs": 100,
+    "secuencia": ["notificaciones", "historial", "especialidades", "notificaciones", "historial"],
+    "rotarSecuenciaPorHilo": true,
+    "recuperarTurnosPerdidos": false,
+    "reintentos": 0
+  },
+  "endpoints": [
+    {"nombre": "notificaciones", "metodo": "GET", "ruta": "/api/notificaciones?page=0&size=20", "porcentaje": 40, "umbralMs": 800, "HTTP": 200, "autenticado": true},
+    {"nombre": "historial", "metodo": "GET", "ruta": "/api/cliente/citas", "porcentaje": 40, "umbralMs": 800, "HTTP": 200, "autenticado": true},
+    {"nombre": "especialidades", "metodo": "GET", "ruta": "/api/especialidades", "porcentaje": 20, "umbralMs": 300, "HTTP": 200, "autenticado": false}
+  ],
+  "timeoutConexionMs": 5000,
+  "timeoutRespuestaMs": 10000,
+  "analisisIntervaloSeg": 60,
+  "erroresSostenidoMaxPctExclusivo": 1,
+  "recursos": {"cambiarLimites": false, "recolectorPropuesto": "recursos-e7.ps1", "cadenciaObservadaAproxMs": 2100, "avisoHuecoMs": 4000, "huecoMaxInstrumentacionMs": 6000, "incluirRecuperacion": true},
+  "salida": {"guardarCuerpos": false, "guardarCabeceras": false, "guardarTokens": false, "guardarMuestrasOmitidasEnJTLHTTP": false, "dashboardSoloMedicion": true},
+  "permisosTurnoActual": {"HTTP": false, "JMeterReal": false, "escriturasSQL": false}
+}

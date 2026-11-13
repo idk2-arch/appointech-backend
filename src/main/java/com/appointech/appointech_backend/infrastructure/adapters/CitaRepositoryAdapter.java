@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +55,13 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
                 .stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public List<Cita> buscarActivasDeTecnicosEntre(Collection<Long> tecnicoIds, LocalDateTime inicio, LocalDateTime fin) {
+        if (tecnicoIds.isEmpty()) return List.of();
+        return citaJpaRepository.buscarDeTecnicosEntre(tecnicoIds, inicio, fin, EstadoCitaEntity.CANCELADA)
+                .stream().map(this::toDomain).toList();
     }
 
     @Override

@@ -14,4 +14,4 @@ COPY --from=construccion /app/target/*.jar app.jar
 USER appointech
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 CMD bash -c 'exec 3<>/dev/tcp/localhost/8080' || exit 1
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]

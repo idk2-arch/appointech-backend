@@ -8,6 +8,8 @@ import com.appointech.appointech_backend.domain.ports.in.ActualizarUsuarioUseCas
 import com.appointech.appointech_backend.domain.ports.in.CambiarEstadoUsuarioUseCase;
 import com.appointech.appointech_backend.domain.ports.in.CrearAdministradorUseCase;
 import com.appointech.appointech_backend.domain.ports.in.ListarUsuariosUseCase;
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
+import com.appointech.appointech_backend.domain.models.PaginacionOpcional;
 import com.appointech.appointech_backend.infrastructure.config.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,12 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +89,46 @@ class AdminUsuarioControllerTest {
                 .andExpect(jsonPath("$[0].rol").value("ADMINISTRADOR"))
                 .andExpect(jsonPath("$[1].tipoDocumento").doesNotExist())
                 .andExpect(jsonPath("$[1].activo").value(false));
+    }
+
+    @Test
+    void listarConPageYSizeDevuelveSoloLaPaginaYElTotalEnLaCabecera() throws Exception {
+        when(listar.listarPagina(PaginacionOpcional.de(1, 2)))
+                .thenReturn(new ListadoConTotal<>(List.of(usuario(3L, TipoDocumento.CC, true)), 7));
+
+        mvc.perform(get("/api/admin/usuarios").param("page", "1").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "7"))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(3));
+        verify(listar, never()).listar();
+    }
+
+    @Test
+    void listarConSoloPageUsaElTamanioPorDefecto() throws Exception {
+        when(listar.listarPagina(PaginacionOpcional.de(0, null)))
+                .thenReturn(new ListadoConTotal<>(List.of(), 0));
+
+        mvc.perform(get("/api/admin/usuarios").param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Total-Count", "0"));
+        verify(listar).listarPagina(new PaginacionOpcional(0, PaginacionOpcional.TAMANIO_POR_DEFECTO));
+    }
+
+    @Test
+    void listarSinPaginacionSigueDevolviendoTodosSinCabeceraDeTotal() throws Exception {
+        when(listar.listar()).thenReturn(List.of(usuario(1L, TipoDocumento.CC, true)));
+
+        mvc.perform(get("/api/admin/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("X-Total-Count"));
+        verify(listar, never()).listarPagina(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void listarConSizeFueraDeRangoEsUnaPeticionInvalida() throws Exception {
+        mvc.perform(get("/api/admin/usuarios").param("page", "0").param("size", "500"))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test

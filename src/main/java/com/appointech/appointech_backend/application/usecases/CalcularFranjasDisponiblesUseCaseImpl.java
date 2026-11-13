@@ -154,12 +154,17 @@ public class CalcularFranjasDisponiblesUseCaseImpl implements CalcularFranjasDis
         Map<Long, List<FranjaTrabajo>> franjasPorTecnico = franjaTrabajoRepositoryPort
                 .buscarDeTecnicosEnFecha(tecnicosQueCubren.keySet(), fecha).stream()
                 .collect(Collectors.groupingBy(FranjaTrabajo::tecnicoId));
+        Map<Long, List<Cita>> citasPorTecnico = franjasPorTecnico.isEmpty() ? Map.of() : citaRepositoryPort
+                .buscarActivasDeTecnicosEntre(franjasPorTecnico.keySet(), inicioDia, finDia).stream()
+                .collect(Collectors.groupingBy(Cita::getTecnicoId));
+        Map<Long, List<BloqueIndisponibilidad>> bloquesPorTecnico = franjasPorTecnico.isEmpty() ? Map.of() :
+                bloqueIndisponibilidadRepositoryPort.buscarDeTecnicosEntre(franjasPorTecnico.keySet(), inicioDia, finDia)
+                        .stream().collect(Collectors.groupingBy(BloqueIndisponibilidad::getTecnicoId));
         for (Map.Entry<Long, List<FranjaTrabajo>> entrada : franjasPorTecnico.entrySet()) {
             Tecnico tecnico = tecnicosQueCubren.get(entrada.getKey());
             double distanciaKm = distanciaDeLosQueCubren.get(tecnico.getId());
-            List<Cita> citasDelDia = citaRepositoryPort.buscarActivasDelTecnicoEntre(tecnico.getId(), inicioDia, finDia);
-            List<BloqueIndisponibilidad> bloquesDelDia =
-                    bloqueIndisponibilidadRepositoryPort.buscarDelTecnicoEntre(tecnico.getId(), inicioDia, finDia);
+            List<Cita> citasDelDia = citasPorTecnico.getOrDefault(tecnico.getId(), List.of());
+            List<BloqueIndisponibilidad> bloquesDelDia = bloquesPorTecnico.getOrDefault(tecnico.getId(), List.of());
 
             for (FranjaTrabajo franja : entrada.getValue()) {
                 for (FranjaTrabajo.Bloque bloque : franja.bloques(duracionMinutos)) {

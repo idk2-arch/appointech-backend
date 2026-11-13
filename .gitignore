@@ -57,4 +57,29 @@ build/
 hs_err_pid*
 replay_pid*
 .env
+.env.prod
+**/.env.prod
+k8s/secret.yaml
+k8s/*secret.real*.yaml
+k8s/**/*secret*.yaml
+k8s/*secret*.yaml
+!k8s/secret.example.yaml
+*.pem
+*.dump
 iniciar-backend.ps1
+
+# Pruebas de carga: secretos locales y resultados generados
+perf/.env.perf
+perf/jmeter/tokens.csv
+perf/resultados/*
+!perf/resultados/.gitkeep
+
+# Pruebas de carga: resultados generados y datos con credenciales (no se suben)
+perf/resultados/
+perf/diagnosticos/
+perf/inspecciones/
+perf/jmeter/tokens.csv
+perf/jmeter/clientes.csv
+perf/jmeter/*.zip
+perf/analisis/*/
+perf/analisis/*/

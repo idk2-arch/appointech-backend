@@ -1,0 +1,12 @@
+{
+  "fechaUTC": "2026-11-11T23:44:01.801Z",
+  "JTL50": "C:\\Users\\Juan David\\Downloads\\appointech-backend\\appointech-backend\\perf\\resultados\\e7-50-20261111-182840-7a34d9f7ac124f42b3bcfbefa82b8472\\e7.jtl",
+  "sha256": "6f06b156aa7c0e821e0b4477e5bd838f05a1e33283454497001772664ee66e08",
+  "permite100": true,
+  "HTTP": 0,
+  "ventanaSeg": 51.364,
+  "HTTPmedia": 19.562806634997273,
+  "HTTPmaxima": 50,
+  "tiempoConAlMenos10Pct": 68.92765360953197,
+  "razon": "Media 19.56 HTTP simultaneas y >=10 durante 68.93% del tiempo: hay concurrencia efectiva, no casi serial. Sigue siendo una carga instrumentada y con pausas SQL; no demuestra saturacion pura."
+}

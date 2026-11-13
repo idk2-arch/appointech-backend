@@ -48,8 +48,9 @@ public class ConsultarFranjasTrabajoUseCaseImpl implements ConsultarFranjasTraba
         }
 
         List<Cita> citas = reglas.citasAgendadas(tecnicoId, inicio.atStartOfDay(), fin.plusDays(1).atStartOfDay());
+        int duracionMinutos = reglas.duracionBloqueMinutos();
         return franjaRepositoryPort.buscarDelTecnicoEntre(tecnicoId, inicio, fin).stream()
-                .map(franja -> reglas.conOcupacion(franja, citas))
+                .map(franja -> reglas.conOcupacion(franja, citas, duracionMinutos))
                 .toList();
     }
 }

@@ -9,9 +9,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
+
+    @Query("SELECT c FROM CitaEntity c WHERE c.tecnicoId IN :tecnicoIds AND c.estado <> :estadoExcluido "
+            + "AND c.fechaHoraInicio < :fin AND c.fechaHoraFin > :inicio")
+    List<CitaEntity> buscarDeTecnicosEntre(@Param("tecnicoIds") Collection<Long> tecnicoIds,
+            @Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin,
+            @Param("estadoExcluido") EstadoCitaEntity estadoExcluido);
 
     List<CitaEntity> findByClienteIdOrderByCreadaEnDescIdDesc(Long clienteId);
 

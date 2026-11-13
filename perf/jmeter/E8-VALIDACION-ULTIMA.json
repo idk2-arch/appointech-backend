@@ -1,0 +1,104 @@
+﻿{
+    "identidadesWire":  50,
+    "JMeterCerrado":  true,
+    "parada401Probada":  true,
+    "evidencias":  "C:\\Users\\Juan David\\Downloads\\appointech-backend\\appointech-backend\\perf\\diagnosticos\\e8-ficticio-20261111-220523-042ecc5f3169437ab142bbabf02ebde9",
+    "hashes":  [
+                   {
+                       "sha256":  "D8F42C37263711EAC47C453F3828B0D7E7331FC30B866374CFB81C329F6ECAB8",
+                       "archivo":  "servidor-ficticio-e8.js"
+                   },
+                   {
+                       "sha256":  "897B49D3369AE5174BCC3356FBA1717FEAFEFDEDD4051F6361D186341BD47475",
+                       "archivo":  "generar-e8.js"
+                   },
+                   {
+                       "sha256":  "E7E411B885CCCEB95BDE9D127AB1FEE30B6A253A89B4609DF6C883A8CEC90BAC",
+                       "archivo":  "e8-resistencia.jmx"
+                   },
+                   {
+                       "sha256":  "50482F13668A517592C40235D0667F89EC15DFCE0BAADA6C8D0E2B3675B31079",
+                       "archivo":  "e8-ficticio.jmx"
+                   },
+                   {
+                       "sha256":  "4D094483053A4EA4B4E0DAC87C95A0BFD5565148E02F8BCB68805549386FE75E",
+                       "archivo":  "e8-motor.groovy"
+                   },
+                   {
+                       "sha256":  "DCCC5D0C25C9DEDC24100EAF1BB8B48987F160A9C82A8FA5E8D2ABCC2F6437D5",
+                       "archivo":  "analizar-e8.js"
+                   },
+                   {
+                       "sha256":  "7FB7D3B46A70242BA4D890F5D55262057A3B8FC9F25B7272097C62D544D4CD16",
+                       "archivo":  "e8-comun.ps1"
+                   },
+                   {
+                       "sha256":  "BCB5B099EF5566F307A4E6AD08EFCA66F0A434DF9C2D6117C36A6DF73EC8B910",
+                       "archivo":  "validar-e8.ps1"
+                   },
+                   {
+                       "sha256":  "2D290809EF42D291D37994F5179D0658A2596BE7AD8968D2FABB30B273BD4BBD",
+                       "archivo":  "ejecutar-e8.ps1"
+                   },
+                   {
+                       "sha256":  "555A6617FB9F0C4857F53E8640B19D9C121DEA7000335C08925DF93D447A3839",
+                       "archivo":  "probar-analisis-e8.js"
+                   },
+                   {
+                       "sha256":  "482B88DC610DD03C56015BA95B41D76DDB450AA256FFDCD8E536ACC01CB123C5",
+                       "archivo":  "crear-fixture-e8.js"
+                   },
+                   {
+                       "sha256":  "527E50AAD7894E6B5535D6399E7BBADC3FA21162D91EF3712518C3E40ECC7AF3",
+                       "archivo":  "inspeccionar-e8.js"
+                   },
+                   {
+                       "sha256":  "38D1EA9FA025202B1A79F98A2D0D3A2E73BE2A88210DCC117F1E29B3E3226B2B",
+                       "archivo":  "e6-lecturas.groovy"
+                   },
+                   {
+                       "sha256":  "74A60EBD037FEFFB159919C93E251FFAFA45B002A19CDE8B057D1B48DD17D96B",
+                       "archivo":  "preparar-e6.ps1"
+                   },
+                   {
+                       "sha256":  "70C76FB5AF220E59B110EFB532C902FDAAD5EDE62B3E1F6CD190B6C575379F27",
+                       "archivo":  "preparar-e2.ps1"
+                   },
+                   {
+                       "sha256":  "DD73A22F7F0D1441A74F23762A6D76E5CFEC5B2B82D3695F823A77CC11DDB78C",
+                       "archivo":  "e7-comun.ps1"
+                   },
+                   {
+                       "sha256":  "2F63484AE6A039DB10619ADAB02E6FDA637E497392215578192385E94440FFF1",
+                       "archivo":  "recursos-e7.ps1"
+                   },
+                   {
+                       "sha256":  "5BFFFA9F3BAE12749EDB254C0A84FD8FC8BA1C82C7F5B28445DB5AE89628BFFC",
+                       "archivo":  "recursos-perf.ps1"
+                   },
+                   {
+                       "sha256":  "9E69E7DFA5EADFE90753B1D9A3D8384D7A036798C407942F3B7DE5124B6B7760",
+                       "archivo":  "procesos-e6.ps1"
+                   },
+                   {
+                       "sha256":  "5B0AE643954AF4DC70CB9F61A5CE9E4A7702C3C1506F6B8BA1231F6D9EB8EE5A",
+                       "archivo":  "errores-e6.ps1"
+                   },
+                   {
+                       "sha256":  "B2946CCC530B9891D0D8F56B948F4C9993A0FD7C9259FCF7DDBEFA3A8FB86B9E",
+                       "archivo":  "../diseno/e8-resistencia.json"
+                   }
+               ],
+    "cabeceraEnviadaServidorFicticio":  true,
+    "sinBackend":  true,
+    "relojAcelerado":  true,
+    "HTTPBackend":  0,
+    "noAcredita600sReales":  true,
+    "autenticacionRamaRealProbada":  true,
+    "HTTPServidorFicticio":  300,
+    "recolectorCerrado":  true,
+    "GETPublicoSinAuthorization":  60,
+    "completa":  true,
+    "HTTP":  300,
+    "medicionFicticiaSeg":  20
+}

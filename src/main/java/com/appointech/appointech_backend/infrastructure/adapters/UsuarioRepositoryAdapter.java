@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.infrastructure.adapters;
 
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.RolUsuario;
 import com.appointech.appointech_backend.domain.models.TipoDocumento;
 import com.appointech.appointech_backend.domain.models.Usuario;
@@ -8,6 +9,9 @@ import com.appointech.appointech_backend.infrastructure.entities.RolUsuarioEntit
 import com.appointech.appointech_backend.infrastructure.entities.TipoDocumentoEntity;
 import com.appointech.appointech_backend.infrastructure.entities.UsuarioEntity;
 import com.appointech.appointech_backend.infrastructure.repositories.UsuarioJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -47,6 +51,12 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     @Override
     public List<Usuario> listarTodos() {
         return usuarioJpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public ListadoConTotal<Usuario> listarPagina(int pagina, int tamanio) {
+        Page<UsuarioEntity> resultado = usuarioJpaRepository.findAll(PageRequest.of(pagina, tamanio, Sort.by("id")));
+        return new ListadoConTotal<>(resultado.getContent().stream().map(this::toDomain).toList(), resultado.getTotalElements());
     }
 
     private UsuarioEntity toEntity(Usuario usuario) {

@@ -90,4 +90,20 @@ class ConsultasYBloquesLecturaAdaptersTest {
         assertEquals("Reunion", r.get(0).getMotivo());
         assertEquals(inicio.plusHours(2), r.get(0).getFin());
     }
+
+    @Test
+    void buscarBloquesPorLoteConservaTecnicoYLimites() {
+        var inicio = LocalDateTime.of(2026, 5, 1, 8, 0);
+        var fin = inicio.plusHours(4);
+        var ids = List.of(2L, 3L);
+        var entity = new BloqueIndisponibilidadEntity();
+        entity.setTecnicoId(3L);
+        entity.setInicio(inicio);
+        entity.setFin(fin);
+        when(bloquesJpa.findByTecnicoIdInAndInicioLessThanAndFinGreaterThan(ids, fin, inicio)).thenReturn(List.of(entity));
+        var resultado = new BloqueIndisponibilidadRepositoryAdapter(bloquesJpa).buscarDeTecnicosEntre(ids, inicio, fin);
+        assertEquals(1, resultado.size());
+        assertEquals(3L, resultado.get(0).getTecnicoId());
+        assertEquals(fin, resultado.get(0).getFin());
+    }
 }

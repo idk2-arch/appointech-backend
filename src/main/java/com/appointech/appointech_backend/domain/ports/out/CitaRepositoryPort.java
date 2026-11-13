@@ -5,6 +5,7 @@ import com.appointech.appointech_backend.domain.models.FiltroSolicitudesManuales
 import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,5 @@ public interface CitaRepositoryPort {
     /** Todas las citas del cliente, las más recientes primero. */
     List<Cita> listarPorCliente(Long clienteId);
     List<Cita> buscarActivasDelTecnicoEntre(Long tecnicoId, LocalDateTime inicio, LocalDateTime fin);
+    List<Cita> buscarActivasDeTecnicosEntre(Collection<Long> tecnicoIds, LocalDateTime inicio, LocalDateTime fin);
 }

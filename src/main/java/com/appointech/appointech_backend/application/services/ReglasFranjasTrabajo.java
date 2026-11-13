@@ -94,7 +94,11 @@ public class ReglasFranjasTrabajo {
 
     /** Igual que {@link #conOcupacion(FranjaTrabajo)}, con las citas del técnico ya consultadas (para listar sin una consulta por franja). */
     public FranjaTrabajoConOcupacion conOcupacion(FranjaTrabajo franja, List<Cita> citasDelTecnico) {
-        List<FranjaTrabajo.Bloque> bloques = franja.bloques(duracionBloqueMinutos());
+        return conOcupacion(franja, citasDelTecnico, duracionBloqueMinutos());
+    }
+
+    public FranjaTrabajoConOcupacion conOcupacion(FranjaTrabajo franja, List<Cita> citasDelTecnico, int duracionMinutos) {
+        List<FranjaTrabajo.Bloque> bloques = franja.bloques(duracionMinutos);
         long ocupados = bloques.stream().filter(bloque -> citasDelTecnico.stream().anyMatch(cita ->
                 cita.getFechaHoraInicio().isBefore(bloque.fin()) && cita.getFechaHoraFin().isAfter(bloque.inicio()))).count();
         return new FranjaTrabajoConOcupacion(franja, bloques.size(), (int) ocupados);

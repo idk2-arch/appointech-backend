@@ -1,56 +1,425 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend
-  namespace: appointech
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: backend
-  template:
-    metadata:
-      labels:
-        app: backend
-    spec:
-      containers:
-        - name: backend
-          image: ghcr.io/OWNER/REPOSITORIO-backend:latest
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          envFrom:
-            - configMapRef:
-                name: appointech-config
-            - secretRef:
-                name: appointech-secretos
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 40
-            periodSeconds: 10
-          livenessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 90
-            periodSeconds: 20
-          resources:
-            requests:
-              cpu: 250m
-              memory: 512Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-  namespace: appointech
-spec:
-  type: ClusterIP
-  selector:
-    app: backend
-  ports:
-    - port: 80
-      targetPort: 8080
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "backend",
+        "namespace": "appointech"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "RollingUpdate",
+          "rollingUpdate": {
+            "maxSurge": 0,
+            "maxUnavailable": 1
+          }
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "backend"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "backend"
+            }
+          },
+          "spec": {
+            "nodeSelector": {
+              "kubernetes.io/arch": "amd64"
+            },
+            "containers": [
+              {
+                "name": "backend",
+                "image": "ghcr.io/idk2-arch/appointech-backend-backend:latest",
+                "imagePullPolicy": "Always",
+                "ports": [
+                  {
+                    "containerPort": 8080
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "DB_URL",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "DB_URL"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_USER",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "DB_USER"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_NAME",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "DB_NAME"
+                      }
+                    }
+                  },
+                  {
+                    "name": "NOTIFICACIONES_URL",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "NOTIFICACIONES_URL"
+                      }
+                    }
+                  },
+                  {
+                    "name": "GOOGLE_CLIENT_ID",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "GOOGLE_CLIENT_ID"
+                      }
+                    }
+                  },
+                  {
+                    "name": "CORS_ORIGINS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "CORS_ORIGINS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ALMACENAMIENTO_ENDPOINT",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "ALMACENAMIENTO_ENDPOINT"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ALMACENAMIENTO_BUCKET",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "ALMACENAMIENTO_BUCKET"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ALMACENAMIENTO_REGION",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "ALMACENAMIENTO_REGION"
+                      }
+                    }
+                  },
+                  {
+                    "name": "GROQ_MODEL",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "GROQ_MODEL"
+                      }
+                    }
+                  },
+                  {
+                    "name": "GROQ_BASE_URL",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "GROQ_BASE_URL"
+                      }
+                    }
+                  },
+                  {
+                    "name": "GROQ_TIMEOUT_MS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "GROQ_TIMEOUT_MS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "HAVERSINE_VELOCIDAD_KMH",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "HAVERSINE_VELOCIDAD_KMH"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RUTA_MARGEN_MINUTOS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "RUTA_MARGEN_MINUTOS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RUTA_TOLERANCIA_MINUTOS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "RUTA_TOLERANCIA_MINUTOS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "APP_ZONA_HORARIA",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "APP_ZONA_HORARIA"
+                      }
+                    }
+                  },
+                  {
+                    "name": "FORWARD_HEADERS_STRATEGY",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "FORWARD_HEADERS_STRATEGY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "CONTACTO_ADMIN_TELEFONO",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "CONTACTO_ADMIN_TELEFONO"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PASARELA_PAGOS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "PASARELA_PAGOS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PASARELA_SIMULADA_APROBAR",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "PASARELA_SIMULADA_APROBAR"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "PAGOS_UMBRAL_DIFERENCIA_PORCENTAJE"
+                      }
+                    }
+                  },
+                  {
+                    "name": "PAGOS_URL_RETORNO",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "PAGOS_URL_RETORNO"
+                      }
+                    }
+                  },
+                  {
+                    "name": "CALIFICACION_PLAZO_DIAS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "CALIFICACION_PLAZO_DIAS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "REGISTRO_LOG_COLA_MAXIMA",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "REGISTRO_LOG_COLA_MAXIMA"
+                      }
+                    }
+                  },
+                  {
+                    "name": "SPRING_PROFILES_ACTIVE",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "SPRING_PROFILES_ACTIVE"
+                      }
+                    }
+                  },
+                  {
+                    "name": "SPRINGDOC_API_DOCS_ENABLED",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "SPRINGDOC_API_DOCS_ENABLED"
+                      }
+                    }
+                  },
+                  {
+                    "name": "SPRINGDOC_SWAGGER_UI_ENABLED",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "SPRINGDOC_SWAGGER_UI_ENABLED"
+                      }
+                    }
+                  },
+                  {
+                    "name": "JAVA_TOOL_OPTIONS",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "JAVA_TOOL_OPTIONS"
+                      }
+                    }
+                  },
+                  {
+                    "name": "TZ",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "appointech-config",
+                        "key": "TZ"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "DB_PASSWORD"
+                      }
+                    }
+                  },
+                  {
+                    "name": "JWT_SECRET",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "JWT_SECRET"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ORS_API_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "ORS_API_KEY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "GROQ_API_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "GROQ_API_KEY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ALMACENAMIENTO_ACCESS_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "ALMACENAMIENTO_ACCESS_KEY"
+                      }
+                    }
+                  },
+                  {
+                    "name": "ALMACENAMIENTO_SECRET_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "appointech-secretos",
+                        "key": "ALMACENAMIENTO_SECRET_KEY"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "memory": "512Mi",
+                    "cpu": "250m"
+                  },
+                  "limits": {
+                    "memory": "1Gi",
+                    "cpu": "1"
+                  }
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/api/salud",
+                    "port": 8080
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3,
+                  "failureThreshold": 60
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/api/salud",
+                    "port": 8080
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/api/salud",
+                    "port": 8080
+                  },
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3,
+                  "failureThreshold": 6
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "backend",
+        "namespace": "appointech"
+      },
+      "spec": {
+        "selector": {
+          "app": "backend"
+        },
+        "ports": [
+          {
+            "port": 80,
+            "targetPort": 8080
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import com.appointech.appointech_backend.infrastructure.repositories.BloqueIndis
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -30,5 +31,13 @@ public class BloqueIndisponibilidadRepositoryAdapter implements BloqueIndisponib
     private BloqueIndisponibilidad toDomain(BloqueIndisponibilidadEntity entity) {
         return new BloqueIndisponibilidad(
                 entity.getId(), entity.getTecnicoId(), entity.getInicio(), entity.getFin(), entity.getMotivo());
+    }
+
+    @Override
+    public List<BloqueIndisponibilidad> buscarDeTecnicosEntre(Collection<Long> tecnicoIds, LocalDateTime inicio, LocalDateTime fin) {
+        if (tecnicoIds.isEmpty()) return List.of();
+        return bloqueIndisponibilidadJpaRepository
+                .findByTecnicoIdInAndInicioLessThanAndFinGreaterThan(tecnicoIds, fin, inicio)
+                .stream().map(this::toDomain).toList();
     }
 }

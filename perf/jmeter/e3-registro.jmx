@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="AppoinTech E3 - Registro de clientes">
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="E3 - Preparacion local sin HTTP">
+        <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"><boolProp name="LoopController.continue_forever">false</boolProp><stringProp name="LoopController.loops">1</stringProp></elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp><stringProp name="ThreadGroup.ramp_time">0</stringProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Inicializar identidades y scripts sin enviar peticiones">
+          <stringProp name="scriptLanguage">groovy</stringProp><stringProp name="cacheKey">true</stringProp><stringProp name="filename"/>
+          <stringProp name="script"><![CDATA[
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.DeserializationFeature
+import javax.xml.parsers.DocumentBuilderFactory
+import org.apache.jmeter.samplers.SampleResult as Resultado
+import org.apache.jmeter.modifiers.JSR223PreProcessor
+import org.apache.jmeter.extractor.JSR223PostProcessor
+import org.apache.jmeter.assertions.JSR223Assertion
+
+SampleResult.setIgnore()
+def inicio = System.currentTimeMillis()
+try {
+    def mapper = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+    def preparados = (1..Integer.parseInt(props.getProperty('usuarios', '20'))).collect { ordinal ->
+        def cuerpo = System.getenv(props.getProperty('identidadesEnv') + ordinal)
+        if (!cuerpo) throw new IllegalStateException('Identidad E3 ausente en preparacion')
+        [cuerpo:cuerpo, esperado:mapper.readTree(cuerpo)]
+    }
+    props.put('e3Preparados', preparados)
+    props.put('e3Mapper', mapper)
+    props.put('e3Diagnosticos', new java.util.concurrent.ConcurrentLinkedQueue())
+    // Ejecutar las mismas fuentes mediante sus elementos JMeter llena su cache real,
+    // y ejercita las aserciones con una respuesta ficticia, sin ningun HTTP.
+    def f = DocumentBuilderFactory.newInstance()
+    f.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)
+    def doc = f.newDocumentBuilder().parse(new File(props.getProperty('planE3')))
+    def esperado = preparados[0].esperado
+    def ficticio = new Resultado()
+    ficticio.sampleStart()
+    ficticio.setResponseCode('201')
+    ficticio.setResponseData(mapper.writeValueAsBytes([exito:true, datos:[id:1,
+        nombre:esperado.path('nombre').textValue(), apellido:esperado.path('apellido').textValue(),
+        correo:esperado.path('correo').textValue(), rol:'CLIENTE', fotoUrl:null],
+        mensaje:'Cliente registrado correctamente', timestamp:'2026-01-01T00:00:00']))
+    ficticio.sampleEnd()
+    ctx.setPreviousResult(ficticio)
+    vars.put('e3Calentando', 'true')
+    [JSR223PreProcessor:JSR223PreProcessor, JSR223PostProcessor:JSR223PostProcessor,
+     JSR223Assertion:JSR223Assertion].each { etiqueta, clase ->
+        def nodos = doc.getElementsByTagName(etiqueta)
+        for (int i=0; i<nodos.length; i++) {
+            def fuente = nodos.item(i).getElementsByTagName('stringProp')
+            def script = (0..<fuente.length).findResult { j ->
+                fuente.item(j).getAttribute('name') == 'script' ? fuente.item(j).textContent : null
+            }
+            def elemento = clase.getDeclaredConstructor().newInstance()
+            elemento.setScriptLanguage('groovy'); elemento.setCacheKey('true'); elemento.setScript(script)
+            if (elemento instanceof JSR223Assertion) {
+                def resultado = elemento.getResult(ficticio)
+                if (resultado.isFailure() || resultado.isError()) throw new IllegalStateException('No se pudo precalentar una asercion E3')
+            } else elemento.process()
+        }
+    }
+    new org.apache.jmeter.protocol.http.sampler.HTTPSampleResult()
+    Class.forName('org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl')
+    props.put('e3PreparacionLista', true)
+    mapper.writeValue(new File(props.getProperty('preparacionGenerador')), [inicioEpochMs:inicio,
+        finEpochMs:System.currentTimeMillis(), identidades:preparados.size(), solicitudesHTTP:0])
+} catch (Throwable ignorado) {
+    ctx.getEngine().stopTest(true)
+    throw new IllegalStateException('Preparacion local E3 fallida; no iniciar carga')
+}
+]]></stringProp>
+        </JSR223Sampler><hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="E3 - Clientes">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(usuarios,20)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampa,10)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="JSON UTF-8">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Accept</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-Type</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E3 POST /api/auth/registro/cliente">
+          <stringProp name="HTTPSampler.protocol">${__P(protocolo,http)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(puerto,18080)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/registro/cliente</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">${__P(timeoutConexionMs,5000)}</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">${__P(timeoutRespuestaMs,10000)}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${e3Cuerpo}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Asignar una identidad sintetica al hilo">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+def inicio = System.currentTimeMillis()
+vars.remove('e3UsuarioId')
+def preparados = props.get('e3Preparados')
+if (!preparados || (vars.get('e3Calentando') != 'true' && props.get('e3PreparacionLista') != true)) {
+    ctx.getEngine().stopTest(true)
+    throw new IllegalStateException('Preparacion E3 no disponible')
+}
+def preparado = preparados[ctx.getThreadNum()]
+vars.putObject('e3Mapper', props.get('e3Mapper'))
+vars.putObject('e3Esperado', preparado.esperado)
+vars.put('e3Cuerpo', preparado.cuerpo)
+vars.putObject('e3PreparacionInicio', inicio)
+vars.putObject('e3PreparacionFin', System.currentTimeMillis())
+]]></stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Conservar diagnostico de transporte y censurar autenticacion">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+vars.remove('e3Cuerpo')
+if (vars.get('e3Calentando') != 'true') {
+    props.get('e3Diagnosticos').add([ctx.getThreadNum()+1, vars.getObject('e3PreparacionInicio'),
+        vars.getObject('e3PreparacionFin'), prev.getStartTime(), prev.getEndTime()])
+}
+def codigo = prev.getResponseCode() ?: ''
+if (codigo ==~ /[0-9]{3}/) {
+    prev.setResponseMessage('HTTP ' + codigo)
+} else {
+    def secreto = vars.getObject('e3Esperado').path('contrasena').textValue()
+    def limpiar = { String valor ->
+        valor.replace(secreto, '[REDACTADO]')
+             .replaceAll(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/, '[REDACTADO]')
+    }
+    prev.setResponseCode(limpiar(codigo))
+    prev.setResponseMessage(limpiar(prev.getResponseMessage() ?: ''))
+}
+]]></stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="HTTP y transporte">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+def codigo = prev.getResponseCode() ?: ''
+if (codigo != '201') {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage(codigo ==~ /[0-9]{3}/ ?
+        'HTTP - se esperaba 201' : 'Transporte - consultar codigo y mensaje de respuesta')
+}
+]]></stringProp>
+          </JSR223Assertion>
+          <hashTree/>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="Contenido del registro">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"/>
+            <stringProp name="script"><![CDATA[
+import java.time.LocalDateTime
+
+def esperado = vars.getObject('e3Esperado')
+vars.remove('e3Esperado')
+if (prev.getResponseCode() != '201') return
+
+def fallo = { String motivo ->
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage('Contenido - ' + motivo)
+}
+def json
+try {
+    json = vars.getObject('e3Mapper').readTree(prev.getResponseData())
+} catch (IOException ignored) {
+    fallo('JSON invalido')
+    return
+}
+if (!json?.isObject() || !json.path('exito').isBoolean() || !json.path('exito').booleanValue()) {
+    fallo('exito debe ser el booleano true')
+    return
+}
+def datos = json.path('datos')
+def id = datos.path('id')
+if (!id.isIntegralNumber() || !id.canConvertToLong() || id.longValue() <= 0 ||
+    ['nombre', 'apellido', 'correo'].any { datos.path(it) != esperado.path(it) } ||
+    datos.path('rol').textValue() != 'CLIENTE' || !datos.path('fotoUrl').isNull() ||
+    datos.has('contrasena') || datos.has('token') ||
+    json.path('mensaje').textValue() != 'Cliente registrado correctamente' ||
+    !json.path('timestamp').isTextual()) {
+    fallo('campos de registro inesperados')
+    return
+}
+try {
+    LocalDateTime.parse(json.path('timestamp').textValue())
+} catch (java.time.format.DateTimeParseException ignored) {
+    fallo('timestamp invalido')
+    return
+}
+vars.put('e3UsuarioId', id.asText())
+]]></stringProp>
+          </JSR223Assertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Duracion - umbral provisional de registro">
+            <stringProp name="DurationAssertion.duration">${__P(umbralRegistroMs,1500)}</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="E3 - Guardar diagnostico sin secretos">
+        <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"><boolProp name="LoopController.continue_forever">false</boolProp><stringProp name="LoopController.loops">1</stringProp></elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp><stringProp name="ThreadGroup.ramp_time">0</stringProp>
+      </PostThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Guardar diagnostico fuera del tramo medido">
+          <stringProp name="scriptLanguage">groovy</stringProp><stringProp name="cacheKey">true</stringProp><stringProp name="filename"/>
+          <stringProp name="script"><![CDATA[
+SampleResult.setIgnore()
+def filas = props.get('e3Diagnosticos') ?: []
+new File(props.getProperty('diagnosticoGenerador')).withWriter('UTF-8') { w ->
+    w.write('ordinal,preparacionInicioEpochMs,preparacionFinEpochMs,inicioHttpEpochMs,finHttpEpochMs\n')
+    filas.sort { it[0] }.each { w.write(it.join(',') + '\n') }
+}
+props.remove('e3Preparados')
+props.remove('e3Mapper')
+]]></stringProp>
+        </JSR223Sampler><hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

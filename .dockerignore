@@ -2,8 +2,14 @@ target
 .git
 .idea
 .env
+.env.*
+*.pem
+*.dump
+*.log
 *.md
 *.pdf
 microservicio-notificaciones
 k8s
 docs
+perf
+e2e

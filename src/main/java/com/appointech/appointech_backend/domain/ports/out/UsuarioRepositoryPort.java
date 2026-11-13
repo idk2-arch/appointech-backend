@@ -1,5 +1,6 @@
 package com.appointech.appointech_backend.domain.ports.out;
 
+import com.appointech.appointech_backend.domain.models.ListadoConTotal;
 import com.appointech.appointech_backend.domain.models.Usuario;
 
 import java.util.List;
@@ -11,4 +12,6 @@ public interface UsuarioRepositoryPort {
     Optional<Usuario> buscarPorId(Long id);
     Optional<Usuario> buscarPorNumeroDocumento(String numeroDocumento);
     List<Usuario> listarTodos();
+
+    ListadoConTotal<Usuario> listarPagina(int pagina, int tamanio);
 }

@@ -6,6 +6,7 @@ import com.appointech.appointech_backend.domain.models.Tecnico;
 import com.appointech.appointech_backend.domain.ports.in.ActualizarUbicacionTecnicoUseCase;
 import com.appointech.appointech_backend.domain.ports.out.TecnicoRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ActualizarUbicacionTecnicoUseCaseImpl implements ActualizarUbicacionTecnicoUseCase {
@@ -17,6 +18,7 @@ public class ActualizarUbicacionTecnicoUseCaseImpl implements ActualizarUbicacio
     }
 
     @Override
+    @Transactional
     public Tecnico actualizar(Long tecnicoId, Double latitud, Double longitud) {
         Coordenadas base = Coordenadas.de(latitud, longitud);
         Tecnico tecnico = tecnicoRepositoryPort.buscarPorId(tecnicoId)

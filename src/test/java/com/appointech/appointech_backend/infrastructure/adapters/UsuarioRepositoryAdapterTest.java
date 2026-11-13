@@ -136,4 +136,22 @@ class UsuarioRepositoryAdapterTest {
 
         assertEquals(List.of(1L, 2L), lista.stream().map(Usuario::getId).toList());
     }
+
+    @Test
+    void listarPaginaPideSoloEsaPaginaOrdenadaPorIdYDevuelveElTotal() {
+        when(jpa.findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(entity(1L, true), entity(2L, false)),
+                        org.springframework.data.domain.PageRequest.of(1, 2), 5));
+
+        var listado = adapter.listarPagina(1, 2);
+
+        org.mockito.ArgumentCaptor<org.springframework.data.domain.Pageable> pagina =
+                org.mockito.ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+        org.mockito.Mockito.verify(jpa).findAll(pagina.capture());
+        assertEquals(1, pagina.getValue().getPageNumber());
+        assertEquals(2, pagina.getValue().getPageSize());
+        assertEquals("id", pagina.getValue().getSort().iterator().next().getProperty());
+        assertEquals(5L, listado.total());
+        assertEquals(List.of(1L, 2L), listado.elementos().stream().map(Usuario::getId).toList());
+    }
 }

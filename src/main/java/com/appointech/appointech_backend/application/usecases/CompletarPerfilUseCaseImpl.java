@@ -8,6 +8,7 @@ import com.appointech.appointech_backend.domain.ports.in.CompletarPerfilUseCase;
 import com.appointech.appointech_backend.domain.ports.out.ClienteRepositoryPort;
 import com.appointech.appointech_backend.domain.ports.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CompletarPerfilUseCaseImpl implements CompletarPerfilUseCase {
@@ -22,6 +23,7 @@ public class CompletarPerfilUseCaseImpl implements CompletarPerfilUseCase {
     }
 
     @Override
+    @Transactional
     public Usuario completar(String correoUsuario, String telefono, TipoDocumento tipoDocumento,
                              String numeroDocumento, String direccion) {
 
